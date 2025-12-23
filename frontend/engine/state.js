@@ -7,7 +7,7 @@ export class State {
     #PAUSE = true
     #PLAYER_SPEED = 3
     #BOMB_COUNT = 0
-    #MAX_ALLOWD_BOMBS = 1
+    #MAX_ALLOWED_BOMBS = 1
     #GAME_OVER = false
     #SOUND = true
     #ARROW_UP = false
@@ -16,7 +16,7 @@ export class State {
     #ARROW_LEFT = false
     #TIME = 0
     #TIMER_ID = null
-    #RESTAR = false
+    #RESTART = false
     #STATE = false
     #MAXLEVEL = 10
 
@@ -44,9 +44,9 @@ export class State {
     maxlevel = () => this.#MAXLEVEL
     resetLevel = () => this.#CURRENT_LEVEL = 1;
     update = () => !this.#LIVES ? this.GameOver() : 0
-    Isrestar = () => this.#RESTAR
+    Isrestar = () => this.#RESTART
     SetPause = (env) => this.#PAUSE = env
-    Restar = () => this.#RESTAR = !this.#RESTAR
+    Restar = () => this.#RESTART = !this.#RESTART
     getTime = () => this.#TIME
     setLives = (val = 1) => this.#LIVES += val
     getLives = () => this.#LIVES
@@ -57,8 +57,8 @@ export class State {
     setScore = (val) => this.#SCORE = val
     getBombCount = () => this.#BOMB_COUNT
     setBombCount = (val = 1) => this.#BOMB_COUNT += val
-    getMaxAllowdBombCount = () => this.#MAX_ALLOWD_BOMBS
-    setMaxAllowdBombCount = (val = 1) => this.#MAX_ALLOWD_BOMBS += val
+    getMaxAllowdBombCount = () => this.#MAX_ALLOWED_BOMBS
+    setMaxAllowdBombCount = (val = 1) => this.#MAX_ALLOWED_BOMBS += val
     isPaused = () => this.#PAUSE
     isGameOver = () => this.#GAME_OVER
     GameOver = () => this.#GAME_OVER = true
@@ -87,7 +87,7 @@ export class State {
         this.#PAUSE = true;
         this.#PLAYER_SPEED = 4;
         this.#BOMB_COUNT = 0;
-        this.#MAX_ALLOWD_BOMBS = 3;
+        this.#MAX_ALLOWED_BOMBS = 3;
         this.#GAME_OVER = false;
         this.#SOUND = true;
         this.#TIME = 0;
