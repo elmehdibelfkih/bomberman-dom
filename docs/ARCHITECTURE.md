@@ -164,3 +164,15 @@ client/
 - No client-side game logic
 - WebSocket authentication via tokens
 - Sanitize chat messages (XSS prevention)
+
+---
+
+## Use 🧩 [mermaidchart.io](https://www.mermaidchart.com/app/projects/9f68040a-3195-4f34-9d10-443c8eac4928/diagrams/93b377d2-7f32-47cc-ac5b-26166508b695/share/invite/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkb2N1bWVudElEIjoiOTNiMzc3ZDItN2YzMi00N2NjLWFjNWItMjYxNjY1MDhiNjk1IiwiYWNjZXNzIjoiVmlldyIsImlhdCI6MTc2NjU2NTQ1MH0.TwaZFVAQUpEHDlQwJXd2gZaUfAfdGd27LJjhts35k3o) to see the network flow diagram.
+
+![](./network-flow.png)
+
+---
+
+## Use 🧩 [mermaidchart.io](https://www.mermaidchart.com/app/projects/9f68040a-3195-4f34-9d10-443c8eac4928/diagrams/e6f052cb-9a2c-47ab-834c-ffb3935d532b/share/invite/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkb2N1bWVudElEIjoiZTZmMDUyY2ItOWEyYy00N2FiLTgzNGMtZmZiMzkzNWQ1MzJiIiwiYWNjZXNzIjoiRWRpdCIsImlhdCI6MTc2NjU2NTY4NH0.g9apFSaLqxOtJTgEe4Nno-_6egsohXu-0SLG6xrRUZo) to see the state-sync diagram.
+
+![](./state-sync.png)
