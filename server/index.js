@@ -38,7 +38,6 @@ const connections = new Set();
 wss.on('connection', (ws, req) => {
     const clientId = IdGenerator.generatePlayerId()
     const conn = new Connection(ws, clientId)
-    conn.clientId = clientId
     connections.add(conn)
 
     ws.on('message', (data) => {

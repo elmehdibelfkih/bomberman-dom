@@ -1,6 +1,8 @@
 import { extname, join } from "path"
 import { MIME_TYPES } from "./utils.js"
 import { readFileSync } from "fs"
+import { validateNickname } from "../utils/validation.js"
+import { send404Http, send500Http, sendErrorHttp, sendFileHttp } from "../helpers.js"
 
 
 // serve html 'home page', and start getting in a lobby
@@ -14,16 +16,9 @@ export function homeHandler(req, res) {
 
     try {
         const content = readFileSync(fullPath);
-        res.writeHead(200, { 'content-type': contentType })
-        res.end(content)
+        sendFileHttp(res, content, contentType)
     } catch (error) {
         console.log(error)
-        if (error.code = 'ENOENT') {
-            res.writeHead(404, { 'content-type': 'text/plain' })
-            res.end('404 not found')
-        } else {
-            res.writeHead(500, { 'Content-Type': 'text/plain' });
-            res.end('500 Internal Server Error');
-        }
+        send500Http(res, 'homeHandler')
     }
 }
