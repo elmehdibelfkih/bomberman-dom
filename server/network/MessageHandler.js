@@ -80,8 +80,23 @@ export class MessageHandler {
     handleChat(connection, message) {
         // 1. Sanitize message
         const sanitizedMessage = sanitizeChatMessage(message.text)
+        if (!connection.playerId) {
+            connection.sendError('NOT_IN_GAME', 'You must join a game first')
+        }
+
+        if (!sanitizedMessage) {
+            connection.sendError('EMPTY_MESSAGE', 'Message cannot be empty')
+        }
+
         // 2. Get player's game room
+        const room = this.roomManager.getRoomForPlayer(connection.playerId)
+
+        if (!room) {
+            connection.sendError('NO_ROOM', 'Not in a game room');
+            return;
+        }
         // 3. Broadcast to all players
+        room.broadcast(MessageBuilder.chatMessage(connection.playerId, connection.nickname, sanitizedMessage))
     }
 
     handleQuitGame(connection, message) {

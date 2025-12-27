@@ -2,7 +2,6 @@ export const ServerMessages = {
   // Connection
   CONNECTED: 'CONNECTED',
   ERROR: 'ERROR',
-  PONG: 'PONG',
   // Lobby
   LOBBY_JOINED: 'LOBBY_JOINED',
   PLAYER_JOINED: 'PLAYER_JOINED',
