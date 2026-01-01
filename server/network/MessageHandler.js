@@ -1,41 +1,45 @@
 import { ClientMessages, ServerMessages } from "../../shared/message-types.js"
-import { RoomManager } from "../core/RoomManager";
-import { sanitizeChatMessage, validateNickname } from "../utils/validation";
+import { RoomManager } from "../core/RoomManagerNew.js";
+import { sanitizeChatMessage, validateNickname } from "../utils/validation.js";
 import { MessageBuilder } from "./MessageBuilder.js"
+import { Logger } from "../utils/Logger.js"
+
 export class MessageHandler {
     constructor() {
-        this.roomManager = new RoomManager()
+        this.roomManager = RoomManager.getInstance()
     }
 
-    handle(connection, rawMessage) {
+    handle(connection, message) {
         try {
-            const message = JSON.parse(rawMessage)
-
+            Logger.info(`Handling message: ${message.type} from ${connection.clientId}`)
+            
             switch (message.type) {
-                case message.type == ClientMessages.JOIN_GAME:
+                case ClientMessages.JOIN_GAME:
                     this.handleJoinGame(connection, message);
                     break
 
-                case message.type == ClientMessages.MOVE:
+                case ClientMessages.MOVE:
                     this.handleMove(connection, message);
                     break
 
-                case message.type == ClientMessages.PLACE_BOMB:
+                case ClientMessages.PLACE_BOMB:
                     this.handlePlaceBomb(connection, message);
                     break
 
-                case message.type == ClientMessages.CHAT_MESSAGE:
+                case ClientMessages.CHAT_MESSAGE:
                     this.handleChat(connection, message);
-                    break;
-                case message.type == ClientMessages.QUIT_GAME:
+                    break
+                    
+                case ClientMessages.QUIT_GAME:
                     this.handleQuitGame(connection, message)
                     break
 
                 default:
-                    this.sendError(connection, 'Unknown message type');
+                    this.sendError(connection, 'UNKNOWN_MESSAGE_TYPE', 'Unknown message type');
             }
         } catch (error) {
-            this.sendError(connection, 'Invalid message format');
+            Logger.error('Error handling message:', error)
+            this.sendError(connection, 'MESSAGE_ERROR', 'Error processing message');
         }
     }
 
@@ -48,8 +52,8 @@ export class MessageHandler {
             return
         }
 
-        const mapId = message.mapId
-        if (!mapId || mapId < 1 || mapId > 6) {
+        const mapId = message.mapId || 1
+        if (mapId < 1 || mapId > 6) {
             connection.sendError('INVALID_MAP', 'Must choose one of the available maps');
             return;
         }
@@ -59,51 +63,86 @@ export class MessageHandler {
 
             connection.setPlayerInfo(playerId, nickname);
 
-            connection.send(MessageBuilder.playerJoined(playerId, nickname, lobby.players.size))
+            connection.send(MessageBuilder.lobbyJoined({
+                playerId: playerId,
+                nickname: nickname,
+                lobbyId: lobby.id,
+                playerCount: lobby.players.size,
+                maxPlayers: 4
+            }))
         } catch (error) {
+            Logger.error('Join game error:', error)
             connection.sendError('JOIN_FAILED', error.message);
         }
     }
 
-
     handleMove(connection, message) {
-        // 1. Get player's game room
-        // 2. Validate direction
-        // 3. Call room.handlePlayerInput()
+        const room = this.roomManager.getRoomForPlayer(connection.clientId)
+        if (!room) {
+            connection.sendError('NO_ROOM', 'Not in a game room')
+            return
+        }
+        
+        if (!message.direction || !['UP', 'DOWN', 'LEFT', 'RIGHT'].includes(message.direction)) {
+            connection.sendError('INVALID_DIRECTION', 'Invalid movement direction')
+            return
+        }
+        
+        room.handlePlayerInput(connection.clientId, {
+            type: 'MOVE',
+            direction: message.direction
+        })
     }
 
     handlePlaceBomb(connection, message) {
-        // 1. Get player's game room
-        // 2. Call room.handlePlayerInput()
+        const room = this.roomManager.getRoomForPlayer(connection.clientId)
+        if (!room) {
+            connection.sendError('NO_ROOM', 'Not in a game room')
+            return
+        }
+        
+        room.handlePlayerInput(connection.clientId, {
+            type: 'PLACE_BOMB'
+        })
     }
 
     handleChat(connection, message) {
-        // 1. Sanitize message
         const sanitizedMessage = sanitizeChatMessage(message.text)
-        if (!connection.playerId) {
+        if (!connection.clientId) {
             connection.sendError('NOT_IN_GAME', 'You must join a game first')
+            return
         }
 
         if (!sanitizedMessage) {
             connection.sendError('EMPTY_MESSAGE', 'Message cannot be empty')
+            return
         }
 
-        // 2. Get player's game room
-        const room = this.roomManager.getRoomForPlayer(connection.playerId)
-
+        const room = this.roomManager.getRoomForPlayer(connection.clientId)
         if (!room) {
             connection.sendError('NO_ROOM', 'Not in a game room');
             return;
         }
-        // 3. Broadcast to all players
-        room.broadcast(MessageBuilder.chatMessage(connection.playerId, connection.nickname, sanitizedMessage))
+        
+        room.broadcast(MessageBuilder.chatMessage({
+            playerId: connection.clientId,
+            nickname: connection.nickname,
+            message: sanitizedMessage,
+            timestamp: Date.now()
+        }))
     }
 
     handleQuitGame(connection, message) {
-
+        this.roomManager.handleDisconnect(connection.clientId)
+        connection.send(MessageBuilder.gameLeft())
     }
 
-    sendError(connection, message) {
-        connection.send(JSON.stringify(message))
+    sendError(connection, errorCode, message) {
+        connection.send({
+            type: ServerMessages.ERROR,
+            errorCode: errorCode,
+            message: message,
+            timestamp: Date.now()
+        })
     }
 }

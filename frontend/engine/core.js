@@ -4,6 +4,7 @@ import { Map } from '../components/map.js';
 import { State } from './state.js';
 import { Enemy } from '../components/enemy.js';
 import { UI } from '../components/ui.js';
+import { eventEmitter, useNavigate } from '../framwork/index.js';
 
 export class Game {
 
@@ -19,11 +20,16 @@ export class Game {
         this.map = Map.getInstance(this)
         this.player = Player.getInstance(this)
         this.ui =  UI.getInstance(this)
+        this.navigate = useNavigate();
         this.IDRE = null
         this.stateofrest = false
         this.nextLevelTimeoutId = null;
         this.levelComplete = false;
         this.Detect = false
+        
+        eventEmitter.on('playerDied', this.handlePlayerDeath.bind(this));
+        eventEmitter.on('allEnemiesDefeated', this.handleAllEnemiesDefeated.bind(this));
+        eventEmitter.on('bombExploded', this.handleBombExplosion.bind(this));
     }
     async waitForLevel() {
         while (!this.map || !this.map.level) {
@@ -165,17 +171,37 @@ export class Game {
         this.levelComplete = false;
     }
 
+    handlePlayerDeath(data) {
+        console.log('Player died:', data);
+    }
+
+    handleAllEnemiesDefeated() {
+        if (!this.levelComplete) {
+            this.levelComplete = true;
+            eventEmitter.emit('levelComplete');
+        }
+    }
+
+    handleBombExplosion(data) {
+        console.log('Bomb exploded at:', data.x, data.y);
+    }
+
     async checkState() {
         if (this.map.enemys.length === 0 && !this.levelComplete) {
             this.levelComplete = true;
+            eventEmitter.emit('allEnemiesDefeated');
             if (this.state.getcurentlevel() >= this.state.maxlevel()) {
                 const Id = setTimeout(() => {
                     this.handleWin();
+                    eventEmitter.emit('gameWon');
+                    if (this.navigate) this.navigate('/victory');
                     clearTimeout(Id)
                 }, 1600)
             } else {
                 const id = setTimeout(() => {
                     this.nextLevel();
+                    eventEmitter.emit('levelComplete');
+                    if (this.navigate) this.navigate('/level-complete');
                     clearTimeout(id)
                 }, 1600);
             }

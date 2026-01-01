@@ -1,140 +1,180 @@
-export const MessageBuilder = {
-  connected(clientId) {
-    return {
-      type: 'CONNECTED',
-      clientId,
-    };
-  },
+import { ServerMessages } from "../../shared/message-types.js"
 
-  lobbyJoined(lobbyId, playerId, mapId, players) {
-    return {
-      type: 'LOBBY_JOINED',
-      lobbyId,
-      playerId,
-      mapId,
-      players,
-      playerCount: players.length,
-    };
-  },
+export class MessageBuilder {
+    static connected(clientId) {
+        return {
+            type: ServerMessages.CONNECTED,
+            clientId: clientId,
+            timestamp: Date.now()
+        }
+    }
 
-  playerJoined(playerId, nickname, playerCount) {
-    return {
-      type: 'PLAYER_JOINED',
-      playerId,
-      nickname,
-      playerCount,
-    };
-  },
+    static error(errorCode, message) {
+        return {
+            type: ServerMessages.ERROR,
+            errorCode: errorCode,
+            message: message,
+            timestamp: Date.now()
+        }
+    }
 
-  playerLeft(playerId, playerCount) {
-    return {
-      type: 'PLAYER_LEFT',
-      playerId,
-      playerCount,
-    };
-  },
+    static lobbyJoined(data) {
+        return {
+            type: ServerMessages.LOBBY_JOINED,
+            playerId: data.playerId,
+            nickname: data.nickname,
+            lobbyId: data.lobbyId,
+            playerCount: data.playerCount,
+            maxPlayers: data.maxPlayers,
+            timestamp: Date.now()
+        }
+    }
 
-  countdownStart(seconds) {
-    return {
-      type: 'COUNTDOWN_START',
-      seconds,
-    };
-  },
+    static playerJoined(playerId, nickname, playerCount) {
+        return {
+            type: ServerMessages.PLAYER_JOINED,
+            playerId: playerId,
+            nickname: nickname,
+            playerCount: playerCount,
+            timestamp: Date.now()
+        }
+    }
 
-  countdownTick(remaining) {
-    return {
-      type: 'COUNTDOWN_TICK',
-      remaining,
-    };
-  },
+    static playerLeft(playerId) {
+        return {
+            type: ServerMessages.PLAYER_LEFT,
+            playerId: playerId,
+            timestamp: Date.now()
+        }
+    }
 
-  gameStarted(roomId) {
-    return {
-      type: 'GAME_STARTED',
-      roomId,
-    };
-  },
+    static countdownStart(duration) {
+        return {
+            type: ServerMessages.COUNTDOWN_START,
+            duration: duration,
+            timestamp: Date.now()
+        }
+    }
 
-  playerMoved(playerId, gridX, gridY, direction) {
-    return {
-      type: 'PLAYER_MOVED',
-      playerId,
-      gridX,
-      gridY,
-      direction,
-    };
-  },
+    static countdownTick(remaining) {
+        return {
+            type: ServerMessages.COUNTDOWN_TICK,
+            remaining: remaining,
+            timestamp: Date.now()
+        }
+    }
 
-  bombPlaced(bombId, playerId, gridX, gridY, range) {
-    return {
-      type: 'BOMB_PLACED',
-      bombId,
-      playerId,
-      gridX,
-      gridY,
-      range,
-    };
-  },
+    static gameStarted(gameData) {
+        return {
+            type: ServerMessages.GAME_STARTED,
+            roomId: gameData.roomId,
+            mapId: gameData.mapId,
+            players: gameData.players,
+            timestamp: Date.now()
+        }
+    }
 
-  bombExploded(bombId, explosions, destroyedBlocks, damagedPlayers, spawnedPowerup) {
-    return {
-      type: 'BOMB_EXPLODED',
-      bombId,
-      explosions,
-      destroyedBlocks,
-      damagedPlayers,
-      spawnedPowerup,
-    };
-  },
+    static gameState(state) {
+        return {
+            type: ServerMessages.FULL_STATE,
+            gameState: state,
+            timestamp: Date.now()
+        }
+    }
 
-  powerupCollected(playerId, powerupId, type, newStats) {
-    return {
-      type: 'POWERUP_COLLECTED',
-      playerId,
-      powerupId,
-      powerupType: type,
-      newStats,
-    };
-  },
+    static playerMoved(playerId, position) {
+        return {
+            type: ServerMessages.PLAYER_MOVED,
+            playerId: playerId,
+            position: position,
+            timestamp: Date.now()
+        }
+    }
 
-  playerDamaged(playerId, livesRemaining) {
-    return {
-      type: 'PLAYER_DAMAGED',
-      playerId,
-      livesRemaining,
-    };
-  },
+    static bombPlaced(bomb) {
+        return {
+            type: ServerMessages.BOMB_PLACED,
+            bomb: bomb,
+            timestamp: Date.now()
+        }
+    }
 
-  playerDied(playerId) {
-    return {
-      type: 'PLAYER_DIED',
-      playerId,
-    };
-  },
+    static bombExploded(bombId, explosionCells) {
+        return {
+            type: ServerMessages.BOMB_EXPLODED,
+            bombId: bombId,
+            explosionCells: explosionCells,
+            timestamp: Date.now()
+        }
+    }
 
-  chatMessage(from, nickname, text) {
-    return {
-      type: 'CHAT_MESSAGE',
-      from,
-      nickname,
-      text,
-    };
-  },
+    static powerUpSpawned(powerUp) {
+        return {
+            type: ServerMessages.POWERUP_SPAWNED,
+            powerUp: powerUp,
+            timestamp: Date.now()
+        }
+    }
 
-  gameOver(winner, scores, duration) {
-    return {
-      type: 'GAME_OVER',
-      winner,
-      scores,
-      duration,
-    };
-  },
+    static powerUpCollected(playerId, powerUpId, powerUpType) {
+        return {
+            type: ServerMessages.POWERUP_COLLECTED,
+            playerId: playerId,
+            powerUpId: powerUpId,
+            powerUpType: powerUpType,
+            timestamp: Date.now()
+        }
+    }
 
-  error(code, message) {
-    return {
-      type: 'ERROR',
-      code,
-      message,
-    };
-  }
-};
+    static playerDamaged(playerId, lives, isAlive) {
+        return {
+            type: ServerMessages.PLAYER_DAMAGED,
+            playerId: playerId,
+            lives: lives,
+            isAlive: isAlive,
+            timestamp: Date.now()
+        }
+    }
+
+    static playerDied(playerId) {
+        return {
+            type: ServerMessages.PLAYER_DIED,
+            playerId: playerId,
+            timestamp: Date.now()
+        }
+    }
+
+    static playerDisconnected(playerId) {
+        return {
+            type: ServerMessages.PLAYER_DISCONNECTED,
+            playerId: playerId,
+            timestamp: Date.now()
+        }
+    }
+
+    static chatMessage(data) {
+        return {
+            type: ServerMessages.CHAT_MESSAGE,
+            playerId: data.playerId,
+            nickname: data.nickname,
+            message: data.message,
+            timestamp: data.timestamp
+        }
+    }
+
+    static gameOver(data) {
+        return {
+            type: ServerMessages.GAME_OVER,
+            winnerId: data.winnerId,
+            finalScores: data.finalScores,
+            timestamp: Date.now()
+        }
+    }
+
+    static gameLeft() {
+        return {
+            type: 'GAME_LEFT',
+            timestamp: Date.now()
+        }
+    }
+}

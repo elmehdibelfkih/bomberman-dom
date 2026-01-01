@@ -12,6 +12,14 @@ export class IdGenerator {
   }
 
   /**
+   * Generate unique lobby ID
+   * @returns {string} - Format: lobby_timestamp_counter
+   */
+  static generateLobbyId() {
+    return `lobby_${Date.now()}_${this.roomCounter++}`;
+  }
+
+  /**
    * Generate unique room ID
    * @returns {string} - Format: room_timestamp_counter
    */

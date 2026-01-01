@@ -1,42 +1,107 @@
+import { dom, eventEmitter, createSignal, createEffect, createMemo } from '../framwork/index.js';
+
 export class Scoreboard {
 
     constructor(game) {
         this.game = game
-        let ScoreBoard = document.createElement("div")
-        ScoreBoard.id = "ScoreBoard"
+        
+        // Reactive state
+        this.lives = createSignal(game.state.getLives());
+        this.score = createSignal(game.state.getScore());
+        this.level = createSignal(game.state.getLevel());
+        this.time = createSignal(game.state.getTime());
+        
+        // Computed display values
+        this.livesDisplay = createMemo(() => "lives: " + "❤️".repeat(this.lives[0]()));
+        this.scoreDisplay = createMemo(() => `score: ${this.score[0]()}`);
+        this.levelDisplay = createMemo(() => `level: ${this.level[0]()}`);
+        this.timeDisplay = createMemo(() => {
+            const totalSeconds = this.time[0]();
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `Time: ${minutes}m ${seconds}s`;
+        });
+        
+        // Create DOM elements with reactive content
+        let ScoreBoard = dom({
+            tag: 'div',
+            attributes: { id: 'ScoreBoard' }
+        })
         document.body.appendChild(ScoreBoard)
-        this.lives = document.createElement("span")
-        this.lives.innerText = "lives: " + "❤️".repeat(game.state.getLives())
-        ScoreBoard.appendChild(this.lives)
-        this.score = document.createElement("span")
-        this.score.innerText = `score: ${game.state.getScore()}`
-        ScoreBoard.appendChild(this.score)
-        this.level = document.createElement("span")
-        this.level.innerText = `level: ${game.state.getLevel()}`
-        ScoreBoard.appendChild(this.level)
-        this.timer = document.createElement("span")
-        this.timer.innerText = "timer: "
-        ScoreBoard.appendChild(this.timer)
+        
+        this.livesElement = dom({
+            tag: 'span',
+            children: [() => this.livesDisplay()]
+        })
+        ScoreBoard.appendChild(this.livesElement)
+        
+        this.scoreElement = dom({
+            tag: 'span',
+            children: [() => this.scoreDisplay()]
+        })
+        ScoreBoard.appendChild(this.scoreElement)
+        
+        this.levelElement = dom({
+            tag: 'span',
+            children: [() => this.levelDisplay()]
+        })
+        ScoreBoard.appendChild(this.levelElement)
+        
+        this.timerElement = dom({
+            tag: 'span',
+            children: [() => this.timeDisplay()]
+        })
+        ScoreBoard.appendChild(this.timerElement)
+        
+        // Effects for automatic updates
+        createEffect(() => {
+            this.lives[1](this.game.state.getLives());
+        });
+        
+        createEffect(() => {
+            this.score[1](this.game.state.getScore());
+        });
+        
+        createEffect(() => {
+            this.level[1](this.game.state.getLevel());
+        });
+        
+        eventEmitter.on('scoreUpdated', this.handleScoreUpdate.bind(this));
+        eventEmitter.on('livesChanged', this.handleLivesChange.bind(this));
+        eventEmitter.on('levelChanged', this.handleLevelChange.bind(this));
     }
 
-    initScoreBaord() {
-        this.updateLives = () => this.lives.innerText = "lives: " + "❤️".repeat(this.game.state.getLives())
-        this.updateScore = () => this.score.innerText = `score: ${this.game.state.getScore()}`
-        this.updateLevel = () => this.level.innerText = `level: ${this.game.state.getLevel()}`
-        this.updateTimer = () => this.timer.innerText = `time: ${this.game.state.getTime()}`
+    handleScoreUpdate(data) {
+        this.score[1](data.score);
+    }
+
+    handleLivesChange(data) {
+        this.lives[1](data.lives);
+    }
+
+    handleLevelChange(data) {
+        this.level[1](data.level);
+    }
+
+    updateTimer() {
+        this.time[1](this.game.state.getTime());
+    }
+
+    // Legacy methods for compatibility
+    updateLives = () => this.lives[1](this.game.state.getLives())
+    updateScore = () => this.score[1](this.game.state.getScore())
+    updateLevel = () => this.level[1](this.game.state.getLevel())
+    
+    initScoreBaord = () => {
+        this.updateLives();
+        this.updateScore();
+        this.updateLevel();
+        this.updateTimer();
     }
 
     static getInstance = (game) => {
         if (!Scoreboard.instance) Scoreboard.instance = new Scoreboard(game);
         return Scoreboard.instance;
     }
-
-    updateLives = () => this.lives.innerText = "lives: " + "❤️".repeat(this.game.state.getLives())
-    updateScore = () => this.score.innerText = `score: ${this.game.state.getScore()}`
-    updateLevel = () => this.level.innerText = `level: ${this.game.state.getLevel()}`
-    updateTimer = () => {
-        let totalSeconds = this.game.state.getTime(); let minutes = Math.floor(totalSeconds / 60); let seconds = totalSeconds % 60;
-        this.timer.innerText = `Time: ${minutes}m ${seconds}s`;
-    };
 }
 

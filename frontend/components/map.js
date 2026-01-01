@@ -2,6 +2,7 @@ import * as consts from '../utils/consts.js';
 import { Bomb } from "./bomb.js"
 import { Enemy } from "./enemy.js"
 import { Bonus } from './bonus.js';
+import { dom, eventEmitter } from '../framwork/index.js';
 
 export class Map {
 
@@ -25,9 +26,14 @@ export class Map {
         this.tiles = [];
         this.blockElements = [];
         this.backGroundMusic;
-        this.container = document.createElement("div");
-        this.container.id = "grid-container";
+        this.container = dom({
+            tag: 'div',
+            attributes: { id: 'grid-container' }
+        });
         document.body.appendChild(this.container)
+        
+        eventEmitter.on('blockDestroyed', this.handleBlockDestroyed.bind(this));
+        eventEmitter.on('powerUpCollected', this.handlePowerUpCollected.bind(this));
     }
 
     static getInstance = (game) => Map.instance ? Map.instance : new Map(game)
@@ -39,6 +45,14 @@ export class Map {
         this.initAudios()
     }
 
+    handleBlockDestroyed(data) {
+        this.blowingUpBlock(data.x, data.y);
+    }
+
+    handlePowerUpCollected(data) {
+        this.loot = this.loot.filter(loot => loot.id !== data.powerUpId);
+    }
+
     blowingUpBlock(x, y) {
         this.gridArray[y][x] = consts.FLOOR
         let img = document.getElementById(x.toString() + y.toString())
@@ -47,6 +61,7 @@ export class Map {
         container[0].removeChild(img)
         const randomIndex = Math.floor(Math.random() * this.bonusArray.length);
         this.bonusArray[randomIndex](x, y, container[0])
+        eventEmitter.emit('blockDestroyed', { x, y, score: 25 });
     }
 
     canPlayerMoveTo(x, y) {
@@ -72,15 +87,20 @@ export class Map {
     isFreeSpaceInGrid = (x, y) => this.gridArray[y][x] !== consts.BLOCK && this.gridArray[y][x] !== consts.WALL
 
     addBomb(x, y, timestamp) {
-        if (this.game.state.getBombCount() < this.game.state.getMaxAllowdBombCount())
-            this.bombs.push(new Bomb(this.game, x, y, timestamp))
+        if (this.game.state.getBombCount() < this.game.state.getMaxAllowdBombCount()) {
+            const bomb = new Bomb(this.game, x, y, timestamp);
+            this.bombs.push(bomb);
+            eventEmitter.emit('bombAdded', { bomb, x, y });
+        }
     }
 
     initGrid() {
         this.gridArray = this.level.initial_grid.map(row => [...row])
         if (this.grid) document.body.removeChild(grid)
-        this.grid = document.createElement("div")
-        this.grid.id = "grid"
+        this.grid = dom({
+            tag: 'div',
+            attributes: { id: 'grid' }
+        })
         this.container.appendChild(this.grid)
         this.grid.style.position = "relative";
         const rows = this.level.initial_grid.length;
@@ -92,17 +112,23 @@ export class Map {
         this.grid.style.height = `${gridHeight}px`;
         this.level.initial_grid.forEach((row, colIndex) => {
             row.forEach((cell, rowIndex) => {
-                const tile = document.createElement("div");
-                tile.style.position = "absolute";
+                const tile = dom({
+                    tag: 'div',
+                    attributes: {
+                        style: `position: absolute; transform: translate(${this.level.block_size * rowIndex}px, ${this.level.block_size * colIndex}px); width: ${this.level.block_size}px; height: ${this.level.block_size}px; background-size: cover; background-image: ${cell === consts.WALL ? `url(${this.level.wall})` : `url(${this.level.floor})`}`
+                    }
+                });
                 tile.dataset.rowIndex = rowIndex;
                 tile.dataset.colIndex = colIndex;
-                tile.style.transform = `translate(${this.level.block_size * rowIndex}px, ${this.level.block_size * colIndex}px)`;
-                if (cell === consts.WALL) tile.style.backgroundImage = `url(${this.level.wall})`;
-                else tile.style.backgroundImage = `url(${this.level.floor})`;
+                
                 if (cell === consts.BLOCK) {
-                    const block = document.createElement("img");
-                    block.src = this.level.block
-                    block.id = rowIndex.toString() + colIndex.toString()
+                    const block = dom({
+                        tag: 'img',
+                        attributes: {
+                            src: this.level.block,
+                            id: rowIndex.toString() + colIndex.toString()
+                        }
+                    });
                     tile.className = rowIndex.toString() + colIndex.toString()
                     tile.appendChild(block)
                     this.blockElements.push(block);
@@ -111,17 +137,13 @@ export class Map {
                     this.gridArray[colIndex][rowIndex] = 0
                     const x = this.level.block_size * rowIndex + 12
                     const y = this.level.block_size * colIndex + 15
-                    const enemyDiv = document.createElement('div');
-                    enemyDiv.className = 'enemy';
-                    enemyDiv.style.backgroundImage = `url(${this.level.enemy})`;
-                    enemyDiv.style.backgroundRepeat = 'no-repeat';
-                    enemyDiv.style.imageRendering = 'pixelated';
-                    enemyDiv.style.zIndex = 1
-                    enemyDiv.style.position = 'absolute';
-                    enemyDiv.style.width = `${this.enemyCordination["Left"].width}`;
-                    enemyDiv.style.height = `${this.enemyCordination["Left"].height}`;
-                    enemyDiv.style.backgroundPosition = `${this.enemyCordination["Left"].x}px ${this.enemyCordination["Left"].y}px`;
-                    enemyDiv.style.transform = `translate(${x}px, ${y}px)`;
+                    const enemyDiv = dom({
+                        tag: 'div',
+                        attributes: {
+                            class: 'enemy',
+                            style: `background-image: url(${this.level.enemy}); background-repeat: no-repeat; image-rendering: pixelated; z-index: 1; position: absolute; width: ${this.enemyCordination["Left"].width}; height: ${this.enemyCordination["Left"].height}; background-position: ${this.enemyCordination["Left"].x}px ${this.enemyCordination["Left"].y}px; transform: translate(${x}px, ${y}px)`
+                        }
+                    });
                     this.grid.appendChild(enemyDiv);
                     const en = new Enemy(this.game, this.level, x, y, this.enemyCordination);
                     en.Div = enemyDiv;
@@ -141,16 +163,17 @@ export class Map {
     }
 
     addSpeedBonus(xMap, yMap, node) {
-        const bonus = document.createElement("img");
-        bonus.src = this.level.speed_img;
-        bonus.className = "speed-bonus";
-        bonus.style.width = `30px`
-        bonus.style.height = `40px`;
-        bonus.style.position = "absolute";
+        const bonus = dom({
+            tag: 'img',
+            attributes: {
+                src: this.level.speed_img,
+                class: 'speed-bonus',
+                id: xMap.toString() + yMap.toString() + "T",
+                style: 'width: 30px; height: 40px; position: absolute; transform: translate(20px, 10px)'
+            }
+        });
         const x = this.level.block_size * xMap;
         const y = this.level.block_size * yMap;
-        bonus.style.transform = `translate(20px, 10px)`;
-        bonus.id = xMap.toString() + yMap.toString() + "T";
         const Bamboleao = new Bonus(this.game, x, y, this.level, bonus.id, 'speed');
         Bamboleao.originalWidth = 30;
         Bamboleao.originalHeight = 40;
@@ -159,17 +182,18 @@ export class Map {
     }
 
     addTimeBonus(xMap, yMap, node) {
-        const bonus = document.createElement("img");
-        bonus.src = this.level.time_img;
-        bonus.className = "time-bonus";
-        bonus.style.width = `35px`;
-        bonus.style.height = `50px`;
-        bonus.style.position = "absolute";
+        const bonus = dom({
+            tag: 'img',
+            attributes: {
+                src: this.level.time_img,
+                class: 'time-bonus',
+                id: xMap.toString() + yMap.toString() + "T",
+                style: 'width: 35px; height: 50px; position: absolute; transform: translate(15px, 10px)'
+            }
+        });
         const x = this.level.block_size * xMap;
         const y = this.level.block_size * yMap;
-        bonus.style.transform = `translate(15px, 10px)`;
-        bonus.id = xMap.toString() + yMap.toString() + "T";
-        const timeBonus = new Bonus(this.game, x, y, this.level,  bonus.id, 'time');
+        const timeBonus = new Bonus(this.game, x, y, this.level, bonus.id, 'time');
         timeBonus.originalWidth = 35;
         timeBonus.originalHeight = 50;
         this.loot.push(timeBonus);
@@ -177,17 +201,18 @@ export class Map {
     }
 
     addHeartBonus(xMap, yMap, node) {
-        const bonus = document.createElement("img");
-        bonus.src = this.level.heart_img;
-        bonus.className = "heart-bonus";
-        bonus.style.width = `30px`;
-        bonus.style.height = `40px`;
-        bonus.style.position = "absolute";
+        const bonus = dom({
+            tag: 'img',
+            attributes: {
+                src: this.level.heart_img,
+                class: 'heart-bonus',
+                id: xMap.toString() + yMap.toString() + "T",
+                style: 'width: 30px; height: 40px; position: absolute; transform: translate(20px, 10px)'
+            }
+        });
         const x = this.level.block_size * xMap;
         const y = this.level.block_size * yMap;
-        bonus.style.transform = `translate(20px, 10px)`;
-        bonus.id = xMap.toString() + yMap.toString() + "T";
-        const Bamboleao = new Bonus(this.game, x, y, this.level,  bonus.id, 'heart');
+        const Bamboleao = new Bonus(this.game, x, y, this.level, bonus.id, 'heart');
         Bamboleao.originalWidth = 30;
         Bamboleao.originalHeight = 40;
         this.loot.push(Bamboleao);
@@ -213,5 +238,9 @@ export class Map {
         this.game.state.updateSoundIcon();
     }
 
-    destructeur = () => document.body.removeChild(this.container)
+    destructeur = () => {
+        eventEmitter.off('blockDestroyed', this.handleBlockDestroyed);
+        eventEmitter.off('powerUpCollected', this.handlePowerUpCollected);
+        document.body.removeChild(this.container);
+    }
 }

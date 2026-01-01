@@ -1,57 +1,95 @@
 import http from 'http'
+import path from 'path'
+import fs from 'fs'
+import { fileURLToPath } from 'url'
 import { Logger } from './utils/Logger.js'
-import { homeHandler } from './handlers/homeHandler.js'
-import { lobbyHandler } from './handlers/lobbyHandler.js'
 import { MessageHandler } from './network/MessageHandler.js'
-import { RoomManager } from './core/RoomManager.js'
+import { RoomManager } from './core/RoomManagerNew.js'
 import { IdGenerator } from './utils/IdGenerator.js'
 import { Connection } from './network/Connection.js'
 import { WebSocketServer } from 'ws'
 
-const PORT = 9090
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const PORT = process.env.PORT || 8080
+
+const MIME_TYPES = {
+    '.html': 'text/html',
+    '.js': 'application/javascript',
+    '.css': 'text/css',
+    '.json': 'application/json',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.svg': 'image/svg+xml',
+    '.mp3': 'audio/mpeg',
+    '.ogg': 'audio/ogg'
+}
+
+function serveStaticFile(req, res, filePath) {
+    const fullPath = path.join(__dirname, '../frontend', filePath)
+    const ext = path.extname(fullPath)
+    const contentType = MIME_TYPES[ext] || 'application/octet-stream'
+    
+    fs.readFile(fullPath, (err, data) => {
+        if (err) {
+            res.writeHead(404)
+            res.end('File not found')
+            return
+        }
+        res.writeHead(200, { 'Content-Type': contentType })
+        res.end(data)
+    })
+}
 
 const httpServer = http.createServer((req, res) => {
-    switch (req.url) {
-        case '/':
-            homeHandler(req, res)
-            break;
-
-        case '/game-lobby':
-            lobbyHandler(req, res)
-            break;
-
-        default:
-            res.statusCode = 404
-            res.end('not-found')
-            break;
-    }
-}).listen(PORT, `127.0.0.1`, () => {
-    Logger.info(`server running on: http://127.0.0.1:${PORT}`)
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+    
+    let filePath = req.url === '/' ? '/index.html' : req.url
+    serveStaticFile(req, res, filePath)
+}).listen(PORT, () => {
+    Logger.info(`🚀 Bomberman server running on: http://localhost:${PORT}`)
 })
 
 const wss = new WebSocketServer({ server: httpServer })
 
 const messageHandler = new MessageHandler();
-const roomManager = new RoomManager();
+const roomManager = RoomManager.getInstance();
 const connections = new Set();
 
 wss.on('connection', (ws, req) => {
     const clientId = IdGenerator.generatePlayerId()
     const conn = new Connection(ws, clientId)
     connections.add(conn)
+    
+    Logger.info(`🔗 Client connected: ${clientId}`)
 
     ws.on('message', (data) => {
-        const message = JSON.parse(data)
-        messageHandler.handle(conn, message)
+        try {
+            const message = JSON.parse(data)
+            messageHandler.handle(conn, message)
+        } catch (error) {
+            Logger.error('Invalid message format:', error)
+            conn.sendError('INVALID_MESSAGE', 'Message must be valid JSON')
+        }
     })
 
     ws.on('close', () => {
-        Logger.info(`Client disconnected: ${clientId}`)
+        Logger.info(`🔌 Client disconnected: ${clientId}`)
         connections.delete(conn)
         roomManager.handleDisconnect(conn.clientId)
     })
 
     ws.on('error', (error) => {
-        Logger.error(`WebSocket error for ${clientId}:`, error)
+        Logger.error(`⚠️ WebSocket error for ${clientId}:`, error)
+    })
+    
+    // Send welcome message
+    conn.send({
+        type: 'CONNECTED',
+        clientId: clientId,
+        timestamp: Date.now()
     })
 })

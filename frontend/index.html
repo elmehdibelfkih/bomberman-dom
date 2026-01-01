@@ -32,7 +32,11 @@
         blast radius!</p>
       <p><strong>Goal</strong>: Destroy blocks, collect power-ups, avoid explosions, and find the exit to advance to the
         next level.</p>
-      <button id="start-btn" class="start-btn" onclick="startGame()" aria-label="Start game">START GAME</button>
+      <div class="menu-buttons">
+        <button id="start-btn" class="start-btn" aria-label="Start game">START GAME</button>
+        <a href="/settings" class="menu-link">Settings</a>
+        <a href="/lobby" class="menu-link">Multiplayer</a>
+      </div>
     </div>
   </div>
 
@@ -48,6 +52,7 @@
     <button id='sound'>
       <img id="Icon" src="./icon/volume-2.svg" alt="voice" , width="16" height="16"> </img>
     </button>
+    <a href="/" class="control-link">Menu</a>
   </div>
   <script type="module" src="main.js"></script>
 </body>

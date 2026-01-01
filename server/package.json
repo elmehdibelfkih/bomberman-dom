@@ -2,14 +2,17 @@
   "dependencies": {
     "ws": "^8.18.3"
   },
-  "name": "server",
+  "name": "bomberman-server",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["bomberman", "multiplayer", "websocket", "game"],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "Multiplayer Bomberman game server with WebSocket support"
 }
