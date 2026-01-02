@@ -1,6 +1,6 @@
-import { IdGenerator } from "../utils/IdGenerator"
+import { IdGenerator } from "../utils/IdGenerator.js"
 import { GAME_CONFIG } from "../../shared/game-config.js"
-import { MessageBuilder } from "../network/MessageBuilder"
+import { MessageBuilder } from "../network/MessageBuilder.js"
 
 export class RoomManager {
     static #Instance = null

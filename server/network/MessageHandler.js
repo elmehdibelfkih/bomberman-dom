@@ -1,6 +1,6 @@
 import { ClientMessages, ServerMessages } from "../../shared/message-types.js"
-import { RoomManager } from "../core/RoomManager";
-import { sanitizeChatMessage, validateNickname } from "../utils/validation";
+import { RoomManager } from "../core/RoomManager.js";
+import { sanitizeChatMessage, validateNickname } from "../utils/validation.js";
 import { MessageBuilder } from "./MessageBuilder.js"
 export class MessageHandler {
     constructor() {

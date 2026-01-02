@@ -1,4 +1,4 @@
-import { Logger } from "./utils/Logger"
+import { Logger } from "./utils/Logger.js"
 
 export const sendSuccessHttp = (res, payload) => {
     res.writeHead(200, { 'Content-Type': 'application/json' })
