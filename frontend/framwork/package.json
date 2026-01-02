@@ -1,0 +1,16 @@
+{
+  "name": "@arbim/my-framework",
+  "devMode": true,
+  "version": "0.1.0",
+  "description": "A fine-grained reactive UI framework",
+  "type": "module",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src"
+  ],
+  "license": "MIT"
+}

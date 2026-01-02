@@ -1,4 +1,5 @@
 import * as consts from '../utils/consts.js';
+import { dom } from '../../framwork/index.js';
 
 export class Bomb {
     constructor(game, x, y, timestamp) {
@@ -26,19 +27,31 @@ export class Bomb {
     isDone = () => this.done
 
     initBomb() {
-        this.bomb = document.createElement("div")
-        this.bomb.id = "bomb" + this.id
-        this.bomb.style.opacity = 1
-        this.bomb.style.position = "absolute";
-        this.img = document.createElement("img")
-        this.img.src = this.image
-        this.bomb.appendChild(this.img)
+        const size = this.game.map.level.block_size;
+
+        // Create bomb with img as virtual node child
+        this.bomb = dom({
+            tag: "div",
+            attributes: {
+                id: "bomb" + this.id,
+                style: `opacity: 1; position: absolute; width: ${size}px; height: ${size}px; transform: translate(${this.xMap * size}px, ${this.yMap * size}px);`
+            },
+            children: [
+                {
+                    tag: "img",
+                    attributes: {
+                        src: this.image
+                    },
+                    children: []
+                }
+            ]
+        });
+
+        // Get reference to the img element
+        this.img = this.bomb.querySelector('img');
+
         this.game.state.setBombCount(1)
         this.game.map.grid.appendChild(this.bomb)
-        const size = this.game.map.level.block_size;
-        this.bomb.style.width = `${size}px`;
-        this.bomb.style.height = `${size}px`;
-        this.bomb.style.transform = `translate(${this.xMap * size}px, ${this.yMap * size}px)`;
         this.game.map.gridArray[this.yMap][this.xMap] = consts.BOMB
         this.game.map.gridArray[this.yMap][this.xMap - 1] !== consts.WALL ? this.freeBlocks.push(1) : 0
         this.game.map.gridArray[this.yMap][this.xMap + 1] !== consts.WALL ? this.freeBlocks.push(3) : 0
@@ -133,13 +146,21 @@ export class Bomb {
             this.exp = []
             for (let i = 0; i < 4; i++) {
                 if (!this.freeBlocks.includes(i)) continue
-                this.exp[i] = document.createElement("img")
+
+                let transformStyle = "position: absolute;";
+                if (i === 0) transformStyle += " transform: translate(-68px, 34px);";
+                if (i === 1) transformStyle += " transform: rotate(90deg) translate(-17px, 119px);";
+                if (i === 2) transformStyle += " transform: rotate(180deg) translate(68px, 68px);";
+                if (i === 3) transformStyle += " transform: rotate(270deg) translate(17px, -17px);";
+
+                this.exp[i] = dom({
+                    tag: "img",
+                    attributes: {
+                        style: transformStyle
+                    },
+                    children: []
+                });
                 this.bomb.appendChild(this.exp[i])
-                this.exp[i].style.position = "absolute";
-                i === 0 ? this.exp[i].style.transform = `translate(-68px, 34px)` : 0
-                i === 1 ? this.exp[i].style.transform = "rotate(90deg) translate(-17px, 119px)" : 0
-                i === 2 ? this.exp[i].style.transform = "rotate(180deg) translate(68px, 68px)" : 0
-                i === 3 ? this.exp[i].style.transform = "rotate(270deg) translate(17px, -17px)" : 0
             }
         }
         this.exp?.forEach(b => b ? b.src = this.explosionImg : 0);

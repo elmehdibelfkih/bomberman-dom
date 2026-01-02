@@ -1,22 +1,46 @@
+import { dom } from '../../framwork/index.js';
+
 export class Scoreboard {
 
     constructor(game) {
         this.game = game
-        let ScoreBoard = document.createElement("div")
-        ScoreBoard.id = "ScoreBoard"
+
+        // Create scoreboard with all children as virtual nodes
+        const ScoreBoard = dom({
+            tag: "div",
+            attributes: { id: "ScoreBoard" },
+            children: [
+                {
+                    tag: "span",
+                    attributes: {},
+                    children: ["lives: " + "❤️".repeat(game.state.getLives())]
+                },
+                {
+                    tag: "span",
+                    attributes: {},
+                    children: [`score: ${game.state.getScore()}`]
+                },
+                {
+                    tag: "span",
+                    attributes: {},
+                    children: [`level: ${game.state.getLevel()}`]
+                },
+                {
+                    tag: "span",
+                    attributes: {},
+                    children: ["timer: "]
+                }
+            ]
+        });
+
         document.body.appendChild(ScoreBoard)
-        this.lives = document.createElement("span")
-        this.lives.innerText = "lives: " + "❤️".repeat(game.state.getLives())
-        ScoreBoard.appendChild(this.lives)
-        this.score = document.createElement("span")
-        this.score.innerText = `score: ${game.state.getScore()}`
-        ScoreBoard.appendChild(this.score)
-        this.level = document.createElement("span")
-        this.level.innerText = `level: ${game.state.getLevel()}`
-        ScoreBoard.appendChild(this.level)
-        this.timer = document.createElement("span")
-        this.timer.innerText = "timer: "
-        ScoreBoard.appendChild(this.timer)
+
+        // Get references to the child elements
+        const spans = ScoreBoard.querySelectorAll('span');
+        this.lives = spans[0];
+        this.score = spans[1];
+        this.level = spans[2];
+        this.timer = spans[3];
     }
 
     initScoreBaord() {

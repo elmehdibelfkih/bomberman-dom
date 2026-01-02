@@ -1,4 +1,5 @@
 import * as helpers from '../utils/helpers.js';
+import { eventManager } from '../../framwork/index.js';
 export class State {
 
     #CURRENT_LEVEL = 9
@@ -101,26 +102,35 @@ export class State {
     };
 
     setArrowStateKeyDown = (event) => {
-        if (event.key === 'ArrowUp') this.#ARROW_UP = true
-        if (event.key === 'ArrowDown') this.#ARROW_DOWN = true
-        if (event.key === 'ArrowRight') this.#ARROW_RIGHT = true
-        if (event.key === 'ArrowLeft') this.#ARROW_LEFT = true
-        if (event.key.toLowerCase() === 'p') this.pauseStart()
+        // Access native event from synthetic event
+        const key = event.nativeEvent ? event.nativeEvent.key : event.key;
+        if (key === 'ArrowUp') this.#ARROW_UP = true
+        if (key === 'ArrowDown') this.#ARROW_DOWN = true
+        if (key === 'ArrowRight') this.#ARROW_RIGHT = true
+        if (key === 'ArrowLeft') this.#ARROW_LEFT = true
+        if (key.toLowerCase() === 'p') this.pauseStart()
     }
 
     setArrowStateKeyUp = (event) => {
-        if (event.key === 'ArrowUp') this.#ARROW_UP = false
-        if (event.key === 'ArrowDown') this.#ARROW_DOWN = false
-        if (event.key === 'ArrowRight') this.#ARROW_RIGHT = false
-        if (event.key === 'ArrowLeft') this.#ARROW_LEFT = false
+        // Access native event from synthetic event
+        const key = event.nativeEvent ? event.nativeEvent.key : event.key;
+        if (key === 'ArrowUp') this.#ARROW_UP = false
+        if (key === 'ArrowDown') this.#ARROW_DOWN = false
+        if (key === 'ArrowRight') this.#ARROW_RIGHT = false
+        if (key === 'ArrowLeft') this.#ARROW_LEFT = false
     }
 
     initArrowState() {
-        document.getElementById('ref').addEventListener('click', this._throttledRestar);
-        document.getElementById('star_pause').addEventListener('click', this._boundTransfer)
-        document.getElementById('sound').addEventListener('click', this._boundSwitch)
-        document.addEventListener('keydown', this._boundKeyDown)
-        document.addEventListener('keyup', this._boundKeyUp)
+        // Use event manager for all event listeners
+        const refBtn = document.getElementById('ref');
+        const pauseBtn = document.getElementById('star_pause');
+        const soundBtn = document.getElementById('sound');
+
+        eventManager.addEventListener(refBtn, 'click', this._throttledRestar);
+        eventManager.addEventListener(pauseBtn, 'click', this._boundTransfer);
+        eventManager.addEventListener(soundBtn, 'click', this._boundSwitch);
+        eventManager.addEventListener(document.body, 'keydown', this._boundKeyDown);
+        eventManager.addEventListener(document.body, 'keyup', this._boundKeyUp);
     }
 
     pauseStart = helpers.throttle(() => {

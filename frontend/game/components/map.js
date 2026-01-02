@@ -2,6 +2,7 @@ import * as consts from '../utils/consts.js';
 import { Bomb } from "./bomb.js"
 import { Enemy } from "./enemy.js"
 import { Bonus } from './bonus.js';
+import { dom, eventManager } from '../../framwork/index.js';
 
 export class Map {
 
@@ -25,8 +26,7 @@ export class Map {
         this.tiles = [];
         this.blockElements = [];
         this.backGroundMusic;
-        this.container = document.createElement("div");
-        this.container.id = "grid-container";
+        this.container = dom({ tag: "div", attributes: { id: "grid-container" }, children: [] });
         document.body.appendChild(this.container)
     }
 
@@ -78,51 +78,87 @@ export class Map {
 
     initGrid() {
         this.gridArray = this.level.initial_grid.map(row => [...row])
-        if (this.grid) document.body.removeChild(grid)
-        this.grid = document.createElement("div")
-        this.grid.id = "grid"
-        this.container.appendChild(this.grid)
-        this.grid.style.position = "relative";
+        if (this.grid) this.container.removeChild(this.grid)
+
         const rows = this.level.initial_grid.length;
         const cols = this.level.initial_grid[0].length;
         const tileSize = this.level.block_size;
         const gridWidth = cols * tileSize;
         const gridHeight = rows * tileSize;
-        this.grid.style.width = `${gridWidth}px`;
-        this.grid.style.height = `${gridHeight}px`;
+
+        // Build tiles array as virtual nodes
+        const tilesVNodes = [];
         this.level.initial_grid.forEach((row, colIndex) => {
             row.forEach((cell, rowIndex) => {
-                const tile = document.createElement("div");
-                tile.style.position = "absolute";
-                tile.dataset.rowIndex = rowIndex;
-                tile.dataset.colIndex = colIndex;
-                tile.style.transform = `translate(${this.level.block_size * rowIndex}px, ${this.level.block_size * colIndex}px)`;
-                if (cell === consts.WALL) tile.style.backgroundImage = `url(${this.level.wall})`;
-                else tile.style.backgroundImage = `url(${this.level.floor})`;
+                // Prepare children for this tile
+                const tileChildren = [];
+
+                // Add block image if this is a block cell
                 if (cell === consts.BLOCK) {
-                    const block = document.createElement("img");
-                    block.src = this.level.block
-                    block.id = rowIndex.toString() + colIndex.toString()
-                    tile.className = rowIndex.toString() + colIndex.toString()
-                    tile.appendChild(block)
-                    this.blockElements.push(block);
+                    tileChildren.push({
+                        tag: "img",
+                        attributes: {
+                            src: this.level.block,
+                            id: rowIndex.toString() + colIndex.toString()
+                        },
+                        children: []
+                    });
                 }
+
+                // Create tile virtual node
+                tilesVNodes.push({
+                    tag: "div",
+                    attributes: {
+                        class: cell === consts.BLOCK ? rowIndex.toString() + colIndex.toString() : "",
+                        "data-row-index": rowIndex,
+                        "data-col-index": colIndex,
+                        style: `position: absolute; transform: translate(${this.level.block_size * rowIndex}px, ${this.level.block_size * colIndex}px); background-image: ${cell === consts.WALL ? `url(${this.level.wall})` : `url(${this.level.floor})`}; width: ${this.level.block_size}px; height: ${this.level.block_size}px; background-size: cover;`
+                    },
+                    children: tileChildren
+                });
+            });
+        });
+
+        // Create grid with all tiles as children
+        this.grid = dom({
+            tag: "div",
+            attributes: {
+                id: "grid",
+                style: `position: relative; width: ${gridWidth}px; height: ${gridHeight}px;`
+            },
+            children: tilesVNodes
+        });
+
+        this.container.appendChild(this.grid);
+
+        // Store references to tiles and blocks
+        Array.from(this.grid.children).forEach(tile => {
+            this.tiles.push(tile);
+            const blockImg = tile.querySelector('img');
+            if (blockImg) {
+                this.blockElements.push(blockImg);
+            }
+        });
+
+        // Handle enemy spawning
+        this.level.initial_grid.forEach((row, colIndex) => {
+            row.forEach((cell, rowIndex) => {
                 if (cell === consts.ENEMY) {
                     this.gridArray[colIndex][rowIndex] = 0
                     const x = this.level.block_size * rowIndex + 12
                     const y = this.level.block_size * colIndex + 15
-                    const enemyDiv = document.createElement('div');
-                    enemyDiv.className = 'enemy';
-                    enemyDiv.style.backgroundImage = `url(${this.level.enemy})`;
-                    enemyDiv.style.backgroundRepeat = 'no-repeat';
-                    enemyDiv.style.imageRendering = 'pixelated';
-                    enemyDiv.style.zIndex = 1
-                    enemyDiv.style.position = 'absolute';
-                    enemyDiv.style.width = `${this.enemyCordination["Left"].width}`;
-                    enemyDiv.style.height = `${this.enemyCordination["Left"].height}`;
-                    enemyDiv.style.backgroundPosition = `${this.enemyCordination["Left"].x}px ${this.enemyCordination["Left"].y}px`;
-                    enemyDiv.style.transform = `translate(${x}px, ${y}px)`;
+
+                    const enemyDiv = dom({
+                        tag: 'div',
+                        attributes: {
+                            class: 'enemy',
+                            style: `background-image: url(${this.level.enemy}); background-repeat: no-repeat; image-rendering: pixelated; z-index: 1; position: absolute; width: ${this.enemyCordination["Left"].width}; height: ${this.enemyCordination["Left"].height}; background-position: ${this.enemyCordination["Left"].x}px ${this.enemyCordination["Left"].y}px; transform: translate(${x}px, ${y}px);`
+                        },
+                        children: []
+                    });
+
                     this.grid.appendChild(enemyDiv);
+
                     const en = new Enemy(this.game, this.level, x, y, this.enemyCordination);
                     en.Div = enemyDiv;
                     en.originalX = x;
@@ -131,27 +167,27 @@ export class Map {
                     en.originalHeight = parseInt(this.enemyCordination["Left"].height);
                     this.enemys.push(en);
                 }
-                tile.style.width = `${this.level.block_size}px`;
-                tile.style.height = `${this.level.block_size}px`;
-                tile.style.backgroundSize = "cover";
-                this.grid.appendChild(tile);
-                this.tiles.push(tile);
             });
         });
     }
 
     addSpeedBonus(xMap, yMap, node) {
-        const bonus = document.createElement("img");
-        bonus.src = this.level.speed_img;
-        bonus.className = "speed-bonus";
-        bonus.style.width = `30px`
-        bonus.style.height = `40px`;
-        bonus.style.position = "absolute";
         const x = this.level.block_size * xMap;
         const y = this.level.block_size * yMap;
-        bonus.style.transform = `translate(20px, 10px)`;
-        bonus.id = xMap.toString() + yMap.toString() + "T";
-        const Bamboleao = new Bonus(this.game, x, y, this.level, bonus.id, 'speed');
+        const bonusId = xMap.toString() + yMap.toString() + "T";
+
+        const bonus = dom({
+            tag: "img",
+            attributes: {
+                src: this.level.speed_img,
+                class: "speed-bonus",
+                id: bonusId,
+                style: "width: 30px; height: 40px; position: absolute; transform: translate(20px, 10px);"
+            },
+            children: []
+        });
+
+        const Bamboleao = new Bonus(this.game, x, y, this.level, bonusId, 'speed');
         Bamboleao.originalWidth = 30;
         Bamboleao.originalHeight = 40;
         this.loot.push(Bamboleao);
@@ -159,17 +195,22 @@ export class Map {
     }
 
     addTimeBonus(xMap, yMap, node) {
-        const bonus = document.createElement("img");
-        bonus.src = this.level.time_img;
-        bonus.className = "time-bonus";
-        bonus.style.width = `35px`;
-        bonus.style.height = `50px`;
-        bonus.style.position = "absolute";
         const x = this.level.block_size * xMap;
         const y = this.level.block_size * yMap;
-        bonus.style.transform = `translate(15px, 10px)`;
-        bonus.id = xMap.toString() + yMap.toString() + "T";
-        const timeBonus = new Bonus(this.game, x, y, this.level,  bonus.id, 'time');
+        const bonusId = xMap.toString() + yMap.toString() + "T";
+
+        const bonus = dom({
+            tag: "img",
+            attributes: {
+                src: this.level.time_img,
+                class: "time-bonus",
+                id: bonusId,
+                style: "width: 35px; height: 50px; position: absolute; transform: translate(15px, 10px);"
+            },
+            children: []
+        });
+
+        const timeBonus = new Bonus(this.game, x, y, this.level, bonusId, 'time');
         timeBonus.originalWidth = 35;
         timeBonus.originalHeight = 50;
         this.loot.push(timeBonus);
@@ -177,17 +218,22 @@ export class Map {
     }
 
     addHeartBonus(xMap, yMap, node) {
-        const bonus = document.createElement("img");
-        bonus.src = this.level.heart_img;
-        bonus.className = "heart-bonus";
-        bonus.style.width = `30px`;
-        bonus.style.height = `40px`;
-        bonus.style.position = "absolute";
         const x = this.level.block_size * xMap;
         const y = this.level.block_size * yMap;
-        bonus.style.transform = `translate(20px, 10px)`;
-        bonus.id = xMap.toString() + yMap.toString() + "T";
-        const Bamboleao = new Bonus(this.game, x, y, this.level,  bonus.id, 'heart');
+        const bonusId = xMap.toString() + yMap.toString() + "T";
+
+        const bonus = dom({
+            tag: "img",
+            attributes: {
+                src: this.level.heart_img,
+                class: "heart-bonus",
+                id: bonusId,
+                style: "width: 30px; height: 40px; position: absolute; transform: translate(20px, 10px);"
+            },
+            children: []
+        });
+
+        const Bamboleao = new Bonus(this.game, x, y, this.level, bonusId, 'heart');
         Bamboleao.originalWidth = 30;
         Bamboleao.originalHeight = 40;
         this.loot.push(Bamboleao);
@@ -201,15 +247,18 @@ export class Map {
         this.backGroundMusic.loop = true;
         const soundOn = this.game.state.isSoundOn();
         this.backGroundMusic.volume = soundOn ? 0.3 : 0.0;
+
+        // Use event manager with once option
         const playMusic = () => {
             this.backGroundMusic.play().catch(err => {
                 console.error("Playback failed:", err);
             });
-            document.body.removeEventListener('click', playMusic);
-            document.body.removeEventListener('keydown', playMusic);
         };
-        document.body.addEventListener('click', playMusic);
-        document.body.addEventListener('keydown', playMusic);
+
+        // Use once: true to automatically remove after first trigger
+        eventManager.addEventListener(document.body, 'click', playMusic, { once: true });
+        eventManager.addEventListener(document.body, 'keydown', playMusic, { once: true });
+
         this.game.state.updateSoundIcon();
     }
 
