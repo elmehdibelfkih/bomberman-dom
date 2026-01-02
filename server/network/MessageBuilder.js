@@ -48,10 +48,13 @@ export const MessageBuilder = {
     };
   },
 
-  gameStarted(roomId) {
+  gameStarted(roomId, mapId, mapData, players) {
     return {
       type: 'GAME_STARTED',
       roomId,
+      mapId,
+      mapData,
+      players,
     };
   },
 
