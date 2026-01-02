@@ -4,6 +4,7 @@ import { Map } from '../components/map.js';
 import { State } from './state.js';
 import { Enemy } from '../components/enemy.js';
 import { UI } from '../components/ui.js';
+import { Multiplayer } from '../components/multiplayer.js';
 
 export class Game {
 
@@ -19,6 +20,7 @@ export class Game {
         this.map = Map.getInstance(this)
         this.player = Player.getInstance(this)
         this.ui =  UI.getInstance(this)
+        this.multiplayer = Multiplayer.getInstance(this)
         this.IDRE = null
         this.stateofrest = false
         this.nextLevelTimeoutId = null;

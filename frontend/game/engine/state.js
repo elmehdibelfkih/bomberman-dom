@@ -2,7 +2,7 @@ import * as helpers from '../utils/helpers.js';
 import { eventManager } from '../../framwork/index.js';
 export class State {
 
-    #CURRENT_LEVEL = 9
+    #CURRENT_LEVEL = 1
     #LIVES = 3
     #SCORE = 0
     #PAUSE = true
@@ -88,7 +88,7 @@ export class State {
         this.#PAUSE = true;
         this.#PLAYER_SPEED = 4;
         this.#BOMB_COUNT = 0;
-        this.#MAX_ALLOWED_BOMBS = 3;
+        this.#MAX_ALLOWED_BOMBS = 1;
         this.#GAME_OVER = false;
         this.#SOUND = true;
         this.#TIME = 0;

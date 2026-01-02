@@ -1,13 +1,17 @@
 import { Game } from "./engine/core.js"
+import { eventManager } from "../framwork/index.js"
 
-window.game = Game.getInstance();
+const game = Game.getInstance();
+window.game = game;
 await game.intiElements();
 
 while (!game.player || !game.player.playerCoordinate) {
     await new Promise(r => setTimeout(r, 0));
 }
 
-window.startGame = async function () {
+// Use event manager for start button
+const startBtn = document.getElementById('start-btn');
+eventManager.addEventListener(startBtn, 'click', async () => {
     await game.waitForLevel();
     document.getElementById('instructions').classList.add('hidden');
     const levelDisplay = document.getElementById('level-display');
@@ -22,4 +26,11 @@ window.startGame = async function () {
         game.state.pauseStart()
         levelDisplay.classList.remove('show');
     }, 2000);
-}
+});
+
+// Use event manager for multiplayer button
+const multiplayerBtn = document.getElementById('multiplayer-btn');
+eventManager.addEventListener(multiplayerBtn, 'click', () => {
+    document.getElementById('instructions').classList.add('hidden');
+    game.multiplayer.showLobbyUI();
+});

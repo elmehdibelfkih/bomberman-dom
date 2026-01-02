@@ -5,7 +5,7 @@ export const PLAYER = 3
 export const ENEMY = 4
 export const BOMB = 5
 export const SPEED = 6
-export const TIME = 7 
+export const TIME = 7
 
 export const ClientMessages = {
   JOIN_LOBBY: 'JOIN_LOBBY',
