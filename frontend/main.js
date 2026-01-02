@@ -3,6 +3,10 @@ import { dom, eventEmitter, Router, usePathname, useHash, useNavigate, createSig
 import { GameRouter } from './components/GameRouter.js';
 import { ReactiveGameState } from './components/ReactiveGameState.js';
 import { ReactiveUI } from './components/ReactiveUI.js';
+import { Chat } from './components/chat.js';
+
+// Initialize chat
+const chat = new Chat();
 
 // Initialize router
 Router.instance.initRouter();
@@ -107,17 +111,37 @@ window.startGame = async function () {
 // Add event listener for start button
 document.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('start-btn');
+    const chatBtn = document.getElementById('chat-btn');
+    
     if (startBtn) {
         // Disable button initially
         startBtn.disabled = true;
         startBtn.textContent = 'Loading...';
         
         startBtn.addEventListener('click', () => {
+            const nickname = document.getElementById('nickname-input').value.trim();
+            if (!nickname) {
+                alert('Please enter a nickname');
+                return;
+            }
+            localStorage.setItem('playerNickname', nickname);
             if (window.startGame) {
                 window.startGame();
             } else {
                 console.error('Game not ready yet');
             }
+        });
+    }
+    
+    if (chatBtn) {
+        chatBtn.addEventListener('click', () => {
+            const nickname = document.getElementById('nickname-input').value.trim();
+            if (!nickname) {
+                alert('Please enter a nickname first');
+                return;
+            }
+            localStorage.setItem('playerNickname', nickname);
+            chat.openChat();
         });
     }
 });
