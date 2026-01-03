@@ -42,7 +42,6 @@ export class MessageHandler {
     }
 
     handleJoinGame(connection, message) {
-        console.log("c")
         const nickname = message.nickname
         const validation = validateNickname(nickname)
 
@@ -59,11 +58,10 @@ export class MessageHandler {
             const players = [];
             lobby.players.forEach((playerData) => {
                 players.push({
+                    playerId: playerData.playerId,
                     nickname: playerData.nickname
                 });
             });
-
-            console.log(connection.playerId)
 
             connection.send(MessageBuilder.lobbyJoined(lobby.id, playerId, players))
         } catch (error) {

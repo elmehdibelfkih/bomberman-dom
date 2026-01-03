@@ -1,10 +1,9 @@
 import { WebSocket } from "ws"
 
 export class Connection {
-    constructor(ws, clientId) {
+    constructor(ws, playerId) {
         this.ws = ws
-        this.clientId = clientId
-        this.playerId = null
+        this.playerId = playerId
         this.nickname = null
         this.connected = true
     }
