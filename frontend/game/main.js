@@ -1,4 +1,5 @@
 import { Game } from "./engine/core.js"
+import { eventManager } from '../framwork/index.js'
 
 window.game = Game.getInstance();
 await game.intiElements();
@@ -7,7 +8,7 @@ while (!game.player || !game.player.playerCoordinate) {
     await new Promise(r => setTimeout(r, 0));
 }
 
-window.startGame = async function () {
+const startGame = async function () {
     await game.waitForLevel();
     document.getElementById('instructions').classList.add('hidden');
     const levelDisplay = document.getElementById('level-display');
@@ -23,3 +24,6 @@ window.startGame = async function () {
         levelDisplay.classList.remove('show');
     }, 2000);
 }
+
+// Use framework event manager instead of addEventListener
+eventManager.addEventListener(document.getElementById('start-btn'), 'click', startGame);
