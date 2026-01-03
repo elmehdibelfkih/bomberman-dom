@@ -140,6 +140,7 @@
             <button id="move-left">Move LEFT</button>
             <button id="move-right">Move RIGHT</button>
             <button id="place-bomb">Place Bomb</button>
+            <button id="request-state">Request Game State</button>
         </div>
 
         <div>
@@ -214,12 +215,17 @@
 
                 // Listen to player joined
                 network.on('PLAYER_JOINED', (data) => {
-                    addLog(`Player joined! ID: ${data.playerId}, Nickname: ${data.nickname}, Total: ${data.playerCount}`, 'success');
+                    addLog(`Player joined! Nickname: ${data.nickname}, Total: ${data.players?.length || 'unknown'}`, 'success');
+                });
+
+                // Listen to player left
+                network.on('PLAYER_LEFT', (data) => {
+                    addLog(`Player left! Nickname: ${data.nickname}, Total: ${data.players?.length || 'unknown'}`, 'info');
                 });
 
                 // Listen to countdown
                 network.on('COUNTDOWN_START', (data) => {
-                    addLog(`Countdown starting: ${data.countdown}s`, 'success');
+                    addLog(`Countdown starting: ${data.seconds}s`, 'success');
                     updateStatus(true, 'Starting Game...');
                 });
 
@@ -229,13 +235,45 @@
 
                 // Listen to game started
                 network.on('GAME_STARTED', (data) => {
-                    addLog(`Game started! Room: ${data.roomId}, Map: ${data.mapId}`, 'success');
+                    addLog(`Game started! Room: ${data.roomId}, Map: ${data.mapData?.name || 'Unknown'}`, 'success');
+                    addLog(`Your Player ID: ${data.yourPlayerId}`, 'info');
+                    addLog(`Players: ${data.players?.length || 0}`, 'info');
                     updateStatus(true, 'In Game');
                 });
 
                 // Listen to full state
                 network.on('FULL_STATE', (data) => {
-                    addLog(`Received full game state (${data.players?.length || 0} players)`, 'success');
+                    addLog(`Received full game state (${data.players?.length || 0} players, ${data.bombs?.length || 0} bombs, ${data.powerups?.length || 0} powerups)`, 'success');
+                });
+
+                // Listen to player moved
+                network.on('PLAYER_MOVED', (data) => {
+                    addLog(`Player moved: ${data.playerId} to (${data.gridX}, ${data.gridY})`, 'info');
+                });
+
+                // Listen to bomb placed
+                network.on('BOMB_PLACED', (data) => {
+                    addLog(`Bomb placed by ${data.playerId} at (${data.gridX}, ${data.gridY})`, 'success');
+                });
+
+                // Listen to bomb exploded
+                network.on('BOMB_EXPLODED', (data) => {
+                    addLog(`Bomb ${data.bombId} exploded!`, 'success');
+                });
+
+                // Listen to powerup collected
+                network.on('POWERUP_COLLECTED', (data) => {
+                    addLog(`Powerup collected by ${data.playerId}: ${data.powerupType}`, 'success');
+                });
+
+                // Listen to player damaged
+                network.on('PLAYER_DAMAGED', (data) => {
+                    addLog(`Player ${data.playerId} damaged! Lives: ${data.livesRemaining}`, 'error');
+                });
+
+                // Listen to player died
+                network.on('PLAYER_DIED', (data) => {
+                    addLog(`Player ${data.playerId} died!`, 'error');
                 });
 
                 // Listen to player disconnected
@@ -290,32 +328,38 @@
 
         document.getElementById('move-up').addEventListener('click', () => {
             if (!network) return;
-            network.move('UP');
+            network.sendPlayerMove('UP');
             addLog('Move UP sent', 'info');
         });
 
         document.getElementById('move-down').addEventListener('click', () => {
             if (!network) return;
-            network.move('DOWN');
+            network.sendPlayerMove('DOWN');
             addLog('Move DOWN sent', 'info');
         });
 
         document.getElementById('move-left').addEventListener('click', () => {
             if (!network) return;
-            network.move('LEFT');
+            network.sendPlayerMove('LEFT');
             addLog('Move LEFT sent', 'info');
         });
 
         document.getElementById('move-right').addEventListener('click', () => {
             if (!network) return;
-            network.move('RIGHT');
+            network.sendPlayerMove('RIGHT');
             addLog('Move RIGHT sent', 'info');
         });
 
         document.getElementById('place-bomb').addEventListener('click', () => {
             if (!network) return;
-            network.placeBomb();
+            network.sendPlaceBomb();
             addLog('Place bomb sent', 'info');
+        });
+
+        document.getElementById('request-state').addEventListener('click', () => {
+            if (!network) return;
+            network.requestGameState();
+            addLog('Game state requested', 'info');
         });
 
         function sendChatMessage() {

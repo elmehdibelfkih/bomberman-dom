@@ -246,8 +246,6 @@ class MultiplayerApp {
 
         const gameStartedHandler = (data) => {
             this.gameData = data;
-            console.log("======>>>>>", this.gameData);
-
             this.router.navigate('/game', true);
         };
 
@@ -431,6 +429,7 @@ class MultiplayerApp {
         setTimeout(() => {
             const leaveGameBtn = document.getElementById('leave-game-btn');
             const leaveGameHandler = () => {
+                // todo: handle this
                 this.cleanup();
                 window.location.href = '../index.html';
             };

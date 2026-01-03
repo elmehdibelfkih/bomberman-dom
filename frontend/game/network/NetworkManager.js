@@ -144,10 +144,15 @@ export class NetworkManager {
         });
     }
 
+    requestGameState() {
+        this.send({
+            type: 'REQUEST_STATE'
+        });
+    }
+
     isConnected() {
         return this.connected;
     }
-
 
     getPlayerId() {
         return this.playerId;
