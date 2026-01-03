@@ -36,8 +36,10 @@ export class GameEngine {
             { x: 1, y: 9 },   // Bottom-left
             { x: 13, y: 9 }   // Bottom-right
         ];
+        console.log(spawnPositions);
         
         players.forEach((player, index) => {
+            console.log(index);
             const spawn = spawnPositions[index];
             this.entities.players.set(player.playerId, {
                 playerId: player.playerId,
@@ -55,6 +57,7 @@ export class GameEngine {
             // Clear spawn area (2x2 around spawn point)
             this.clearSpawnArea(spawn.x, spawn.y);
         });
+        console.log(this.entities.players);
         
         this.gameState.status = 'READY';
         
