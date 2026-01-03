@@ -6,12 +6,11 @@ export const MessageBuilder = {
     };
   },
 
-  lobbyJoined(lobbyId, playerId, mapId, players) {
+  lobbyJoined(lobbyId, playerId, players) {
     return {
       type: 'LOBBY_JOINED',
       lobbyId,
       playerId,
-      mapId,
       players,
       playerCount: players.length,
     };
@@ -111,6 +110,13 @@ export const MessageBuilder = {
   playerDied(playerId) {
     return {
       type: 'PLAYER_DIED',
+      playerId,
+    };
+  },
+
+  playerDisconnected(playerId) {
+    return {
+      type: 'PLAYER_DISCONNECTED',
       playerId,
     };
   },

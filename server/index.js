@@ -77,8 +77,7 @@ wss.on('connection', (ws, req) => {
     connections.add(conn)
 
     ws.on('message', (data) => {
-        const message = JSON.parse(data)
-        messageHandler.handle(conn, message)
+        messageHandler.handle(conn, data)
     })
 
     ws.on('close', () => {

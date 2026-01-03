@@ -15,13 +15,20 @@ export class Connection {
         }
     }
 
-    sendError(code, rawMessage) {
-        if (this.connected && this.ws.readyState === WebSocket.OPEN){
-            const message = {
-                
+    sendError(code, message) {
+        if (this.connected && this.ws.readyState === WebSocket.OPEN) {
+            const errorMessage = {
+                type: 'ERROR',
+                code,
+                message
             }
-            this.ws.send(JSON.stringify(message))
+            this.ws.send(JSON.stringify(errorMessage))
         }
+    }
+
+    setPlayerInfo(playerId, nickname) {
+        this.playerId = playerId
+        this.nickname = nickname
     }
 
     close() {

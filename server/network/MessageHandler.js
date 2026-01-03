@@ -7,9 +7,7 @@ export class MessageHandler {
         this.roomManager = new RoomManager()
     }
 
-    
     handle(connection, rawMessage) {
-        console.log(rawMessage);
         try {
             const message = JSON.parse(rawMessage)
 
@@ -34,9 +32,11 @@ export class MessageHandler {
                     break
 
                 default:
+                    console.log('Unknown message type:', message.type);
                     this.sendError(connection, 'Unknown message type');
             }
         } catch (error) {
+            console.error('Error handling message:', error);
             this.sendError(connection, 'Invalid message format');
         }
     }
@@ -55,7 +55,14 @@ export class MessageHandler {
 
             connection.setPlayerInfo(playerId, nickname);
 
-            connection.send(MessageBuilder.playerJoined(playerId, nickname, lobby.players.size))
+            const players = [];
+            lobby.players.forEach((playerData) => {
+                players.push({
+                    nickname: playerData.nickname
+                });
+            });
+
+            connection.send(MessageBuilder.lobbyJoined(lobby.id, playerId, players))
         } catch (error) {
             connection.sendError('JOIN_FAILED', error.message);
         }
@@ -83,9 +90,6 @@ export class MessageHandler {
             connection.sendError('EMPTY_MESSAGE', 'Message cannot be empty')
         }
 
-        console.log(sanitizeChatMessage)
-
-        // 2. Get player's game room
         const room = this.roomManager.getRoomForPlayer(connection.playerId)
 
         if (!room) {

@@ -43,21 +43,19 @@ export class RoomManager {
 
     joinLobby(connection, nickname) {
         const playerId = connection.playerId;
-        if (!lobby) {
-            lobby = this.createLobby()
+
+        if (!this.lobby) {
+            this.lobby = this.createLobby()
         }
 
-        if (lobby.players.size > 4 || lobby.status === 'COUNTDOWN') {
-            const emptyLobby = this.createLobby()
-            emptyLobby.players.set(playerId, { nickname, connection })
-            this.lobbies.set(mapId, emptyLobby)
-            lobby = emptyLobby
+        if (this.lobby.players.size >= 4 || this.lobby.status === 'COUNTDOWN') {
+            this.lobby = this.createLobby()
         }
 
         this.lobby.players.set(playerId, { nickname, connection })
 
-        if (this.lobby.players.size === 2 && !lobby.waitTimer) {
-            this.startWaitTimer(lobby,);
+        if (this.lobby.players.size === 2 && !this.lobby.waitTimer) {
+            this.startWaitTimer(this.lobby);
         }
 
         if (this.lobby.players.size === 4) {
@@ -70,23 +68,25 @@ export class RoomManager {
             MessageBuilder.playerJoined(playerId, nickname, this.lobby.players.size),
             playerId
         );
-        return { playerId, lobby }
+
+        return { playerId, lobby: this.lobby }
     }
 
-    startWaitTimer(lobby, mapId) {
+    startWaitTimer(lobby) {
         lobby.waitTimer = setTimeout(() => {
-            if (lobby.players.size() >= 2) {
-                this.startCountDown()
+            if (lobby.players.size >= 2) {
+                this.startCountDown(lobby)
             }
         }, GAME_CONFIG.WAIT_TIMER);
     }
 
     startCountDown(lobby) {
+        Logger.info(`Starting 10-second countdown for lobby ${lobby.id}`)
         clearTimeout(lobby.waitTimer)
         lobby.status = 'COUNTDOWN'
-        let remaining = GAME_CONFIG.COUNTDOWN_TIMER
+        let remaining = GAME_CONFIG.COUNTDOWN_TIMER / 1000 // Convert to seconds
 
-        this.broadcastToLobby(lobby, MessageBuilder.countdownStart(GAME_CONFIG.COUNTDOWN_TIMER))
+        this.broadcastToLobby(lobby, MessageBuilder.countdownStart(remaining))
 
         lobby.countdownTimer = setInterval(() => {
             remaining--
@@ -95,7 +95,8 @@ export class RoomManager {
                 this.broadcastToLobby(lobby, MessageBuilder.countdownTick(remaining))
             } else {
                 clearInterval(lobby.countdownTimer)
-                this.startGame(lobby.id, mapId)
+                Logger.info(`Countdown finished for lobby ${lobby.id}, starting game`)
+                this.startGame(lobby)
             }
         }, 1000);
     }
@@ -172,5 +173,51 @@ export class RoomManager {
 
         this.lobby = null;
         Logger.info('Lobby cleared, ready for new players');
+    }
+
+    handleDisconnect(playerId) {
+        Logger.info(`Handling disconnect for player ${playerId}`);
+
+        if (this.lobby && this.lobby.players.has(playerId)) {
+            this.lobby.players.delete(playerId);
+            Logger.info(`Player ${playerId} removed from lobby. Remaining: ${this.lobby.players.size}`);
+
+            this.broadcastToLobby(
+                this.lobby,
+                MessageBuilder.playerLeft(playerId, this.lobby.players.size)
+            );
+
+            if (this.lobby.players.size === 0) {
+                if (this.lobby.waitTimer) {
+                    clearTimeout(this.lobby.waitTimer);
+                }
+                if (this.lobby.countdownTimer) {
+                    clearInterval(this.lobby.countdownTimer);
+                }
+                this.lobby = null;
+                Logger.info('Lobby is empty, cleared');
+            }
+            else if (this.lobby.players.size < 2 && this.lobby.status === 'WAITING' && this.lobby.waitTimer) {
+                clearTimeout(this.lobby.waitTimer);
+                this.lobby.waitTimer = null;
+                Logger.info('Wait timer cancelled, not enough players');
+            }
+
+            return;
+        }
+
+        const roomId = this.playerToRoom.get(playerId);
+        if (roomId) {
+            const gameRoom = this.activeGames.get(roomId);
+            if (gameRoom) {
+                gameRoom.handlePlayerDisconnect(playerId);
+                this.playerToRoom.delete(playerId);
+
+                if (gameRoom.isEmpty()) {
+                    this.activeGames.delete(roomId);
+                    Logger.info(`Game room ${roomId} deleted (empty)`);
+                }
+            }
+        }
     }
 }
