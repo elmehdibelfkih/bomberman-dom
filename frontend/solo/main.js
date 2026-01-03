@@ -1,14 +1,15 @@
-import { dom } from '../framwork/index.js'
-import { SoloGameEngine } from '../game/engine/SoloGameEngine.js'
+import { dom } from '../framework/index.js';
+import { SoloGameEngine } from '../game/engine/SoloGameEngine.js';
 
 class SoloApp {
     constructor() {
-        this.game = null
-        this.init()
+        this.game = null;
+        this.eventListeners = [];
+        this.init();
     }
 
     async init() {
-        this.createMenu()
+        this.createMenu();
     }
 
     createMenu() {
@@ -23,41 +24,59 @@ class SoloApp {
                         {
                             tag: 'h1',
                             attributes: {},
-                            children: ['🎮 Bomberman Solo']
+                            children: ['SOLO MODE']
+                        },
+                        {
+                            tag: 'p',
+                            attributes: { class: 'menu-subtitle' },
+                            children: ['Play against AI enemies']
                         },
                         {
                             tag: 'button',
                             attributes: { id: 'start-solo-btn', class: 'menu-btn' },
-                            children: ['Start Game']
+                            children: ['START GAME']
+                        },
+                        {
+                            tag: 'a',
+                            attributes: {
+                                href: '../index.html',
+                                class: 'menu-btn',
+                                style: 'margin-top: 1rem; text-decoration: none;'
+                            },
+                            children: ['BACK TO HOME']
                         }
                     ]
                 }
             ]
-        })
+        });
 
-        document.body.appendChild(menu)
+        document.body.appendChild(menu);
 
         setTimeout(() => {
-            document.getElementById('start-solo-btn').addEventListener('click', () => {
-                this.startGame()
-            })
-        }, 0)
+            const startBtn = document.getElementById('start-solo-btn');
+            const startHandler = () => this.startGame();
+            startBtn.addEventListener('click', startHandler);
+            this.eventListeners.push({ element: startBtn, event: 'click', handler: startHandler });
+        }, 0);
     }
 
     async startGame() {
-        document.body.innerHTML = ''
-        
-        this.game = SoloGameEngine.getInstance()
-        window.game = this.game
+        // Clean up menu
+        document.body.innerHTML = '';
+        this.cleanupEventListeners();
 
-        await this.game.intiElements()
+        // Create solo game instance
+        this.game = SoloGameEngine.getInstance();
+        window.game = this.game;
+
+        await this.game.intiElements();
 
         while (!this.game.player || !this.game.player.playerCoordinate) {
-            await new Promise(r => setTimeout(r, 0))
+            await new Promise(r => setTimeout(r, 0));
         }
 
-        this.createGameUI()
-        await this.initializeGame()
+        this.createGameUI();
+        await this.initializeGame();
     }
 
     createGameUI() {
@@ -65,8 +84,8 @@ class SoloApp {
             tag: 'div',
             attributes: { id: 'level-display' },
             children: []
-        })
-        document.body.appendChild(levelDisplay)
+        });
+        document.body.appendChild(levelDisplay);
 
         const controls = dom({
             tag: 'div',
@@ -119,30 +138,71 @@ class SoloApp {
                             children: []
                         }
                     ]
+                },
+                {
+                    tag: 'button',
+                    attributes: { id: 'home-btn', class: 'menu-btn' },
+                    children: ['HOME']
                 }
             ]
-        })
-        document.body.appendChild(controls)
+        });
+        document.body.appendChild(controls);
+
+        // Add home button event listener
+        setTimeout(() => {
+            const homeBtn = document.getElementById('home-btn');
+            const homeHandler = () => {
+                this.cleanup();
+                window.location.href = '../index.html';
+            };
+            homeBtn.addEventListener('click', homeHandler);
+            this.eventListeners.push({ element: homeBtn, event: 'click', handler: homeHandler });
+        }, 0);
     }
 
     async initializeGame() {
-        await this.game.waitForLevel()
+        await this.game.waitForLevel();
 
-        const levelDisplay = document.getElementById('level-display')
-        levelDisplay.textContent = `${this.game.map.level.name}`
-        levelDisplay.classList.add('show')
+        const levelDisplay = document.getElementById('level-display');
+        if (levelDisplay && this.game.map && this.game.map.level) {
+            levelDisplay.textContent = `${this.game.map.level.name}`;
+            levelDisplay.classList.add('show');
+        }
 
-        this.game.state.stopTimer()
-        this.game.state.resetTimer()
-        this.game.state.setTime(this.game.map.level.level_time)
-        this.game.state.startTimer()
-        this.game.run()
+        this.game.state.stopTimer();
+        this.game.state.resetTimer();
+        this.game.state.setTime(this.game.map.level.level_time);
+        this.game.state.startTimer();
+        this.game.run();
 
         setTimeout(() => {
-            this.game.state.pauseStart()
-            levelDisplay.classList.remove('show')
-        }, 2000)
+            this.game.state.pauseStart();
+            if (levelDisplay) {
+                levelDisplay.classList.remove('show');
+            }
+        }, 2000);
+    }
+
+    cleanupEventListeners() {
+        this.eventListeners.forEach(({ element, event, handler }) => {
+            if (element && element.removeEventListener) {
+                element.removeEventListener(event, handler);
+            }
+        });
+        this.eventListeners = [];
+    }
+
+    cleanup() {
+        if (this.game) {
+            this.game.stop();
+        }
+
+        this.cleanupEventListeners();
+        document.body.innerHTML = '';
+        SoloGameEngine.resetInstance();
+        this.game = null;
+        window.game = null;
     }
 }
 
-new SoloApp()
+new SoloApp();

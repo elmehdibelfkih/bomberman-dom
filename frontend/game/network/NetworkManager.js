@@ -1,4 +1,4 @@
-import { eventManager } from '../../framwork/index.js';
+import { eventManager } from '../../framework/index.js';
 
 export class NetworkManager {
     static #instance = null;

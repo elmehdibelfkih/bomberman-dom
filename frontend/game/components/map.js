@@ -2,7 +2,7 @@ import * as consts from '../utils/consts.js';
 import { Bomb } from "./bomb.js"
 import { Enemy } from "./enemy.js"
 import { Bonus } from './bonus.js';
-import { dom, eventManager } from '../../framwork/index.js';
+import { dom, eventManager } from '../../framework/index.js';
 
 export class Map {
 

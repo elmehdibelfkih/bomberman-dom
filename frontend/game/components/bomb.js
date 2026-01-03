@@ -1,5 +1,5 @@
 import * as consts from '../utils/consts.js';
-import { dom } from '../../framwork/index.js';
+import { dom } from '../../framework/index.js';
 
 export class Bomb {
     constructor(game, x, y, timestamp) {

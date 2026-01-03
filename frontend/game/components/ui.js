@@ -1,4 +1,4 @@
-import { dom, eventManager } from '../../framwork/index.js';
+import { dom, eventManager } from '../../framework/index.js';
 
 // Her UI  <<>>
 export class UI {

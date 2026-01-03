@@ -5,7 +5,7 @@
 ### Frontend (`/frontend/`)
 **Client-side game implementation and web framework**
 
-- `framwork/` - Custom web framework components
+- `framework/` - Custom web framework components
   - `dom/` - DOM manipulation utilities (dom.js, tags.js, show.js)
   - `event/` - Event system (event_emitter.js, event.js)
   - `router/` - Client-side routing (router.js, useRouter.js)

@@ -1,4 +1,4 @@
-import { dom, eventManager } from '../../framwork/index.js';
+import { dom, eventManager } from '../../framework/index.js';
 import * as consts from '../utils/consts.js';
 import { MultiplayerUI } from './MultiplayerUI.js';
 
