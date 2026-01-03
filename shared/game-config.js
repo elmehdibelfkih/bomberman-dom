@@ -8,7 +8,7 @@ export const GAME_CONFIG = {
     MIN_PLAYERS: 2,
     STARTING_LIVES: 3,
     BLOCK_DENSITY: 0.6,
-    WAIT_TIMER: 20000,
+    WAIT_TIMER: 2000, /////////////////////////
     COUNTDOWN_TIMER: 10000,
     POWERUP_SPAWN_CHANCE: 0.30
 }

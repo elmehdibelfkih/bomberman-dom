@@ -13,19 +13,11 @@ export class AuthoritativeGameState {
     }
 
     start() {
-        // Start authoritative state updates
-        this.stateTimer = setInterval(() => {
-            this.broadcastGameState();
-        }, this.stateUpdateInterval);
-        
-        Logger.info('Authoritative game state started');
+        Logger.info('Authoritative game state started - event-driven mode');
     }
 
     stop() {
-        if (this.stateTimer) {
-            clearInterval(this.stateTimer);
-            this.stateTimer = null;
-        }
+        // No timers to clean up in event-driven mode
     }
 
     // Validate and process player movement
@@ -311,20 +303,5 @@ export class AuthoritativeGameState {
         }
     }
 
-    // Broadcast authoritative game state
-    broadcastGameState() {
-        const gameState = {
-            players: Array.from(this.gameEngine.entities.players.values()),
-            bombs: Array.from(this.gameEngine.entities.bombs.values()),
-            powerups: Array.from(this.gameEngine.entities.powerups.values()),
-            timestamp: Date.now()
-        };
 
-        this.gameRoom.broadcast(MessageBuilder.fullState(
-            this.gameEngine.mapData.initial_grid,
-            gameState.players,
-            gameState.bombs,
-            gameState.powerups
-        ));
-    }
 }

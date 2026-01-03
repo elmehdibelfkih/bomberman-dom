@@ -9,7 +9,6 @@ export class Player extends Entity {
         this.y = y;
         this.direction = 'DOWN';
         this.lives = 3;
-        this.score = 0;
         this.maxBombs = 1;
         this.activeBombs = 0;
         this.bombRange = 1;

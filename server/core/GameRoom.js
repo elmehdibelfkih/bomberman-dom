@@ -53,17 +53,37 @@ export class GameRoom {
 
         Logger.info(`Game ${this.roomId} starting with ${this.players.length} players`);
 
-        this.broadcast(MessageBuilder.gameStarted(this.roomId, this.mapId, this.mapData, this.players));
+        const spawnPositions = [
+            { x: 1, y: 1 },
+            { x: 13, y: 1 },
+            { x: 1, y: 9 },
+            { x: 13, y: 9 }
+        ];
 
-        const fullState = this.engine.serializeFullState();
-        this.broadcast(MessageBuilder.fullState(
-            fullState.grid,
-            fullState.players,
-            fullState.bombs,
-            fullState.powerups
-        ));
+        const initialPlayers = this.players.map((player, index) => ({
+            ...player,
+            gridX: spawnPositions[index].x,
+            gridY: spawnPositions[index].y,
+            lives: 3,
+            speed: 1,
+            bombCount: 1,
+            bombRange: 1,
+            alive: true
+        }));
 
-        Logger.info(`Game ${this.roomId} started successfully`);
+        for (const [playerId, connection] of this.playerConnections.entries()) {
+            if (connection.isConnected()) {
+                connection.send(MessageBuilder.gameStarted(
+                    this.roomId,
+                    this.mapId,
+                    this.mapData,
+                    initialPlayers,
+                    playerId
+                ));
+            }
+        }
+
+        Logger.info(`Game ${this.roomId} started - event-driven mode active`);
     }
 
     broadcast(message, excludePlayerId = null) {
@@ -92,18 +112,14 @@ export class GameRoom {
     handlePlayerDisconnect(playerId) {
         Logger.info(`Player ${playerId} disconnected from room ${this.roomId}`);
 
-        // Remove connection
         this.playerConnections.delete(playerId);
 
-        // Remove from engine
         if (this.engine) {
             this.engine.removePlayer(playerId);
         }
 
-        // Broadcast to remaining players
         this.broadcast(MessageBuilder.playerDisconnected(playerId));
 
-        // Check if enough players remain
         if (this.playerConnections.size < 2 && this.status === 'PLAYING') {
             Logger.info(`Room ${this.roomId} ending: not enough players`);
             this.endGame('NOT_ENOUGH_PLAYERS');
@@ -122,21 +138,7 @@ export class GameRoom {
 
         Logger.info(`Game ${this.roomId} ended: ${reason}, winner: ${winner || 'none'}`);
 
-        // Gather scores
-        const scores = {};
-        if (this.engine) {
-            this.engine.entities.players.forEach((player, playerId) => {
-                scores[playerId] = {
-                    nickname: player.nickname,
-                    score: player.score,
-                    kills: player.kills || 0,
-                    deaths: player.deaths || 0
-                };
-            });
-        }
-
-        // Broadcast game over
-        this.broadcast(MessageBuilder.gameOver(winner, scores, duration));
+        this.broadcast(MessageBuilder.gameOver(winner));
 
         Logger.info(`Game ${this.roomId} finished: duration=${duration}ms, reason=${reason}`);
     }

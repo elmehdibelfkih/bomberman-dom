@@ -49,17 +49,19 @@ export const MessageBuilder = {
     };
   },
 
-  gameStarted(roomId, mapId, mapData, players) {
+  gameStarted(roomId, mapId, mapData, players, yourPlayerId) {
     return {
       type: 'GAME_STARTED',
       roomId,
       mapId,
       mapData,
-      players: players.map((player, index) => ({
-        ...player,
-        spawnX: [1, 13, 1, 13][index],
-        spawnY: [1, 1, 9, 9][index]
-      })),
+      players,
+      yourPlayerId,
+      initialState: {
+        bombs: [],
+        powerups: [],
+        timestamp: Date.now()
+      }
     };
   },
 
@@ -146,12 +148,10 @@ export const MessageBuilder = {
     };
   },
 
-  gameOver(winner, scores, duration) {
+  gameOver(winner) {
     return {
       type: 'GAME_OVER',
       winner,
-      scores,
-      duration,
     };
   },
 
