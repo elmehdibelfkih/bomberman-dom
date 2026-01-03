@@ -53,6 +53,9 @@ export class MultiplayerPlayerManager {
         this.setupControls();
         this.updatePlayersUI();
         this.ui.updateGameStatus('PLAYING', 'Game started!');
+
+        // Unpause the game so player input works
+        this.game.state.SetPause(false);
     }
 
     createLocalPlayer(player) {
