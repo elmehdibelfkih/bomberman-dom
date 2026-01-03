@@ -95,6 +95,11 @@ export class Game {
         this.player = Player.getInstance(this)
         await this.map.initMap()
         await this.player.initPlayer()
+        await this.waitForLevel();
+        this.state.stopTimer();
+        this.state.resetTimer();
+        this.state.setTime(this.map.level.level_time);
+        this.state.startTimer();
         this.enemie = new Enemy(this);
         this.stateofrest = false
         this.run();
