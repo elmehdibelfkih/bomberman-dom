@@ -98,7 +98,7 @@ export class State {
     updateSoundIcon = () => {
         const ic = document.getElementById('Icon');
         if (!ic) return;
-        ic.src = this.#SOUND ? './icon/volume-2.svg' : './icon/volume-x.svg';
+        ic.src = this.#SOUND ? '/game/icon/volume-2.svg' : '/game/icon/volume-x.svg';
     };
 
     setArrowStateKeyDown = (event) => {
@@ -136,7 +136,39 @@ export class State {
     pauseStart = helpers.throttle(() => {
         this.#PAUSE = !this.#PAUSE;
         this.updatePauseIcon();
+        if (this.#PAUSE) {
+            this.showPauseMenu();
+        } else {
+            this.hidePauseMenu();
+        }
     }, 300)
+
+    showPauseMenu() {
+        const instructions = document.getElementById('instructions');
+        const title = document.getElementById('menu-title');
+        const message = document.getElementById('menu-message');
+        const btn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        
+        if (instructions && title && message && btn && restartBtn) {
+            instructions.classList.remove('hidden');
+            title.textContent = 'GAME PAUSED';
+            message.textContent = 'Choose an option:';
+            btn.textContent = 'CONTINUE';
+            restartBtn.style.display = 'block';
+        }
+    }
+
+    hidePauseMenu() {
+        const instructions = document.getElementById('instructions');
+        const restartBtn = document.getElementById('restart-btn');
+        if (instructions) {
+            instructions.classList.add('hidden');
+        }
+        if (restartBtn) {
+            restartBtn.style.display = 'none';
+        }
+    }
 
     setScore = (val) => {
         this.#SCORE += val;
@@ -148,11 +180,11 @@ export class State {
         const icon = document.getElementById('icon');
         if (!icon) return;
         if (!this.#PAUSE) {
-            icon.src = './icon/pause.svg';
+            icon.src = '/game/icon/pause.svg';
             icon.alt = 'pause';
             this.isStar = false;
         } else {
-            icon.src = './icon/play.svg';
+            icon.src = '/game/icon/play.svg';
             icon.alt = 'star';
             this.isStar = true;
         }
@@ -187,21 +219,25 @@ export class State {
         const ic = document.getElementById('Icon')
         if (!this.game.map.backGroundMusic) return;
         if (this.#SOUND) {
-            ic.src = './icon/volume-x.svg'
+            ic.src = '/game/icon/volume-x.svg'
             this.game.map.backGroundMusic.volume = 0.0;
             this.#SOUND = false
         } else {
-            ic.src = './icon/volume-2.svg'
+            ic.src = '/game/icon/volume-2.svg'
             this.game.map.backGroundMusic.volume = 0.3;
             this.#SOUND = true
         }
     }
 
     removeEventListeners() {
-        document.getElementById('ref')?.removeEventListener('click', this._throttledRestar);
-        document.getElementById('star_pause')?.removeEventListener('click', this._boundTransfer);
-        document.getElementById('sound')?.removeEventListener('click', this._boundSwitch);
-        document.removeEventListener('keydown', this._boundKeyDown);
-        document.removeEventListener('keyup', this._boundKeyUp);
+        const refBtn = document.getElementById('ref');
+        const pauseBtn = document.getElementById('star_pause');
+        const soundBtn = document.getElementById('sound');
+        
+        if (refBtn) eventManager.removeEventListener(refBtn, 'click', this._throttledRestar);
+        if (pauseBtn) eventManager.removeEventListener(pauseBtn, 'click', this._boundTransfer);
+        if (soundBtn) eventManager.removeEventListener(soundBtn, 'click', this._boundSwitch);
+        eventManager.removeEventListener(document.body, 'keydown', this._boundKeyDown);
+        eventManager.removeEventListener(document.body, 'keyup', this._boundKeyUp);
     }
 }

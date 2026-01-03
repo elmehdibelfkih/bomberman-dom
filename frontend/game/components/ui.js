@@ -30,12 +30,27 @@ export class UI {
                         children: ['Message']
                     },
                     {
-                        tag: 'button',
-                        attributes: {
-                            id: 'start-btn',
-                            class: 'start-btn'
-                        },
-                        children: ['Continue']
+                        tag: 'div',
+                        attributes: { class: 'menu-buttons' },
+                        children: [
+                            {
+                                tag: 'button',
+                                attributes: {
+                                    id: 'start-btn',
+                                    class: 'start-btn'
+                                },
+                                children: ['Continue']
+                            },
+                            {
+                                tag: 'button',
+                                attributes: {
+                                    id: 'restart-btn',
+                                    class: 'start-btn',
+                                    style: 'display: none; margin-top: 10px;'
+                                },
+                                children: ['Restart']
+                            }
+                        ]
                     }
                 ]
             }]
@@ -44,11 +59,18 @@ export class UI {
         document.body.appendChild(instructions);
         
         const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        
         eventManager.addEventListener(startBtn, 'click', () => {
             instructions.classList.add('hidden');
             if (this.game.state.isPaused()) {
                 this.game.state.pauseStart();
             }
+        });
+        
+        eventManager.addEventListener(restartBtn, 'click', () => {
+            instructions.classList.add('hidden');
+            this.game.state.Restar();
         });
     }
     
