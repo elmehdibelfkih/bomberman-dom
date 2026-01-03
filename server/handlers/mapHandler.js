@@ -1,26 +1,31 @@
 import { readFileSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
 import { send500Http } from '../helpers.js';
 import { Logger } from '../utils/Logger.js';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 const TOTAL_MAPS = 10;
+
+export function getRandomMap() {
+    const randomMapId = Math.floor(Math.random() * TOTAL_MAPS) + 1;
+    const mapFileName = `level${randomMapId}.json`;
+    const mapPath = join(__dirname, '../../frontend/game/assets/maps', mapFileName);
+
+    const mapData = readFileSync(mapPath, 'utf-8');
+    const mapJson = JSON.parse(mapData);
+
+    Logger.info(`Loaded random map: ${mapFileName} (ID: ${randomMapId})`);
+    return { mapId: randomMapId, mapData: mapJson };
+}
 
 export function mapHandler(req, res) {
     try {
-        const randomMapId = Math.floor(Math.random() * TOTAL_MAPS) + 1;
-        const mapFileName = `level${randomMapId}.json`;
-        const mapPath = join('./frontend/game/assets/maps', mapFileName);
-
-        const mapData = readFileSync(mapPath, 'utf-8');
-        const mapJson = JSON.parse(mapData);
-
+        const result = getRandomMap();
+        
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({
-            mapId: randomMapId,
-            mapData: mapJson
-        }));
-
-        Logger.info(`Served random map: ${mapFileName} (ID: ${randomMapId})`);
+        res.end(JSON.stringify(result));
     } catch (error) {
         Logger.error('Error serving random map:', error);
         send500Http(res, 'mapHandler');
