@@ -51,13 +51,11 @@ export class GameEngine {
                 alive: true
             });
 
-            // Clear spawn area (2x2 around spawn point)
             this.clearSpawnArea(spawn.x, spawn.y);
         });
 
         this.gameState.status = 'READY';
 
-        // Start authoritative game state
         this.authoritativeState.start();
 
         Logger.info('Game engine initialized successfully');

@@ -147,7 +147,7 @@ export class RoomManager {
             const roomId = IdGenerator.generateRoomId();
 
             const players = [];
-            lobby.players.forEach((playerData, playerId) => {
+            lobby.players.forEach((playerData, _) => {
                 players.push({
                     playerId: playerData.playerId,
                     nickname: playerData.nickname
@@ -159,7 +159,7 @@ export class RoomManager {
 
             const gameRoom = new GameRoom(roomId, players, mapId, mapData);
 
-            lobby.players.forEach((playerData, playerId) => {
+            lobby.players.forEach((playerData, _) => {
                 gameRoom.addPlayerConnection(playerData.playerId, playerData.connection);
             });
 
