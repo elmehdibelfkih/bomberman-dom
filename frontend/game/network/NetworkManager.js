@@ -27,7 +27,7 @@ export class NetworkManager {
 
     #initWorker() {
         try {
-            this.worker = new SharedWorker('/game/shared_worker.js', { type: 'module' });
+            this.worker = new SharedWorker('/frontend/game/shared_worker.js', { type: 'module' });
             this.port = this.worker.port;
 
             this.port.onmessage = (e) => {
@@ -142,10 +142,15 @@ export class NetworkManager {
         });
     }
 
+    requestGameState() {
+        this.send({
+            type: 'REQUEST_STATE'
+        });
+    }
+
     isConnected() {
         return this.connected;
     }
-
 
     getPlayerId() {
         return this.playerId;
