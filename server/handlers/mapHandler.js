@@ -19,15 +19,3 @@ export function getRandomMap() {
     Logger.info(`Loaded random map: ${mapFileName} (ID: ${randomMapId})`);
     return { mapId: randomMapId, mapData: mapJson };
 }
-
-export function mapHandler(req, res) {
-    try {
-        const result = getRandomMap();
-        
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(result));
-    } catch (error) {
-        Logger.error('Error serving random map:', error);
-        send500Http(res, 'mapHandler');
-    }
-}

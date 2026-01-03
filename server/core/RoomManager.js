@@ -143,7 +143,7 @@ export class RoomManager {
 
             const { mapId, mapData } = this.loadRandomMap();
             Logger.info(`Loaded map ${mapId} for game`);
-            
+
             const roomId = IdGenerator.generateRoomId();
 
             const players = [];

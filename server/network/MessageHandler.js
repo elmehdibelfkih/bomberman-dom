@@ -10,7 +10,6 @@ export class MessageHandler {
     handle(connection, rawMessage) {
         try {
             const message = JSON.parse(rawMessage)
-            console.log("Reachs: JSON.parse(rawMessage)")
 
             switch (message.type) {
                 case ClientMessages.JOIN_GAME:
