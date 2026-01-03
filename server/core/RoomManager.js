@@ -206,7 +206,7 @@ export class RoomManager {
     }
 
     handlePlayerMove(playerId, direction) {
-        console.log("Reachs: handlePlayerMove")
+        console.log('🎮 SERVER: Processing player move for:', playerId, 'direction:', direction);
         const roomId = this.playerToRoom.get(playerId);
         if (!roomId) {
             Logger.warn(`Player ${playerId} not in any room`);
@@ -225,6 +225,7 @@ export class RoomManager {
         }
 
         try {
+            console.log('🎮 SERVER: Calling game engine to process move');
             gameRoom.engine.processPlayerMove(playerId, direction);
         } catch (error) {
             Logger.error(`Error processing move in room ${roomId}:`, error);

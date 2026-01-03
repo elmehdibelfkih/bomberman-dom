@@ -1,5 +1,5 @@
-import { GAME_CONFIG } from "../../shared/constants";
-import { Entity } from "./Entity";
+import { Entity } from "./Entity.js";
+import { GAME_CONFIG } from "../../shared/game-config.js";
 
 export class Bomb extends Entity {
     constructor(x, y, owner, range) {

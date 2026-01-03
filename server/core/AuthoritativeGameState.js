@@ -22,19 +22,26 @@ export class AuthoritativeGameState {
 
     // Validate and process player movement
     validatePlayerMove(playerId, direction) {
+        console.log('🎮 SERVER: Validating player move for:', playerId, 'direction:', direction);
         const player = this.gameEngine.entities.players.get(playerId);
-        if (!player || !player.alive) return false;
+        if (!player || !player.alive) {
+            console.log('❌ SERVER: Player not found or not alive:', playerId);
+            return false;
+        }
 
         const newPos = this.calculateNewPosition(player, direction);
+        console.log('🎮 SERVER: Calculated new position:', newPos);
         
         // Server-side collision detection
         if (!this.isValidPosition(newPos.x, newPos.y, playerId)) {
+            console.log('❌ SERVER: Invalid position, move rejected');
             return false;
         }
 
         // Update authoritative position
         player.gridX = newPos.x;
         player.gridY = newPos.y;
+        console.log('✅ SERVER: Move validated, updating position and broadcasting');
         
         // Broadcast to all clients
         this.gameRoom.broadcast(
@@ -93,8 +100,11 @@ export class AuthoritativeGameState {
 
     // Server-side collision detection
     isValidPosition(x, y, excludePlayerId = null) {
+        console.log('🔍 SERVER: Checking position validity:', { x, y, excludePlayerId });
+        
         // Check bounds
-        if (x < 0 || x >= GAME_CONFIG.GRID_WIDTH || y < 0 || y < GAME_CONFIG.GRID_HEIGHT) {
+        if (x < 0 || x >= GAME_CONFIG.GRID_WIDTH || y < 0 || y >= GAME_CONFIG.GRID_HEIGHT) {
+            console.log('❌ SERVER: Position out of bounds');
             return false;
         }
 
@@ -102,6 +112,7 @@ export class AuthoritativeGameState {
         if (this.gameEngine.mapData.initial_grid && 
             this.gameEngine.mapData.initial_grid[y] && 
             this.gameEngine.mapData.initial_grid[y][x] !== 0) {
+            console.log('❌ SERVER: Map obstacle at position, cell value:', this.gameEngine.mapData.initial_grid[y][x]);
             return false;
         }
 
@@ -109,6 +120,7 @@ export class AuthoritativeGameState {
         for (const [playerId, player] of this.gameEngine.entities.players.entries()) {
             if (playerId !== excludePlayerId && player.alive && 
                 player.gridX === x && player.gridY === y) {
+                console.log('❌ SERVER: Another player at position:', playerId);
                 return false;
             }
         }
@@ -116,10 +128,12 @@ export class AuthoritativeGameState {
         // Check bombs
         for (const bomb of this.gameEngine.entities.bombs.values()) {
             if (bomb.gridX === x && bomb.gridY === y) {
+                console.log('❌ SERVER: Bomb at position');
                 return false;
             }
         }
 
+        console.log('✅ SERVER: Position is valid');
         return true;
     }
 

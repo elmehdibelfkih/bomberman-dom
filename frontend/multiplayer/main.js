@@ -244,7 +244,10 @@ class MultiplayerApp {
             }
         };
 
-        const gameStartedHandler = () => {
+        const gameStartedHandler = (data) => {
+            this.gameData = data;
+            console.log("======>>>>>", this.gameData);
+
             this.router.navigate('/game', true);
         };
 
@@ -366,7 +369,8 @@ class MultiplayerApp {
         // Setup multiplayer synchronization
         setupMultiplayerSync(this.game, this.networkManager);
 
-        await this.game.intiElements();
+        await this.game.intiElements(this.gameData.mapData);
+
 
         while (!this.game.player || !this.game.player.playerCoordinate) {
             await new Promise(r => setTimeout(r, 0));
