@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+</head>
+<body>
+    <h1>WebSocket Connection Test</h1>
+    <div id="status">Connecting...</div>
+    <div id="messages"></div>
+    <input type="text" id="nickname" placeholder="Enter nickname" value="TestPlayer">
+    <button onclick="joinGame()">Join Game</button>
+    <input type="text" id="chatInput" placeholder="Type message">
+    <button onclick="sendChat()">Send Chat</button>
+
+    <script>
+        const ws = new WebSocket('ws://localhost:9090');
+        const status = document.getElementById('status');
+        const messages = document.getElementById('messages');
+
+        ws.onopen = () => {
+            status.textContent = 'Connected to server';
+            status.style.color = 'green';
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log('Received:', data);
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = `${data.type}: ${JSON.stringify(data)}`;
+            messages.appendChild(messageDiv);
+        };
+
+        ws.onclose = () => {
+            status.textContent = 'Disconnected';
+            status.style.color = 'red';
+        };
+
+        ws.onerror = (error) => {
+            status.textContent = 'Connection error';
+            status.style.color = 'red';
+            console.error('WebSocket error:', error);
+        };
+
+        function joinGame() {
+            const nickname = document.getElementById('nickname').value;
+            if (nickname) {
+                ws.send(JSON.stringify({
+                    type: 'JOIN_GAME',
+                    nickname: nickname
+                }));
+            }
+        }
+
+        function sendChat() {
+            const chatInput = document.getElementById('chatInput');
+            const message = chatInput.value.trim();
+            if (message) {
+                ws.send(JSON.stringify({
+                    type: 'CHAT_MESSAGE',
+                    text: message
+                }));
+                chatInput.value = '';
+            }
+        }
+    </script>
+</body>
+</html>

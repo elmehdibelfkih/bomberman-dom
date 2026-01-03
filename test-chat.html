@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat System Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .chat-box { height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin: 10px 0; }
+        input { width: 300px; padding: 5px; }
+        button { padding: 5px 10px; margin: 5px; }
+        .message { margin: 5px 0; }
+        .nickname { font-weight: bold; color: #ff4757; }
+    </style>
+</head>
+<body>
+    <h1>Bomberman Chat System Test</h1>
+    
+    <div class="test-section">
+        <h2>WebSocket Chat Test</h2>
+        <div id="status">Disconnected</div>
+        <div class="chat-box" id="messages"></div>
+        <input type="text" id="nicknameInput" placeholder="Enter nickname" value="TestUser">
+        <button onclick="connect()">Connect</button>
+        <br>
+        <input type="text" id="messageInput" placeholder="Type message..." maxlength="100">
+        <button onclick="sendMessage()">Send</button>
+        <button onclick="joinLobby()">Join Lobby</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Scenarios</h2>
+        <button onclick="testLobbyChat()">Test Lobby Chat</button>
+        <button onclick="testGameChat()">Test Game Chat</button>
+        <button onclick="testChatValidation()">Test Chat Validation</button>
+    </div>
+
+    <script>
+        let ws = null;
+        let connected = false;
+
+        function connect() {
+            const nickname = document.getElementById('nicknameInput').value;
+            if (!nickname) {
+                alert('Please enter a nickname');
+                return;
+            }
+
+            ws = new WebSocket('ws://localhost:9090');
+            
+            ws.onopen = () => {
+                connected = true;
+                document.getElementById('status').textContent = 'Connected';
+                document.getElementById('status').style.color = 'green';
+                addMessage('System', 'Connected to server');
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                console.log('Received:', data);
+                
+                if (data.type === 'CHAT_MESSAGE') {
+                    addMessage(data.nickname, data.text);
+                } else {
+                    addMessage('Server', `${data.type}: ${JSON.stringify(data)}`);
+                }
+            };
+
+            ws.onclose = () => {
+                connected = false;
+                document.getElementById('status').textContent = 'Disconnected';
+                document.getElementById('status').style.color = 'red';
+                addMessage('System', 'Disconnected from server');
+            };
+
+            ws.onerror = (error) => {
+                addMessage('System', 'Connection error');
+                console.error('WebSocket error:', error);
+            };
+        }
+
+        function joinLobby() {
+            if (!connected) {
+                alert('Please connect first');
+                return;
+            }
+
+            const nickname = document.getElementById('nicknameInput').value;
+            ws.send(JSON.stringify({
+                type: 'JOIN_GAME',
+                nickname: nickname
+            }));
+        }
+
+        function sendMessage() {
+            if (!connected) {
+                alert('Please connect first');
+                return;
+            }
+
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+            
+            if (message) {
+                ws.send(JSON.stringify({
+                    type: 'CHAT_MESSAGE',
+                    text: message
+                }));
+                messageInput.value = '';
+            }
+        }
+
+        function addMessage(nickname, text) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.innerHTML = `<span class="nickname">${nickname}:</span> ${text}`;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function testLobbyChat() {
+            addMessage('Test', 'Testing lobby chat functionality...');
+            if (connected) {
+                sendTestMessage('Hello from lobby!');
+            }
+        }
+
+        function testGameChat() {
+            addMessage('Test', 'Testing in-game chat functionality...');
+            if (connected) {
+                sendTestMessage('Hello from game!');
+            }
+        }
+
+        function testChatValidation() {
+            addMessage('Test', 'Testing chat validation...');
+            if (connected) {
+                // Test empty message
+                ws.send(JSON.stringify({
+                    type: 'CHAT_MESSAGE',
+                    text: ''
+                }));
+                
+                // Test long message
+                ws.send(JSON.stringify({
+                    type: 'CHAT_MESSAGE',
+                    text: 'A'.repeat(150)
+                }));
+                
+                // Test HTML injection
+                ws.send(JSON.stringify({
+                    type: 'CHAT_MESSAGE',
+                    text: '<script>alert("test")</script>'
+                }));
+            }
+        }
+
+        function sendTestMessage(message) {
+            ws.send(JSON.stringify({
+                type: 'CHAT_MESSAGE',
+                text: message
+            }));
+        }
+
+        // Handle Enter key in message input
+        document.getElementById('messageInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
