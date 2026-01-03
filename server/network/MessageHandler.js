@@ -12,22 +12,22 @@ export class MessageHandler {
             const message = JSON.parse(rawMessage)
 
             switch (message.type) {
-                case message.type == ClientMessages.JOIN_GAME:
+                case ClientMessages.JOIN_GAME:
                     this.handleJoinGame(connection, message);
                     break
 
-                case message.type == ClientMessages.MOVE:
+                case ClientMessages.MOVE:
                     this.handleMove(connection, message);
                     break
 
-                case message.type == ClientMessages.PLACE_BOMB:
+                case ClientMessages.PLACE_BOMB:
                     this.handlePlaceBomb(connection, message);
                     break
 
-                case message.type == ClientMessages.CHAT_MESSAGE:
+                case ClientMessages.CHAT_MESSAGE:
                     this.handleChat(connection, message);
                     break;
-                case message.type == ClientMessages.QUIT_GAME:
+                case ClientMessages.QUIT_GAME:
                     this.handleQuitGame(connection, message)
                     break
 
@@ -37,6 +37,10 @@ export class MessageHandler {
         } catch (error) {
             this.sendError(connection, 'Invalid message format');
         }
+    }
+
+    handleJoinHome(connection, message) {
+        const playerId = connection
     }
 
     handleJoinGame(connection, message) {

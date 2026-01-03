@@ -2,6 +2,7 @@ export class IdGenerator {
   static entityCounter = 0;
   static roomCounter = 0;
   static playerCounter = 0;
+  static lobbyCounter = 0;
 
   /**
    * Generate unique entity ID
@@ -9,6 +10,14 @@ export class IdGenerator {
    */
   static generateEntityId() {
     return `entity_${Date.now()}_${this.entityCounter++}`;
+  }
+
+  /**
+   * Generate unique lobby ID
+   * @returns {string} - Format: lobby_timestamp_counter
+   */
+  static generateLobbyId() {
+    return `lobby_${Date.now()}_${this.lobbyCounter++}`;
   }
 
   /**
@@ -24,7 +33,7 @@ export class IdGenerator {
    * @returns {string} - Format: player_timestamp_random
    */
   static generatePlayerId() {
-    return `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `player_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   /**

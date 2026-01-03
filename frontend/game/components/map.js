@@ -33,10 +33,31 @@ export class Map {
     static getInstance = (game) => Map.instance ? Map.instance : new Map(game)
 
     async initMap() {
-        this.level = await fetch(`assets/maps/level${this.game.state.getLevel()}.json`).then(res => res.json());
-        this.enemyCordination = await fetch(`assets/enemycordinate.json`).then(res => res.json())
+        this.level = await fetch(`/game/assets/maps/level${this.game.state.getLevel()}.json`).then(res => res.json());
+        this.enemyCordination = await fetch(`/game/assets/enemycordinate.json`).then(res => res.json())
+
+        // Fix relative paths in level data to absolute paths
+        this.fixAssetPaths();
+
         this.initGrid()
         this.initAudios()
+    }
+
+    fixAssetPaths() {
+        // Convert all relative asset paths to absolute paths
+        const pathKeys = [
+            'enemy', 'player', 'wall', 'floor', 'block', 'bomb',
+            'electric_shock_img', 'player_explosion_img',
+            'back_ground_music', 'shock_sound', 'dying_sound',
+            'time_img', 'speed_img', 'heart_img',
+            'time_sound', 'speed_sound', 'heart_sound'
+        ];
+
+        pathKeys.forEach(key => {
+            if (this.level[key] && this.level[key].startsWith('./')) {
+                this.level[key] = '/game/' + this.level[key].substring(2);
+            }
+        });
     }
 
     blowingUpBlock(x, y) {

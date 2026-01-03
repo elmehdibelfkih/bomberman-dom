@@ -96,7 +96,7 @@ async function SoloGamePage() {
                         tag: 'img',
                         attributes: {
                             id: 'icon',
-                            src: 'icon/play.svg',
+                            src: '/game/icon/play.svg',
                             alt: 'pause/play',
                             width: '16',
                             height: '16'
@@ -113,7 +113,7 @@ async function SoloGamePage() {
                         tag: 'img',
                         attributes: {
                             id: 'icon',
-                            src: 'icon/rotate-ccw.svg',
+                            src: '/game/icon/rotate-ccw.svg',
                             alt: 'restart',
                             width: '16',
                             height: '16'
@@ -130,7 +130,7 @@ async function SoloGamePage() {
                         tag: 'img',
                         attributes: {
                             id: 'Icon',
-                            src: 'icon/volume-2.svg',
+                            src: '/game/icon/volume-2.svg',
                             alt: 'sound',
                             width: '16',
                             height: '16'

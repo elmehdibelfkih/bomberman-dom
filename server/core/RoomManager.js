@@ -1,6 +1,9 @@
 import { IdGenerator } from "../utils/IdGenerator.js"
 import { GAME_CONFIG } from "../../shared/game-config.js"
 import { MessageBuilder } from "../network/MessageBuilder.js"
+import { readFileSync } from 'fs'
+import { join } from 'path'
+import { Logger } from '../utils/Logger.js'
 
 export class RoomManager {
     static #Instance = null
@@ -96,7 +99,55 @@ export class RoomManager {
         })
     }
 
-    startGame(lobbyId, mapId) {
+    loadRandomMap() {
+        const TOTAL_MAPS = 10;
+        const randomMapId = Math.floor(Math.random() * TOTAL_MAPS) + 1;
+        const mapFileName = `level${randomMapId}.json`;
+        const mapPath = join('./frontend/game/assets/maps', mapFileName);
 
+        try {
+            const mapData = readFileSync(mapPath, 'utf-8');
+            const mapJson = JSON.parse(mapData);
+            Logger.info(`Loaded random map: ${mapFileName} (ID: ${randomMapId})`);
+            return { mapId: randomMapId, mapData: mapJson };
+        } catch (error) {
+            Logger.error(`Error loading map ${mapFileName}:`, error);
+            throw new Error('Failed to load map');
+        }
+    }
+
+    startGame(lobbyId, mapId) {
+        const lobby = this.lobbies.get(mapId);
+        if (!lobby) {
+            Logger.error(`Lobby not found for mapId: ${mapId}`);
+            return;
+        }
+
+        // Load a random map
+        const { mapId: selectedMapId, mapData } = this.loadRandomMap();
+
+        // Create room ID
+        const roomId = IdGenerator.generateRoomId();
+
+        // Prepare players array
+        const players = [];
+        lobby.players.forEach((playerData, playerId) => {
+            players.push({
+                playerId,
+                nickname: playerData.nickname,
+            });
+            this.playerToRoom.set(playerId, roomId);
+        });
+
+        // Broadcast game start to all players with map data
+        this.broadcastToLobby(
+            lobby,
+            MessageBuilder.gameStarted(roomId, selectedMapId, mapData, players)
+        );
+
+        // Clean up lobby
+        this.lobbies.delete(mapId);
+
+        Logger.info(`Game started: roomId=${roomId}, mapId=${selectedMapId}, players=${players.length}`);
     }
 }
