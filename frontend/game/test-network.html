@@ -65,11 +65,44 @@
         h1, h2 {
             color: #0f0;
         }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            background: #000;
+            border: 2px solid #0f0;
+            border-radius: 5px;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .status-indicator.connected {
+            background: #0f0;
+        }
+        .status-indicator.disconnected {
+            background: #f00;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🔌 Bomberman Network Test</h1>
+
+        <div class="status">
+            <span class="status-indicator disconnected" id="status-indicator"></span>
+            <span id="status-text">Not Connected</span>
+        </div>
+
+        <div style="background: #111; padding: 10px; margin: 10px 0; border-left: 3px solid #0af;">
+            <strong>Quick Start:</strong>
+            1. Click "Initialize SharedWorker"
+            2. Enter a nickname and click "Join Lobby"
+            3. Wait for 2-4 players or 20s timer
+            4. Game starts automatically!
+        </div>
 
         <div>
             <h2>Connection</h2>
@@ -78,10 +111,9 @@
         </div>
 
         <div>
-            <h2>Join Game</h2>
+            <h2>Join Lobby</h2>
             <input type="text" id="nickname" placeholder="Nickname" value="TestPlayer">
-            <input type="number" id="mapid" placeholder="Map ID" value="1" min="1" max="6">
-            <button id="join-game">Join Game</button>
+            <button id="join-game">Join Lobby</button>
         </div>
 
         <div>
@@ -111,6 +143,8 @@
         import { NetworkManager } from './network/NetworkManager.js';
 
         const log = document.getElementById('log');
+        const statusIndicator = document.getElementById('status-indicator');
+        const statusText = document.getElementById('status-text');
 
         function addLog(message, type = 'info') {
             const entry = document.createElement('div');
@@ -120,6 +154,16 @@
             log.scrollTop = log.scrollHeight;
         }
 
+        function updateStatus(connected, text) {
+            if (connected) {
+                statusIndicator.className = 'status-indicator connected';
+                statusText.textContent = text || 'Connected';
+            } else {
+                statusIndicator.className = 'status-indicator disconnected';
+                statusText.textContent = text || 'Disconnected';
+            }
+        }
+
         // Initialize network manager
         let network = null;
 
@@ -127,25 +171,39 @@
             try {
                 network = NetworkManager.getInstance();
                 addLog('NetworkManager initialized', 'success');
+                updateStatus(true, 'SharedWorker Ready');
 
                 // Listen to all messages
                 network.on('*', (data) => {
                     addLog(`Received: ${JSON.stringify(data)}`, 'info');
                 });
 
+                // Listen to connection
+                network.on('CONNECTED', (data) => {
+                    addLog('WebSocket connected!', 'success');
+                    updateStatus(true, 'Connected');
+                });
+
                 // Listen to errors
                 network.on('ERROR', (data) => {
-                    addLog(`Error: ${data.message}`, 'error');
+                    addLog(`Error: ${data.message || data.code}`, 'error');
+                });
+
+                // Listen to lobby joined
+                network.on('LOBBY_JOINED', (data) => {
+                    addLog(`Lobby joined! Waiting for players...`, 'success');
+                    updateStatus(true, 'In Lobby');
                 });
 
                 // Listen to player joined
                 network.on('PLAYER_JOINED', (data) => {
-                    addLog(`Player joined! ID: ${data.playerId}, Players: ${data.playerCount}`, 'success');
+                    addLog(`Player joined! ID: ${data.playerId}, Nickname: ${data.nickname}, Total: ${data.playerCount}`, 'success');
                 });
 
                 // Listen to countdown
                 network.on('COUNTDOWN_START', (data) => {
                     addLog(`Countdown starting: ${data.countdown}s`, 'success');
+                    updateStatus(true, 'Starting Game...');
                 });
 
                 network.on('COUNTDOWN_TICK', (data) => {
@@ -154,11 +212,39 @@
 
                 // Listen to game started
                 network.on('GAME_STARTED', (data) => {
-                    addLog(`Game started!`, 'success');
+                    addLog(`Game started! Room: ${data.roomId}, Map: ${data.mapId}`, 'success');
+                    updateStatus(true, 'In Game');
+                });
+
+                // Listen to full state
+                network.on('FULL_STATE', (data) => {
+                    addLog(`Received full game state (${data.players?.length || 0} players)`, 'success');
+                });
+
+                // Listen to player disconnected
+                network.on('PLAYER_DISCONNECTED', (data) => {
+                    addLog(`Player ${data.playerId} disconnected`, 'info');
+                });
+
+                // Listen to game over
+                network.on('GAME_OVER', (data) => {
+                    addLog(`Game over! Winner: ${data.winner || 'none'}, Duration: ${data.duration}ms`, 'success');
+                    updateStatus(true, 'Game Ended');
+                });
+
+                // Listen to chat messages
+                network.on('CHAT_MESSAGE', (data) => {
+                    addLog(`[CHAT] ${data.nickname}: ${data.text}`, 'info');
+                });
+
+                // Listen to wait timer
+                network.on('WAIT_TIMER_START', (data) => {
+                    addLog(`Wait timer started: ${data.duration}ms`, 'info');
                 });
 
             } catch (error) {
                 addLog(`Error initializing: ${error.message}`, 'error');
+                updateStatus(false, 'Error');
             }
         });
 
@@ -177,9 +263,12 @@
                 return;
             }
             const nickname = document.getElementById('nickname').value;
-            const mapId = parseInt(document.getElementById('mapid').value);
-            network.joinGame(nickname, mapId);
-            addLog(`Joining game as ${nickname} on map ${mapId}`, 'success');
+            if (!nickname || nickname.trim() === '') {
+                addLog('Please enter a nickname!', 'error');
+                return;
+            }
+            network.joinGame(nickname);
+            addLog(`Joining lobby as "${nickname}"`, 'success');
         });
 
         document.getElementById('move-up').addEventListener('click', () => {
@@ -208,17 +297,25 @@
 
         document.getElementById('place-bomb').addEventListener('click', () => {
             if (!network) return;
-            network.placeBomb(5, 5);
-            addLog('Place bomb at (5, 5) sent', 'info');
+            network.placeBomb();
+            addLog('Place bomb sent', 'info');
         });
 
-        document.getElementById('send-chat').addEventListener('click', () => {
+        function sendChatMessage() {
             if (!network) return;
             const message = document.getElementById('chat-message').value;
             if (message) {
                 network.sendChat(message);
                 addLog(`Chat sent: ${message}`, 'success');
                 document.getElementById('chat-message').value = '';
+            }
+        }
+
+        document.getElementById('send-chat').addEventListener('click', sendChatMessage);
+
+        document.getElementById('chat-message').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendChatMessage();
             }
         });
 

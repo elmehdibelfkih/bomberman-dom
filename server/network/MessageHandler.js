@@ -7,7 +7,9 @@ export class MessageHandler {
         this.roomManager = new RoomManager()
     }
 
+    
     handle(connection, rawMessage) {
+        console.log(rawMessage);
         try {
             const message = JSON.parse(rawMessage)
 
@@ -39,10 +41,6 @@ export class MessageHandler {
         }
     }
 
-    handleJoinHome(connection, message) {
-        const playerId = connection
-    }
-
     handleJoinGame(connection, message) {
         const nickname = message.nickname
         const validation = validateNickname(nickname)
@@ -52,14 +50,8 @@ export class MessageHandler {
             return
         }
 
-        const mapId = message.mapId
-        if (!mapId || mapId < 1 || mapId > 6) {
-            connection.sendError('INVALID_MAP', 'Must choose one of the available maps');
-            return;
-        }
-
         try {
-            const { playerId, lobby } = this.roomManager.joinLobby(connection, nickname, mapId);
+            const { playerId, lobby } = this.roomManager.joinLobby(connection, nickname);
 
             connection.setPlayerInfo(playerId, nickname);
 
@@ -82,7 +74,6 @@ export class MessageHandler {
     }
 
     handleChat(connection, message) {
-        // 1. Sanitize message
         const sanitizedMessage = sanitizeChatMessage(message.text)
         if (!connection.playerId) {
             connection.sendError('NOT_IN_GAME', 'You must join a game first')
@@ -91,6 +82,8 @@ export class MessageHandler {
         if (!sanitizedMessage) {
             connection.sendError('EMPTY_MESSAGE', 'Message cannot be empty')
         }
+
+        console.log(sanitizeChatMessage)
 
         // 2. Get player's game room
         const room = this.roomManager.getRoomForPlayer(connection.playerId)

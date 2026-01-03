@@ -4,7 +4,7 @@ class WebSocketManger {
     constructor() {
         this.ws = null;
         this.ports = [];
-        this.url = "ws://localhost:8080/ws"; // i think this should be an env var
+        this.url = "ws://localhost:9090"; // Match the server port
         this.reconnectDelay = 5000;
         this.reconnectTimer = null;
         this.messagesQueue = []

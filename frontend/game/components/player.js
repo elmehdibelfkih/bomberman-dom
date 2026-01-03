@@ -12,7 +12,7 @@ export class Player {
     static getInstance = (game) => Player.instance ? Player.instance : new Player(game)
 
     async initPlayer() {
-        this.playerCoordinate = await fetch(`assets/playerCoordinate.json`).then(res => res.json())
+        this.playerCoordinate = await fetch(`/game/assets/playerCoordinate.json`).then(res => res.json())
         if (this.player) this.game.grid.removeChild(this.player)
 
         this.player = dom({ tag: "div", attributes: { class: 'player' }, children: [] });

@@ -33,8 +33,21 @@ export function initServer(directoryPath) {
                 return res.end('Access denied');
             }
 
-            const content = readFileSync(fullPath);
-            const ext = extname(fileUrl).toLowerCase();
+            let content;
+            let ext = extname(fileUrl).toLowerCase();
+
+            try {
+                content = readFileSync(fullPath);
+            } catch (error) {
+                // If file not found and no extension, serve index.html (SPA routing)
+                if (!ext) {
+                    const indexPath = join(directoryPath, 'index.html');
+                    content = readFileSync(indexPath);
+                    ext = '.html';
+                } else {
+                    throw error;
+                }
+            }
 
             res.writeHead(200, {
                 'Content-Type': MIME_TYPES[ext] || 'text/plain'

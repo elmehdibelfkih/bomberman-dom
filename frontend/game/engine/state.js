@@ -172,11 +172,12 @@ export class State {
             if (!this.isPaused()) {
                 if (this.#TIME > 0) {
                     this.#TIME--;
-                    this.game.scoreboard.updateTimer();
-
+                    if (this.game && this.game.scoreboard) {
+                        this.game.scoreboard.updateTimer();
+                    }
                 } else {
-                    clearInterval(this.#TIMER_ID);
-                    this.#GAME_OVER = true
+                    this.stopTimer();
+                    this.#GAME_OVER = true;
                 }
             }
         }, 1000);

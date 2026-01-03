@@ -1,9 +1,57 @@
+import { dom, eventManager } from '../../framwork/index.js';
+
 // Her UI  <<>>
 export class UI {
     constructor(game) {
         UI.instance = this;
         this.game = game
+        this.createInstructionsOverlay();
     }
+    
+    createInstructionsOverlay() {
+        const instructions = dom({
+            tag: 'div',
+            attributes: {
+                id: 'instructions',
+                class: 'hidden'
+            },
+            children: [{
+                tag: 'div',
+                attributes: { class: 'instruction-box' },
+                children: [
+                    {
+                        tag: 'h2',
+                        attributes: { id: 'menu-title' },
+                        children: ['Game']
+                    },
+                    {
+                        tag: 'p',
+                        attributes: { id: 'menu-message' },
+                        children: ['Message']
+                    },
+                    {
+                        tag: 'button',
+                        attributes: {
+                            id: 'start-btn',
+                            class: 'start-btn'
+                        },
+                        children: ['Continue']
+                    }
+                ]
+            }]
+        });
+        
+        document.body.appendChild(instructions);
+        
+        const startBtn = document.getElementById('start-btn');
+        eventManager.addEventListener(startBtn, 'click', () => {
+            instructions.classList.add('hidden');
+            if (this.game.state.isPaused()) {
+                this.game.state.pauseStart();
+            }
+        });
+    }
+    
     static getInstance = (game) => UI.instance ? UI.instance : new UI(game)
     GameOver() {
          const instructions = document.getElementById("instructions");

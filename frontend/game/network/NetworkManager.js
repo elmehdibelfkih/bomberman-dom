@@ -103,12 +103,11 @@ export class NetworkManager {
         }
     }
 
-    joinGame(nickname, mapId) {
+    joinGame(nickname) {
         this.nickname = nickname;
         this.send({
             type: 'JOIN_GAME',
-            nickname,
-            mapId
+            nickname
         });
     }
 
@@ -120,11 +119,9 @@ export class NetworkManager {
     }
 
 
-    placeBomb(x, y) {
+    placeBomb() {
         this.send({
-            type: 'PLACE_BOMB',
-            x,
-            y
+            type: 'PLACE_BOMB'
         });
     }
 
