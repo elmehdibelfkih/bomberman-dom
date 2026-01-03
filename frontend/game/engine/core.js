@@ -82,8 +82,12 @@ export class Game {
         this.scoreboard.updateScore()
         this.map.enemys = []
         this.map.Booms = []
-        this.player.removeplayer()
-        this.map.destructeur()
+        if (this.player && this.player.removeplayer) {
+            this.player.removeplayer()
+        }
+        if (this.map && this.map.destructeur) {
+            this.map.destructeur()
+        }
         this.state.removeEventListeners();
         this.state = State.getInstance(this)
         this.state.initArrowState();
@@ -93,6 +97,7 @@ export class Game {
         await this.player.initPlayer()
         this.enemie = new Enemy(this);
         this.stateofrest = false
+        this.run();
     }
 
     async nextLevel() {
@@ -110,8 +115,12 @@ export class Game {
         this.scoreboard.updateScore();
         this.map.enemys = [];
         this.map.Booms = [];
-        this.player.removeplayer();
-        this.map.destructeur();
+        if (this.player && this.player.removeplayer) {
+            this.player.removeplayer();
+        }
+        if (this.map && this.map.destructeur) {
+            this.map.destructeur();
+        }
         this.state.removeEventListeners();
         this.state.initArrowState();
         this.state.nextLevel();
@@ -128,6 +137,7 @@ export class Game {
         this.state.startTimer();
         this.stateofrest = false;
         this.levelComplete = false;
+        this.run();
     }
 
     async handleWin() {
@@ -161,7 +171,7 @@ export class Game {
         await this.waitForLevel();
         this.state.stopTimer();
         this.state.resetTimer();
-        this.state.setTime(map.level.level_time);
+        this.state.setTime(this.map.level.level_time);
         this.state.startTimer();
         this.stateofrest = false;
         this.levelComplete = false;
