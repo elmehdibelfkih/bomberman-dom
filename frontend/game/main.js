@@ -164,9 +164,9 @@ async function SoloGamePage() {
     return null;
 }
 
-// Multiplayer Page (Placeholder)
+// Multiplayer Page - Nickname Input
 function MultiplayerPage() {
-    return dom({
+    const container = dom({
         tag: 'div',
         attributes: {
             id: 'multiplayer-container',
@@ -185,7 +185,32 @@ function MultiplayerPage() {
                     {
                         tag: 'p',
                         attributes: { class: 'menu-subtitle' },
-                        children: ['Coming Soon...']
+                        children: ['Enter your nickname to join']
+                    },
+                    {
+                        tag: 'div',
+                        attributes: { class: 'nickname-form' },
+                        children: [
+                            {
+                                tag: 'input',
+                                attributes: {
+                                    type: 'text',
+                                    id: 'nickname-input',
+                                    placeholder: 'Enter your nickname',
+                                    maxlength: '20',
+                                    autocomplete: 'off'
+                                },
+                                children: []
+                            },
+                            {
+                                tag: 'button',
+                                attributes: {
+                                    id: 'join-game-btn',
+                                    class: 'menu-btn'
+                                },
+                                children: ['Join Game']
+                            }
+                        ]
                     },
                     {
                         tag: 'a',
@@ -200,6 +225,37 @@ function MultiplayerPage() {
             }
         ]
     });
+
+    // Add event listener for the join button
+    setTimeout(() => {
+        const input = document.getElementById('nickname-input');
+        const joinBtn = document.getElementById('join-game-btn');
+
+        const handleJoin = () => {
+            const nickname = input.value.trim();
+            if (nickname) {
+                // Store nickname for multiplayer game
+                sessionStorage.setItem('playerNickname', nickname);
+                // TODO: Connect to multiplayer game server
+                console.log('Joining multiplayer game as:', nickname);
+                alert(`Welcome, ${nickname}! Multiplayer game will start soon.`);
+            } else {
+                alert('Please enter a nickname');
+                input.focus();
+            }
+        };
+
+        joinBtn.addEventListener('click', handleJoin);
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleJoin();
+            }
+        });
+
+        input.focus();
+    }, 0);
+
+    return container;
 }
 
 // Router logic - render based on pathname
