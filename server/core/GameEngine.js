@@ -38,7 +38,7 @@ export class GameEngine {
         ];
         
         players.forEach((player, index) => {
-            const spawn = spawnPositions[index] || spawnPositions[0];
+            const spawn = spawnPositions[index];
             this.entities.players.set(player.playerId, {
                 playerId: player.playerId,
                 nickname: player.nickname,

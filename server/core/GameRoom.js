@@ -53,8 +53,6 @@ export class GameRoom {
 
         Logger.info(`Game ${this.roomId} starting with ${this.players.length} players`);
 
-        console.log(this.mapData)
-
         this.broadcast(MessageBuilder.gameStarted(this.roomId, this.mapId, this.mapData, this.players));
 
         const fullState = this.engine.serializeFullState();

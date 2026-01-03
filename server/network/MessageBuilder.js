@@ -55,7 +55,11 @@ export const MessageBuilder = {
       roomId,
       mapId,
       mapData,
-      players,
+      players: players.map((player, index) => ({
+        ...player,
+        spawnX: [1, 13, 1, 13][index],
+        spawnY: [1, 1, 9, 9][index]
+      })),
     };
   },
 
@@ -63,8 +67,8 @@ export const MessageBuilder = {
     return {
       type: 'PLAYER_MOVED',
       playerId,
-      gridX,
-      gridY,
+      x: gridX,
+      y: gridY,
       direction,
     };
   },

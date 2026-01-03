@@ -1,3 +1,4 @@
+import { MultiplayerGameEngine } from '../engine/MultiplayerGameEngine.js'
 import { NetworkManager } from '../network/NetworkManager.js'
 import { dom } from '../../framwork/index.js'
 
@@ -5,6 +6,7 @@ export class MultiplayerMode {
     constructor(router) {
         this.router = router
         this.networkManager = null
+        this.game = null
         this.isActive = false
         this.currentView = null
         this.eventListeners = []
@@ -167,8 +169,12 @@ export class MultiplayerMode {
             this.updatePlayerList(data.players)
         })
 
-        this.networkManager.on('GAME_STARTED', () => {
-            this.startMultiplayerGame()
+        this.networkManager.on('GAME_STARTED', (data) => {
+            // Initialize game with server-provided map data
+            this.game = MultiplayerGameEngine.getInstance()
+            this.game.setNetworkManager(this.networkManager)
+            window.game = this.game
+            this.game.handleGameStart(data)
         })
     }
 
@@ -192,6 +198,11 @@ export class MultiplayerMode {
     startMultiplayerGame() {
         document.body.innerHTML = ''
         
+        // Initialize multiplayer game engine
+        this.game = MultiplayerGameEngine.getInstance()
+        this.game.setNetworkManager(this.networkManager)
+        window.game = this.game
+        
         const gameContainer = dom({
             tag: 'div',
             attributes: { id: 'multiplayer-game' },
@@ -211,6 +222,9 @@ export class MultiplayerMode {
         
         document.body.appendChild(gameContainer)
         
+        // Setup multiplayer game initialization
+        this.initializeMultiplayerGame()
+        
         setTimeout(() => {
             const leaveGameBtn = document.getElementById('leave-game-btn')
             const leaveGameHandler = () => {
@@ -220,6 +234,58 @@ export class MultiplayerMode {
             leaveGameBtn.addEventListener('click', leaveGameHandler)
             this.eventListeners.push({ element: leaveGameBtn, event: 'click', handler: leaveGameHandler })
         }, 0)
+    }
+
+    async initializeMultiplayerGame() {
+        await this.game.intiElements()
+        
+        while (!this.game.player || !this.game.player.playerCoordinate) {
+            await new Promise(r => setTimeout(r, 0))
+        }
+        
+        await this.game.waitForLevel()
+        this.game.startGame()
+        
+        // Setup network event handlers for multiplayer game
+        this.setupMultiplayerNetworkHandlers()
+    }
+
+    setupMultiplayerNetworkHandlers() {
+        this.networkManager.on('GAME_STATE_UPDATE', (data) => {
+            this.game.handleServerState(data)
+        })
+
+        this.networkManager.on('PLAYER_MOVED', (data) => {
+            this.game.handlePlayerMoved(data.playerId, data.x, data.y, data.direction)
+        })
+
+        this.networkManager.on('BOMB_PLACED', (data) => {
+            this.game.handleBombPlaced(data)
+        })
+
+        this.networkManager.on('BOMB_EXPLODED', (data) => {
+            this.game.handleBombExploded(data.bombId, data.explosions, data.destroyedBlocks)
+        })
+
+        this.networkManager.on('PLAYER_DAMAGED', (data) => {
+            this.game.handlePlayerDamaged(data.playerId, data.livesRemaining)
+        })
+
+        this.networkManager.on('PLAYER_DIED', (data) => {
+            this.game.handlePlayerDied(data.playerId)
+        })
+
+        this.networkManager.on('POWERUP_SPAWNED', (data) => {
+            this.game.handlePowerupSpawned(data)
+        })
+
+        this.networkManager.on('POWERUP_COLLECTED', (data) => {
+            this.game.handlePowerupCollected(data.playerId, data.powerUpId, data.type, data.newStats)
+        })
+
+        this.networkManager.on('GAME_ENDED', (data) => {
+            this.game.handleGameEnded(data.winner)
+        })
     }
 
     destroy() {
@@ -236,6 +302,16 @@ export class MultiplayerMode {
         // Disconnect from network
         if (this.networkManager) {
             this.networkManager.quitGame()
+        }
+
+        // Stop multiplayer game
+        if (this.game) {
+            this.game.stop()
+        }
+
+        // Reset game instance
+        if (MultiplayerGameEngine._instance) {
+            MultiplayerGameEngine._instance = null
         }
 
         // Clear DOM

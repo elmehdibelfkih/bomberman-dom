@@ -1,6 +1,6 @@
 import { Router, dom, usePathname } from '../framwork/index.js'
 import { createEffect } from '../framwork/state/signal.js'
-import { Game } from '../game/engine/core.js'
+import { MultiplayerGameEngine } from '../game/engine/MultiplayerGameEngine.js'
 import { NetworkManager } from '../game/network/NetworkManager.js'
 import { setupMultiplayerSync } from '../game/network/MultiplayerSync.js'
 
@@ -10,6 +10,7 @@ class MultiplayerApp {
         this.router.initRouter()
         this.pathname = usePathname()
         this.currentPage = null
+        this.game = null
         this.init()
     }
 
@@ -232,16 +233,15 @@ class MultiplayerApp {
         document.body.innerHTML = ''
         
         const networkManager = NetworkManager.getInstance()
-        const game = Game.getInstance()
-        game.isMultiplayer = true
-        game.networkManager = networkManager
-        window.game = game
+        this.game = MultiplayerGameEngine.getInstance()
+        this.game.setNetworkManager(networkManager)
+        window.game = this.game
 
-        setupMultiplayerSync(game, networkManager)
+        setupMultiplayerSync(this.game, networkManager)
 
-        await game.intiElements()
+        await this.game.intiElements()
 
-        while (!game.player || !game.player.playerCoordinate) {
+        while (!this.game.player || !this.game.player.playerCoordinate) {
             await new Promise(r => setTimeout(r, 0))
         }
 
@@ -268,8 +268,8 @@ class MultiplayerApp {
         })
         document.body.appendChild(gameContainer)
 
-        await game.waitForLevel()
-        game.run()
+        await this.game.waitForLevel()
+        this.game.startGame()
 
         this.setupGameChat(networkManager)
     }

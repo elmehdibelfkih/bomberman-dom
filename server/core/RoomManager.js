@@ -4,7 +4,7 @@ import { MessageBuilder } from "../network/MessageBuilder.js"
 import { Logger } from '../utils/Logger.js'
 import { broadcastWs, broadcastExcludeWs } from '../helpers.js'
 import { GameRoom } from './GameRoom.js'
-import { getRandomMap } from '../handlers/mapHandler.js'
+import { getMultiplayerMap } from '../handlers/mapHandler.js'
 
 export class RoomManager {
     static #Instance = null
@@ -134,7 +134,7 @@ export class RoomManager {
     }
 
     loadRandomMap() {
-        return getRandomMap();
+        return getMultiplayerMap();
     }
 
     startGame(lobby) {
