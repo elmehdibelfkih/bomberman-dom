@@ -8,10 +8,194 @@
   <link rel="stylesheet" href="/game/style.css" />
   <link rel="icon" href="/game/icon/favicon.png" type="image/svg+xml" />
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-bg: #1a0e0e;
+      --secondary-bg: #2d1b1b;
+      --accent-color: #ff4757;
+      --accent-hover: #ff3742;
+      --text-primary: #ffffff;
+      --score-color: #ffa502;
+      --font-pixel: 'Press Start 2P', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-pixel);
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .home-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--primary-bg) 0%, var(--secondary-bg) 100%);
+      position: relative;
+    }
+
+    .home-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background:
+        radial-gradient(circle at 20% 50%, rgba(255, 71, 87, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 50%, rgba(255, 165, 2, 0.1) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .home-menu {
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      padding: 3rem 2.5rem;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow:
+        0 0 30px rgba(255, 71, 87, 0.4),
+        inset 0 0 20px rgba(0, 0, 0, 0.5);
+      border: 3px solid var(--accent-color);
+      max-width: 500px;
+      width: 90%;
+      position: relative;
+      z-index: 1;
+    }
+
+    .home-title {
+      font-family: var(--font-pixel);
+      font-size: 2.5rem;
+      color: var(--text-primary);
+      margin: 0 0 1rem 0;
+      text-shadow:
+        3px 3px 0 var(--accent-color),
+        6px 6px 10px rgba(255, 71, 87, 0.5);
+      letter-spacing: 2px;
+    }
+
+    .home-subtitle {
+      font-family: var(--font-pixel);
+      font-size: 0.9rem;
+      color: var(--score-color);
+      margin: 0 0 3rem 0;
+      line-height: 1.8;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .home-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .home-btn {
+      font-family: var(--font-pixel);
+      font-size: 1.2rem;
+      padding: 1.5rem 2rem;
+      background: var(--accent-color);
+      color: var(--text-primary);
+      border: 3px solid var(--text-primary);
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      display: block;
+      transition: all 0.2s ease;
+      box-shadow:
+        0 5px 15px rgba(255, 71, 87, 0.4),
+        inset 0 0 10px rgba(255, 255, 255, 0.1);
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .home-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .home-btn:hover::before {
+      left: 100%;
+    }
+
+    .home-btn:hover {
+      transform: translateY(-3px);
+      box-shadow:
+        0 8px 20px rgba(255, 71, 87, 0.6),
+        inset 0 0 15px rgba(255, 255, 255, 0.2);
+      background: var(--accent-hover);
+      border-color: var(--score-color);
+    }
+
+    .home-btn:active {
+      transform: translateY(-1px);
+      box-shadow:
+        0 3px 10px rgba(255, 71, 87, 0.4),
+        inset 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+
+    @media (max-width: 768px) {
+      .home-title {
+        font-size: 1.8rem;
+      }
+
+      .home-subtitle {
+        font-size: 0.7rem;
+      }
+
+      .home-btn {
+        font-size: 1rem;
+        padding: 1.2rem 1.5rem;
+      }
+
+      .home-menu {
+        padding: 2rem 1.5rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .home-title {
+        font-size: 1.4rem;
+      }
+
+      .home-subtitle {
+        font-size: 0.6rem;
+        margin-bottom: 2rem;
+      }
+
+      .home-btn {
+        font-size: 0.8rem;
+        padding: 1rem 1.2rem;
+      }
+    }
+  </style>
 </head>
 
 <body>
-  <script type="module" src="/game/main.js"></script>
+  <div class="home-container">
+    <div class="home-menu">
+      <h1 class="home-title">BOMBERMAN</h1>
+      <p class="home-subtitle">Choose Your Game Mode</p>
+      <div class="home-buttons">
+        <a href="/solo/index.html" class="home-btn">SOLO PLAY</a>
+        <a href="/multiplayer/index.html" class="home-btn">MULTIPLAYER</a>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>

@@ -8,12 +8,6 @@ import { Multiplayer } from '../components/multiplayer.js';
 
 export class Game {
 
-    static #instance = null;
-
-    static getInstance() {
-        if (!Game.#instance) Game.#instance = new Game();
-        return Game.#instance;
-    }
     constructor() {
         this.state = State.getInstance(this);
         this.scoreboard = Scoreboard.getInstance(this)
