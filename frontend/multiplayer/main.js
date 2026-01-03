@@ -4,6 +4,14 @@ import { MultiplayerGameEngine } from '../game/engine/MultiplayerGameEngine.js'
 import { NetworkManager } from '../game/network/NetworkManager.js'
 import { setupMultiplayerSync } from '../game/network/MultiplayerSync.js'
 
+/**
+ * Multiplayer Mode Application
+ * Completely independent from solo mode
+ * - Uses internal router for nickname → lobby → game flow
+ * - Communicates with backend via NetworkManager
+ * - Receives map data from server
+ * - Manages its own DOM and events
+ */
 class MultiplayerApp {
     constructor() {
         this.router = Router.instance
@@ -11,6 +19,8 @@ class MultiplayerApp {
         this.pathname = usePathname()
         this.currentPage = null
         this.game = null
+        this.eventListeners = []
+        this.networkManager = NetworkManager.getInstance()
         this.init()
     }
 
@@ -53,7 +63,12 @@ class MultiplayerApp {
                         {
                             tag: 'h1',
                             attributes: {},
-                            children: ['🎮 Bomberman Multiplayer']
+                            children: ['MULTIPLAYER MODE']
+                        },
+                        {
+                            tag: 'p',
+                            attributes: { class: 'menu-subtitle' },
+                            children: ['Play with friends online']
                         },
                         {
                             tag: 'input',
@@ -61,14 +76,24 @@ class MultiplayerApp {
                                 type: 'text',
                                 id: 'nickname-input',
                                 placeholder: 'Enter your nickname',
-                                maxlength: '20'
+                                maxlength: '20',
+                                autocomplete: 'off'
                             },
                             children: []
                         },
                         {
                             tag: 'button',
                             attributes: { id: 'join-btn', class: 'menu-btn' },
-                            children: ['Join Game']
+                            children: ['JOIN GAME']
+                        },
+                        {
+                            tag: 'a',
+                            attributes: {
+                                href: '../index.html',
+                                class: 'menu-btn',
+                                style: 'margin-top: 1rem; text-decoration: none;'
+                            },
+                            children: ['BACK TO HOME']
                         }
                     ]
                 }
@@ -78,23 +103,32 @@ class MultiplayerApp {
         setTimeout(() => {
             const input = document.getElementById('nickname-input')
             const joinBtn = document.getElementById('join-btn')
-            const networkManager = NetworkManager.getInstance()
 
             const handleJoin = () => {
                 const nickname = input.value.trim()
                 if (nickname) {
                     sessionStorage.setItem('playerNickname', nickname)
-                    networkManager.joinGame(nickname)
+                    this.networkManager.joinGame(nickname)
                     this.router.navigate('/lobby', true)
                 } else {
+                    alert('Please enter a nickname')
                     input.focus()
                 }
             }
 
-            joinBtn.addEventListener('click', handleJoin)
-            input.addEventListener('keypress', (e) => {
+            const joinHandler = () => handleJoin()
+            const keypressHandler = (e) => {
                 if (e.key === 'Enter') handleJoin()
-            })
+            }
+
+            joinBtn.addEventListener('click', joinHandler)
+            input.addEventListener('keypress', keypressHandler)
+
+            this.eventListeners.push(
+                { element: joinBtn, event: 'click', handler: joinHandler },
+                { element: input, event: 'keypress', handler: keypressHandler }
+            )
+
             input.focus()
         }, 0)
 
@@ -113,7 +147,7 @@ class MultiplayerApp {
                         {
                             tag: 'h1',
                             attributes: {},
-                            children: ['Game Lobby']
+                            children: ['GAME LOBBY']
                         },
                         {
                             tag: 'div',
@@ -127,22 +161,48 @@ class MultiplayerApp {
                         },
                         {
                             tag: 'div',
-                            attributes: { id: 'countdown-display' },
+                            attributes: { id: 'countdown-display', class: 'countdown' },
                             children: []
                         },
                         {
                             tag: 'div',
-                            attributes: { id: 'chat-messages', class: 'chat-messages' },
-                            children: []
+                            attributes: { class: 'chat-container' },
+                            children: [
+                                {
+                                    tag: 'div',
+                                    attributes: { id: 'chat-messages', class: 'chat-messages' },
+                                    children: []
+                                },
+                                {
+                                    tag: 'div',
+                                    attributes: { class: 'chat-input-container' },
+                                    children: [
+                                        {
+                                            tag: 'input',
+                                            attributes: {
+                                                type: 'text',
+                                                id: 'chat-input',
+                                                placeholder: 'Type a message...',
+                                                maxlength: '100'
+                                            },
+                                            children: []
+                                        },
+                                        {
+                                            tag: 'button',
+                                            attributes: { id: 'send-chat-btn' },
+                                            children: ['Send']
+                                        }
+                                    ]
+                                }
+                            ]
                         },
                         {
-                            tag: 'input',
+                            tag: 'button',
                             attributes: {
-                                type: 'text',
-                                id: 'chat-input',
-                                placeholder: 'Type message...'
+                                id: 'leave-lobby-btn',
+                                class: 'menu-btn'
                             },
-                            children: []
+                            children: ['LEAVE LOBBY']
                         }
                     ]
                 }
@@ -157,62 +217,123 @@ class MultiplayerApp {
     }
 
     setupLobby() {
-        const networkManager = NetworkManager.getInstance()
         const playerList = document.getElementById('player-list')
         const playerCount = document.getElementById('player-count')
         const chatMessages = document.getElementById('chat-messages')
         const chatInput = document.getElementById('chat-input')
+        const sendBtn = document.getElementById('send-chat-btn')
+        const leaveBtn = document.getElementById('leave-lobby-btn')
         const countdownDisplay = document.getElementById('countdown-display')
 
-        networkManager.on('LOBBY_JOINED', (data) => {
+        // Network event handlers
+        const lobbyJoinedHandler = (data) => {
             this.updatePlayerList(data.players)
-        })
+        }
 
-        networkManager.on('PLAYER_JOINED', (data) => {
+        const playerJoinedHandler = (data) => {
             this.updatePlayerList(data.players)
-            this.addChatMessage('System', `${data.nickname} joined`)
-        })
+            this.addChatMessage('System', `${data.nickname} joined the lobby`)
+        }
 
-        networkManager.on('PLAYER_LEFT', (data) => {
+        const playerLeftHandler = (data) => {
             this.updatePlayerList(data.players)
-            this.addChatMessage('System', `${data.nickname} left`)
-        })
+            this.addChatMessage('System', `${data.nickname} left the lobby`)
+        }
 
-        networkManager.on('COUNTDOWN_TICK', (data) => {
-            countdownDisplay.textContent = `Starting in ${data.remaining}...`
-        })
+        const countdownStartHandler = (data) => {
+            countdownDisplay.textContent = `Game starting in ${data.seconds} seconds...`
+            countdownDisplay.style.color = 'var(--timer-color)'
+        }
 
-        networkManager.on('GAME_STARTED', () => {
-            this.router.navigate('/game', true)
-        })
-
-        networkManager.on('CHAT_MESSAGE', (data) => {
-            this.addChatMessage(data.nickname, data.text)
-        })
-
-        chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const message = chatInput.value.trim()
-                if (message) {
-                    networkManager.sendChat(message)
-                    chatInput.value = ''
-                }
+        const countdownTickHandler = (data) => {
+            countdownDisplay.textContent = `Game starting in ${data.remaining} seconds...`
+            if (data.remaining <= 3) {
+                countdownDisplay.style.color = 'var(--accent-color)'
             }
-        })
+        }
+
+        const gameStartedHandler = () => {
+            this.router.navigate('/game', true)
+        }
+
+        const chatMessageHandler = (data) => {
+            this.addChatMessage(data.nickname, data.text)
+        }
+
+        // Register network event handlers
+        this.networkManager.on('LOBBY_JOINED', lobbyJoinedHandler)
+        this.networkManager.on('PLAYER_JOINED', playerJoinedHandler)
+        this.networkManager.on('PLAYER_LEFT', playerLeftHandler)
+        this.networkManager.on('COUNTDOWN_START', countdownStartHandler)
+        this.networkManager.on('COUNTDOWN_TICK', countdownTickHandler)
+        this.networkManager.on('GAME_STARTED', gameStartedHandler)
+        this.networkManager.on('CHAT_MESSAGE', chatMessageHandler)
+
+        // Chat functionality
+        const sendMessage = () => {
+            const message = chatInput.value.trim()
+            if (message) {
+                this.networkManager.sendChat(message)
+                chatInput.value = ''
+            }
+        }
+
+        const sendClickHandler = () => sendMessage()
+        const chatKeypressHandler = (e) => {
+            if (e.key === 'Enter') sendMessage()
+        }
+
+        const leaveClickHandler = () => {
+            this.cleanup()
+            window.location.href = '../index.html'
+        }
+
+        sendBtn.addEventListener('click', sendClickHandler)
+        chatInput.addEventListener('keypress', chatKeypressHandler)
+        leaveBtn.addEventListener('click', leaveClickHandler)
+
+        this.eventListeners.push(
+            { element: sendBtn, event: 'click', handler: sendClickHandler },
+            { element: chatInput, event: 'keypress', handler: chatKeypressHandler },
+            { element: leaveBtn, event: 'click', handler: leaveClickHandler }
+        )
     }
 
     updatePlayerList(players) {
         const playerCount = document.getElementById('player-count')
         const playerList = document.getElementById('player-list')
-        
+
+        if (!playerCount || !playerList) return
+
         playerCount.textContent = `Players: ${players.length}/4`
+
+        if (players.length >= 2) {
+            playerCount.style.color = 'var(--timer-color)'
+        } else {
+            playerCount.style.color = 'var(--accent-color)'
+        }
+
         playerList.innerHTML = ''
-        
+
         players.forEach((player, index) => {
             const playerEl = dom({
                 tag: 'div',
-                attributes: { class: 'player-item' },
-                children: [`P${index + 1}: ${player.nickname}`]
+                attributes: {
+                    class: 'player-item',
+                    style: `animation-delay: ${index * 0.1}s;`
+                },
+                children: [
+                    {
+                        tag: 'span',
+                        attributes: { class: 'player-number' },
+                        children: [`P${index + 1}`]
+                    },
+                    {
+                        tag: 'span',
+                        attributes: { class: 'player-nickname' },
+                        children: [player.nickname]
+                    }
+                ]
             })
             playerList.appendChild(playerEl)
         })
@@ -220,10 +341,23 @@ class MultiplayerApp {
 
     addChatMessage(nickname, text) {
         const chatMessages = document.getElementById('chat-messages')
+        if (!chatMessages) return
+
         const messageEl = dom({
             tag: 'div',
             attributes: { class: 'chat-message' },
-            children: [`${nickname}: ${text}`]
+            children: [
+                {
+                    tag: 'span',
+                    attributes: { class: 'chat-nickname' },
+                    children: [`${nickname}: `]
+                },
+                {
+                    tag: 'span',
+                    attributes: { class: 'chat-text' },
+                    children: [text]
+                }
+            ]
         })
         chatMessages.appendChild(messageEl)
         chatMessages.scrollTop = chatMessages.scrollHeight
@@ -231,13 +365,14 @@ class MultiplayerApp {
 
     async startMultiplayerGame() {
         document.body.innerHTML = ''
-        
-        const networkManager = NetworkManager.getInstance()
+
+        // Create multiplayer game instance
         this.game = MultiplayerGameEngine.getInstance()
-        this.game.setNetworkManager(networkManager)
+        this.game.setNetworkManager(this.networkManager)
         window.game = this.game
 
-        setupMultiplayerSync(this.game, networkManager)
+        // Setup multiplayer synchronization
+        setupMultiplayerSync(this.game, this.networkManager)
 
         await this.game.intiElements()
 
@@ -245,77 +380,185 @@ class MultiplayerApp {
             await new Promise(r => setTimeout(r, 0))
         }
 
+        // Create multiplayer UI
         const gameContainer = dom({
             tag: 'div',
             attributes: { id: 'multiplayer-game-container' },
             children: [
                 {
                     tag: 'div',
-                    attributes: { id: 'chat-messages-game', class: 'chat-messages-small' },
-                    children: []
+                    attributes: { id: 'players-info', class: 'players-info' },
+                    children: [
+                        {
+                            tag: 'h3',
+                            attributes: {},
+                            children: ['Players']
+                        }
+                    ]
                 },
                 {
-                    tag: 'input',
+                    tag: 'div',
+                    attributes: { id: 'game-chat', class: 'game-chat' },
+                    children: [
+                        {
+                            tag: 'div',
+                            attributes: { id: 'chat-messages-game', class: 'chat-messages-small' },
+                            children: []
+                        },
+                        {
+                            tag: 'input',
+                            attributes: {
+                                type: 'text',
+                                id: 'chat-input-game',
+                                placeholder: 'Press T to chat...',
+                                maxlength: '100',
+                                style: 'display: none;'
+                            },
+                            children: []
+                        }
+                    ]
+                },
+                {
+                    tag: 'button',
                     attributes: {
-                        type: 'text',
-                        id: 'chat-input-game',
-                        placeholder: 'Press T to chat...',
-                        style: 'display: none;'
+                        id: 'leave-game-btn',
+                        class: 'menu-btn',
+                        style: 'position: fixed; top: 20px; right: 20px; z-index: 1000;'
                     },
-                    children: []
+                    children: ['LEAVE GAME']
                 }
             ]
         })
         document.body.appendChild(gameContainer)
 
+        // Add leave game button handler
+        setTimeout(() => {
+            const leaveGameBtn = document.getElementById('leave-game-btn')
+            const leaveGameHandler = () => {
+                this.cleanup()
+                window.location.href = '../index.html'
+            }
+            leaveGameBtn.addEventListener('click', leaveGameHandler)
+            this.eventListeners.push({ element: leaveGameBtn, event: 'click', handler: leaveGameHandler })
+        }, 0)
+
         await this.game.waitForLevel()
         this.game.startGame()
 
-        this.setupGameChat(networkManager)
+        this.setupGameChat()
     }
 
-    setupGameChat(networkManager) {
+    setupGameChat() {
         const chatInput = document.getElementById('chat-input-game')
         let chatVisible = false
 
-        networkManager.on('CHAT_MESSAGE', (data) => {
+        const chatMessageHandler = (data) => {
             this.addGameChatMessage(data.nickname, data.text)
-        })
+        }
 
-        document.addEventListener('keydown', (e) => {
+        this.networkManager.on('CHAT_MESSAGE', chatMessageHandler)
+
+        const keydownHandler = (e) => {
             if (e.key.toLowerCase() === 't' && !chatVisible) {
                 e.preventDefault()
                 chatVisible = true
                 chatInput.style.display = 'block'
                 chatInput.focus()
+                chatInput.placeholder = 'Type message and press Enter...'
+            } else if (e.key === 'Escape' && chatVisible) {
+                e.preventDefault()
+                chatVisible = false
+                chatInput.style.display = 'none'
+                chatInput.value = ''
+                chatInput.blur()
             } else if (e.key === 'Enter' && chatVisible) {
                 e.preventDefault()
                 const message = chatInput.value.trim()
                 if (message) {
-                    networkManager.sendChat(message)
+                    this.networkManager.sendChat(message)
                     chatInput.value = ''
                 }
                 chatVisible = false
                 chatInput.style.display = 'none'
             }
-        })
+        }
+
+        document.addEventListener('keydown', keydownHandler)
+        this.eventListeners.push({ element: document, event: 'keydown', handler: keydownHandler })
     }
 
     addGameChatMessage(nickname, text) {
         const chatMessages = document.getElementById('chat-messages-game')
+        if (!chatMessages) return
+
         const messageEl = dom({
             tag: 'div',
             attributes: { class: 'game-chat-message' },
-            children: [`${nickname}: ${text}`]
+            children: [
+                {
+                    tag: 'span',
+                    attributes: { class: 'game-chat-nickname' },
+                    children: [`${nickname}: `]
+                },
+                {
+                    tag: 'span',
+                    attributes: { class: 'game-chat-text' },
+                    children: [text]
+                }
+            ]
         })
+
         chatMessages.appendChild(messageEl)
-        
+        chatMessages.scrollTop = chatMessages.scrollHeight
+
+        // Auto-hide old messages
+        setTimeout(() => {
+            if (messageEl.parentNode) {
+                messageEl.style.opacity = '0.5'
+            }
+        }, 5000)
+
         setTimeout(() => {
             if (messageEl.parentNode) {
                 messageEl.remove()
             }
-        }, 5000)
+        }, 10000)
+    }
+
+    cleanupEventListeners() {
+        this.eventListeners.forEach(({ element, event, handler }) => {
+            if (element && element.removeEventListener) {
+                element.removeEventListener(event, handler)
+            }
+        })
+        this.eventListeners = []
+    }
+
+    cleanup() {
+        // Stop game loop
+        if (this.game) {
+            this.game.stop()
+        }
+
+        // Disconnect from network
+        if (this.networkManager) {
+            this.networkManager.quitGame()
+        }
+
+        // Clean up event listeners
+        this.cleanupEventListeners()
+
+        // Clear DOM
+        document.body.innerHTML = ''
+
+        // Reset singleton instance
+        MultiplayerGameEngine.resetInstance()
+
+        // Clear game reference
+        this.game = null
+        window.game = null
     }
 }
 
+// Initialize multiplayer app when page loads
 new MultiplayerApp()

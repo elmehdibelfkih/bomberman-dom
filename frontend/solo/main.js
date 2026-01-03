@@ -1,9 +1,18 @@
 import { dom } from '../framwork/index.js'
 import { SoloGameEngine } from '../game/engine/SoloGameEngine.js'
 
+/**
+ * Solo Mode Application
+ * Completely independent from multiplayer mode
+ * - No router
+ * - No network communication
+ * - Uses local JSON level files
+ * - Manages its own DOM and events
+ */
 class SoloApp {
     constructor() {
         this.game = null
+        this.eventListeners = []
         this.init()
     }
 
@@ -23,12 +32,26 @@ class SoloApp {
                         {
                             tag: 'h1',
                             attributes: {},
-                            children: ['🎮 Bomberman Solo']
+                            children: ['SOLO MODE']
+                        },
+                        {
+                            tag: 'p',
+                            attributes: { class: 'menu-subtitle' },
+                            children: ['Play against AI enemies']
                         },
                         {
                             tag: 'button',
                             attributes: { id: 'start-solo-btn', class: 'menu-btn' },
-                            children: ['Start Game']
+                            children: ['START GAME']
+                        },
+                        {
+                            tag: 'a',
+                            attributes: {
+                                href: '../index.html',
+                                class: 'menu-btn',
+                                style: 'margin-top: 1rem; text-decoration: none;'
+                            },
+                            children: ['BACK TO HOME']
                         }
                     ]
                 }
@@ -38,15 +61,19 @@ class SoloApp {
         document.body.appendChild(menu)
 
         setTimeout(() => {
-            document.getElementById('start-solo-btn').addEventListener('click', () => {
-                this.startGame()
-            })
+            const startBtn = document.getElementById('start-solo-btn')
+            const startHandler = () => this.startGame()
+            startBtn.addEventListener('click', startHandler)
+            this.eventListeners.push({ element: startBtn, event: 'click', handler: startHandler })
         }, 0)
     }
 
     async startGame() {
+        // Clean up menu
         document.body.innerHTML = ''
-        
+        this.cleanupEventListeners()
+
+        // Create solo game instance
         this.game = SoloGameEngine.getInstance()
         window.game = this.game
 
@@ -119,18 +146,36 @@ class SoloApp {
                             children: []
                         }
                     ]
+                },
+                {
+                    tag: 'button',
+                    attributes: { id: 'home-btn', class: 'menu-btn' },
+                    children: ['HOME']
                 }
             ]
         })
         document.body.appendChild(controls)
+
+        // Add home button event listener
+        setTimeout(() => {
+            const homeBtn = document.getElementById('home-btn')
+            const homeHandler = () => {
+                this.cleanup()
+                window.location.href = '../index.html'
+            }
+            homeBtn.addEventListener('click', homeHandler)
+            this.eventListeners.push({ element: homeBtn, event: 'click', handler: homeHandler })
+        }, 0)
     }
 
     async initializeGame() {
         await this.game.waitForLevel()
 
         const levelDisplay = document.getElementById('level-display')
-        levelDisplay.textContent = `${this.game.map.level.name}`
-        levelDisplay.classList.add('show')
+        if (levelDisplay && this.game.map && this.game.map.level) {
+            levelDisplay.textContent = `${this.game.map.level.name}`
+            levelDisplay.classList.add('show')
+        }
 
         this.game.state.stopTimer()
         this.game.state.resetTimer()
@@ -140,9 +185,41 @@ class SoloApp {
 
         setTimeout(() => {
             this.game.state.pauseStart()
-            levelDisplay.classList.remove('show')
+            if (levelDisplay) {
+                levelDisplay.classList.remove('show')
+            }
         }, 2000)
+    }
+
+    cleanupEventListeners() {
+        this.eventListeners.forEach(({ element, event, handler }) => {
+            if (element && element.removeEventListener) {
+                element.removeEventListener(event, handler)
+            }
+        })
+        this.eventListeners = []
+    }
+
+    cleanup() {
+        // Stop game loop
+        if (this.game) {
+            this.game.stop()
+        }
+
+        // Clean up event listeners
+        this.cleanupEventListeners()
+
+        // Clear DOM
+        document.body.innerHTML = ''
+
+        // Reset singleton instance
+        SoloGameEngine.resetInstance()
+
+        // Clear game reference
+        this.game = null
+        window.game = null
     }
 }
 
+// Initialize solo app when page loads
 new SoloApp()
