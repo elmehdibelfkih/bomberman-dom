@@ -1,4 +1,4 @@
-import { dom } from '../../framwork/index.js';
+import { dom } from '../../framework/index.js';
 import { ChatNotification } from '../utils/ChatNotification.js';
 import { MultiplayerPlayerManager } from '../components/MultiplayerPlayerManager.js';
 import { NetworkStateSynchronizer } from './NetworkStateSynchronizer.js';

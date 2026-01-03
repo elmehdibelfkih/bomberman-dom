@@ -1,4 +1,4 @@
-import { dom } from '../../framwork/index.js';
+import { dom } from '../../framework/index.js';
 
 export class MultiplayerUI {
     constructor(game, networkManager) {

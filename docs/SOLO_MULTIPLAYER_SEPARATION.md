@@ -5,9 +5,8 @@ The Bomberman game has been split into two distinct game modes with separate log
 
 ### Solo Mode
 - **Engine**: `SoloGameEngine.js`
-- **Entry Points**: 
+- **Entry Point**: 
   - `/frontend/solo/main.js` (standalone)
-  - `/frontend/game/modes/SoloMode.js` (integrated)
 - **Features**:
   - Local gameplay only
   - Enemy AI system
@@ -19,9 +18,8 @@ The Bomberman game has been split into two distinct game modes with separate log
 
 ### Multiplayer Mode
 - **Engine**: `MultiplayerGameEngine.js`
-- **Entry Points**:
+- **Entry Point**:
   - `/frontend/multiplayer/main.js` (standalone)
-  - `/frontend/game/modes/MultiplayerMode.js` (integrated)
 - **Features**:
   - Network-synchronized gameplay
   - Real-time player interactions
@@ -70,6 +68,12 @@ The Bomberman game has been split into two distinct game modes with separate log
 
 ```
 frontend/
+├── framework/
+│   ├── dom/
+│   ├── event/
+│   ├── libs/
+│   ├── router/
+│   └── state/
 ├── solo/
 │   ├── index.html          # Standalone solo entry
 │   └── main.js            # Solo-only application
@@ -79,12 +83,7 @@ frontend/
 ├── game/
 │   ├── engine/
 │   │   ├── SoloGameEngine.js      # Solo game logic
-│   │   ├── MultiplayerGameEngine.js # Multiplayer game logic
-│   │   └── core.js               # Legacy (deprecated)
-│   ├── modes/
-│   │   ├── SoloMode.js           # Solo mode component
-│   │   └── MultiplayerMode.js    # Multiplayer mode component
-│   └── main.js                   # Integrated application
+│   │   └── MultiplayerGameEngine.js # Multiplayer game logic
 server/
 ├── core/                         # Multiplayer-only server logic
 ├── handlers/
@@ -98,12 +97,10 @@ shared/
 ## Usage
 
 ### Standalone Applications
-- **Solo**: Navigate to `/frontend/solo/index.html`
-- **Multiplayer**: Navigate to `/frontend/multiplayer/index.html`
-
-### Integrated Application
-- **Main Menu**: Navigate to `/frontend/game/main.js` or `/frontend/index.html`
-- Choose between solo and multiplayer modes
+- **Main Menu**: Navigate to `/frontend/index.html`
+- From the main menu, you can choose:
+  - **Solo**: Which will take you to `/frontend/solo/index.html`
+  - **Multiplayer**: Which will take you to `/frontend/multiplayer/index.html`
 
 ### Server
 - Only serves multiplayer functionality

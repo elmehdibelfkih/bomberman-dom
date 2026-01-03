@@ -1,6 +1,6 @@
 import * as consts from '../utils/consts.js';
 import * as helpers from '../utils/helpers.js';
-import { dom, eventManager } from '../../framwork/index.js';
+import { dom, eventManager } from '../../framework/index.js';
 
 
 export class Player {
