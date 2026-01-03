@@ -27,7 +27,7 @@ export class NetworkManager {
 
     #initWorker() {
         try {
-            this.worker = new SharedWorker('./shared_worker.js', { type: 'module' });
+            this.worker = new SharedWorker('/game/shared_worker.js', { type: 'module' });
             this.port = this.worker.port;
 
             this.port.onmessage = (e) => {
@@ -50,13 +50,18 @@ export class NetworkManager {
 
     #handleMessage(rawData) {
         try {
+            // Skip ping messages from SharedWorker
+            if (rawData === 'ping') {
+                return;
+            }
+            
             const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
             console.log('Received message:', data);
 
-            const customEvent = new CustomEvent('ws:message', {
-                detail: data
-            });
-            eventManager.emit(document, customEvent);
+            // Store playerId when joining lobby
+            if (data.type === 'LOBBY_JOINED' && data.playerId) {
+                this.playerId = data.playerId;
+            }
 
             if (data.type && this.messageHandlers.has(data.type)) {
                 const handlers = this.messageHandlers.get(data.type);
