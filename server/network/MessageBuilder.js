@@ -6,30 +6,32 @@ export const MessageBuilder = {
     };
   },
 
-  lobbyJoined(lobbyId, playerId, players) {
+  lobbyJoined(lobbyId, playerId, players, playerPosition) {
     return {
       type: 'LOBBY_JOINED',
       lobbyId,
       playerId,
       players,
       playerCount: players.length,
+      playerPosition,
     };
   },
 
-  playerJoined(playerId, nickname, playerCount) {
+  playerJoined(playerId, nickname, players) {
     return {
       type: 'PLAYER_JOINED',
       playerId,
       nickname,
-      playerCount,
+      players,
     };
   },
 
-  playerLeft(playerId, playerCount) {
+  playerLeft(playerId, nickname, players) {
     return {
       type: 'PLAYER_LEFT',
       playerId,
-      playerCount,
+      nickname,
+      players,
     };
   },
 
@@ -99,6 +101,16 @@ export const MessageBuilder = {
     };
   },
 
+  powerupSpawned(powerupId, type, gridX, gridY) {
+    return {
+      type: 'POWERUP_SPAWNED',
+      powerupId,
+      powerupType: type,
+      gridX,
+      gridY,
+    };
+  },
+
   playerDamaged(playerId, livesRemaining) {
     return {
       type: 'PLAYER_DAMAGED',
@@ -136,6 +148,16 @@ export const MessageBuilder = {
       winner,
       scores,
       duration,
+    };
+  },
+
+  fullState(grid, players, bombs, powerups) {
+    return {
+      type: 'FULL_STATE',
+      grid,
+      players,
+      bombs,
+      powerups,
     };
   },
 

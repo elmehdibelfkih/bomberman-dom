@@ -51,7 +51,7 @@ export class MessageHandler {
         }
 
         try {
-            const { playerId, lobby } = this.roomManager.joinLobby(connection, nickname);
+            const { playerId, lobby, playerPosition } = this.roomManager.joinLobby(connection, nickname);
 
             connection.setPlayerInfo(playerId, nickname);
 
@@ -63,7 +63,7 @@ export class MessageHandler {
                 });
             });
 
-            connection.send(MessageBuilder.lobbyJoined(lobby.id, playerId, players))
+            connection.send(MessageBuilder.lobbyJoined(lobby.id, playerId, players, playerPosition))
         } catch (error) {
             connection.sendError('JOIN_FAILED', error.message);
         }
@@ -71,34 +71,62 @@ export class MessageHandler {
 
 
     handleMove(connection, message) {
-        // 1. Get player's game room
-        // 2. Validate direction
-        // 3. Call room.handlePlayerInput()
-    }
-
-    handlePlaceBomb(connection, message) {
-        // 1. Get player's game room
-        // 2. Call room.handlePlayerInput()
-    }
-
-    handleChat(connection, message) {
-        const sanitizedMessage = sanitizeChatMessage(message.text)
-        if (!connection.playerId) {
-            connection.sendError('NOT_IN_GAME', 'You must join a game first')
-        }
-
-        if (!sanitizedMessage) {
-            connection.sendError('EMPTY_MESSAGE', 'Message cannot be empty')
-        }
-
-        const room = this.roomManager.getRoomForPlayer(connection.playerId)
-
+        const room = this.roomManager.getRoomForPlayer(connection.playerId);
         if (!room) {
             connection.sendError('NO_ROOM', 'Not in a game room');
             return;
         }
-        // 3. Broadcast to all players
-        room.broadcast(MessageBuilder.chatMessage(connection.playerId, connection.nickname, sanitizedMessage))
+
+        room.handlePlayerInput(connection.playerId, {
+            type: 'MOVE',
+            direction: message.direction
+        });
+    }
+
+    handlePlaceBomb(connection, message) {
+        const room = this.roomManager.getRoomForPlayer(connection.playerId);
+        if (!room) {
+            connection.sendError('NO_ROOM', 'Not in a game room');
+            return;
+        }
+
+        room.handlePlayerInput(connection.playerId, {
+            type: 'PLACE_BOMB'
+        });
+    }
+
+    handleChat(connection, message) {
+        const sanitizedMessage = sanitizeChatMessage(message.text);
+
+        if (!connection.playerId) {
+            connection.sendError('NOT_IN_GAME', 'You must join a game first');
+            return;
+        }
+
+        if (!sanitizedMessage) {
+            connection.sendError('EMPTY_MESSAGE', 'Message cannot be empty');
+            return;
+        }
+
+        // Check if player is in lobby
+        if (this.roomManager.lobby && this.roomManager.lobby.players.has(connection.playerId)) {
+            // Broadcast to lobby
+            this.roomManager.broadcastToLobby(
+                this.roomManager.lobby,
+                MessageBuilder.chatMessage(connection.playerId, connection.nickname, sanitizedMessage)
+            );
+            return;
+        }
+
+        // Check if player is in active game
+        const room = this.roomManager.getRoomForPlayer(connection.playerId);
+        if (room) {
+            // Broadcast to game room
+            room.broadcast(MessageBuilder.chatMessage(connection.playerId, connection.nickname, sanitizedMessage));
+            return;
+        }
+
+        connection.sendError('NO_ROOM', 'Not in a lobby or game room');
     }
 
     handleQuitGame(connection, message) {

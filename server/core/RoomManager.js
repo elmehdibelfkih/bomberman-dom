@@ -7,6 +7,8 @@ import { Logger } from '../utils/Logger.js'
 import { broadcastWs, broadcastExcludeWs } from '../helpers.js'
 import { GameRoom } from './GameRoom.js'
 
+const TOTAL_MAPS = 10;
+
 export class RoomManager {
     static #Instance = null
     static getInstance() {
@@ -52,7 +54,8 @@ export class RoomManager {
             this.lobby = this.createLobby()
         }
 
-        this.lobby.players.set(playerId, { nickname, connection })
+        this.lobby.players.set(playerId, { playerId, nickname, connection })
+        const playerPosition = this.lobby.players.size;
 
         if (this.lobby.players.size === 2 && !this.lobby.waitTimer) {
             this.startWaitTimer(this.lobby);
@@ -65,37 +68,53 @@ export class RoomManager {
 
         this.broadcastToLobby(
             this.lobby,
-            MessageBuilder.playerJoined(playerId, nickname, this.lobby.players.size),
+            MessageBuilder.playerJoined(playerId, nickname, this.getPlayersArray(this.lobby)),
             playerId
         );
 
-        return { playerId, lobby: this.lobby }
+        return { playerId, lobby: this.lobby, playerPosition }
     }
 
     startWaitTimer(lobby) {
+        Logger.info(`Starting 20-second wait timer for lobby ${lobby.id}`);
+        this.broadcastToLobby(lobby, {
+            type: 'WAIT_TIMER_STARTED',
+            message: '20-second timer started. Game will begin when 4 players join or timer expires.'
+        });
+
         lobby.waitTimer = setTimeout(() => {
-            if (lobby.players.size >= 2) {
-                this.startCountDown(lobby)
+            if (lobby.players.size >= 2 && lobby.status === 'WAITING') {
+                Logger.info(`Wait timer expired for lobby ${lobby.id}, starting countdown with ${lobby.players.size} players`);
+                this.startCountDown(lobby);
+            } else {
+                Logger.info(`Wait timer expired for lobby ${lobby.id}, but only ${lobby.players.size} players - not starting game`);
             }
         }, GAME_CONFIG.WAIT_TIMER);
     }
 
     startCountDown(lobby) {
-        clearTimeout(lobby.waitTimer)
-        lobby.status = 'COUNTDOWN'
-        let remaining = GAME_CONFIG.COUNTDOWN_TIMER / 1000 // Convert to seconds
+        if (lobby.waitTimer) {
+            clearTimeout(lobby.waitTimer);
+            lobby.waitTimer = null;
+        }
 
-        this.broadcastToLobby(lobby, MessageBuilder.countdownStart(remaining))
+        lobby.status = 'COUNTDOWN';
+        let remaining = GAME_CONFIG.COUNTDOWN_TIMER / 1000; // Convert to seconds
+
+        Logger.info(`Starting 10-second countdown for lobby ${lobby.id}`);
+        this.broadcastToLobby(lobby, MessageBuilder.countdownStart(remaining));
 
         lobby.countdownTimer = setInterval(() => {
-            remaining--
+            remaining--;
 
             if (remaining > 0) {
-                this.broadcastToLobby(lobby, MessageBuilder.countdownTick(remaining))
+                this.broadcastToLobby(lobby, MessageBuilder.countdownTick(remaining));
+                Logger.debug(`Countdown tick: ${remaining} seconds remaining`);
             } else {
-                clearInterval(lobby.countdownTimer)
-                Logger.info(`Countdown finished for lobby ${lobby.id}, starting game`)
-                this.startGame(lobby)
+                clearInterval(lobby.countdownTimer);
+                lobby.countdownTimer = null;
+                Logger.info(`Countdown finished for lobby ${lobby.id}, starting game`);
+                this.startGame(lobby);
             }
         }, 1000);
     }
@@ -118,10 +137,9 @@ export class RoomManager {
     }
 
     loadRandomMap() {
-        const TOTAL_MAPS = 10;
         const randomMapId = Math.floor(Math.random() * TOTAL_MAPS) + 1;
         const mapFileName = `level${randomMapId}.json`;
-        const mapPath = join('./frontend/game/assets/maps', mapFileName);
+        const mapPath = join('../frontend/game/assets/maps', mapFileName);
 
         try {
             const mapData = readFileSync(mapPath, 'utf-8');
@@ -135,57 +153,83 @@ export class RoomManager {
     }
 
     startGame(lobby) {
-        const { mapId, mapData } = this.loadRandomMap();
-        const roomId = IdGenerator.generateRoomId();
+        try {
+            Logger.info(`Starting game for lobby ${lobby.id} with ${lobby.players.size} players`);
 
-        console.log(mapData)
+            const { mapId, mapData } = this.loadRandomMap();
+            const roomId = IdGenerator.generateRoomId();
 
+            const players = [];
+            lobby.players.forEach((playerData, playerId) => {
+                players.push({
+                    playerId: playerData.playerId,
+                    nickname: playerData.nickname
+                });
+                this.playerToRoom.set(playerData.playerId, roomId);
+            });
+
+            Logger.info(`Creating game room: ${roomId}, map: ${mapId}, players: ${players.length}`);
+
+            const gameRoom = new GameRoom(roomId, players, mapId, mapData);
+
+            lobby.players.forEach((playerData, playerId) => {
+                gameRoom.addPlayerConnection(playerData.playerId, playerData.connection);
+            });
+
+            this.activeGames.set(roomId, gameRoom);
+
+            // Initialize and start game
+            gameRoom.initialize()
+                .then(() => {
+                    Logger.info(`Game room ${roomId} initialized, starting game`);
+                    gameRoom.start();
+                    Logger.info(`Game ${roomId} started successfully`);
+                })
+                .catch(error => {
+                    Logger.error(`Failed to start game ${roomId}:`, error);
+                    this.broadcastToLobby(
+                        lobby,
+                        MessageBuilder.error('GAME_START_FAILED', 'Failed to start game')
+                    );
+                    this.activeGames.delete(roomId);
+                });
+
+            this.lobby = null;
+            Logger.info('Lobby cleared, ready for new players');
+
+        } catch (error) {
+            Logger.error(`Error in startGame:`, error);
+            this.broadcastToLobby(
+                lobby,
+                MessageBuilder.error('GAME_START_FAILED', 'Failed to start game')
+            );
+        }
+    }
+
+    getPlayersArray(lobby) {
         const players = [];
         lobby.players.forEach((playerData, playerId) => {
             players.push({
-                playerId,
+                playerId: playerData.playerId,
                 nickname: playerData.nickname
             });
-            this.playerToRoom.set(playerId, roomId);
         });
-
-        Logger.info(`Creating game room: ${roomId}, map: ${mapId}, players: ${players.length}`);
-
-        const gameRoom = new GameRoom(roomId, players, mapId, mapData);
-
-        lobby.players.forEach((playerData, playerId) => {
-            gameRoom.addPlayerConnection(playerId, playerData.connection);
-        });
-
-        this.activeGames.set(roomId, gameRoom);
-
-        gameRoom.initialize()
-            .then(() => {
-                gameRoom.start();
-            })
-            .catch(error => {
-                Logger.error(`Failed to start game ${roomId}:`, error);
-                this.broadcastToLobby(
-                    lobby,
-                    MessageBuilder.error('GAME_START_FAILED', 'Failed to start game')
-                );
-                this.activeGames.delete(roomId);
-            });
-
-        this.lobby = null;
-        Logger.info('Lobby cleared, ready for new players');
+        return players;
     }
 
     handleDisconnect(playerId) {
         Logger.info(`Handling disconnect for player ${playerId}`);
 
         if (this.lobby && this.lobby.players.has(playerId)) {
+            const playerData = this.lobby.players.get(playerId);
+            const nickname = playerData ? playerData.nickname : 'Unknown';
+
             this.lobby.players.delete(playerId);
             Logger.info(`Player ${playerId} removed from lobby. Remaining: ${this.lobby.players.size}`);
 
             this.broadcastToLobby(
                 this.lobby,
-                MessageBuilder.playerLeft(playerId, this.lobby.players.size)
+                MessageBuilder.playerLeft(playerId, nickname, this.getPlayersArray(this.lobby))
             );
 
             if (this.lobby.players.size === 0) {
@@ -196,6 +240,7 @@ export class RoomManager {
                     clearInterval(this.lobby.countdownTimer);
                 }
                 this.lobby = null;
+                console.log(runInThisContext.lobby)
                 Logger.info('Lobby is empty, cleared');
             }
             else if (this.lobby.players.size < 2 && this.lobby.status === 'WAITING' && this.lobby.waitTimer) {

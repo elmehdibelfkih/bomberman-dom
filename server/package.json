@@ -1,15 +1,10 @@
 {
-  "dependencies": {
-    "ws": "^8.18.3"
-  },
-  "name": "server",
+  "type": "module",
+  "name": "bomberman-server",
   "version": "1.0.0",
+  "description": "Bomberman multiplayer game server",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": ""
+  }
 }
