@@ -81,7 +81,6 @@ export class RoomManager {
     }
 
     startCountDown(lobby) {
-        Logger.info(`Starting 10-second countdown for lobby ${lobby.id}`)
         clearTimeout(lobby.waitTimer)
         lobby.status = 'COUNTDOWN'
         let remaining = GAME_CONFIG.COUNTDOWN_TIMER / 1000 // Convert to seconds
@@ -138,6 +137,8 @@ export class RoomManager {
     startGame(lobby) {
         const { mapId, mapData } = this.loadRandomMap();
         const roomId = IdGenerator.generateRoomId();
+
+        console.log(mapData)
 
         const players = [];
         lobby.players.forEach((playerData, playerId) => {

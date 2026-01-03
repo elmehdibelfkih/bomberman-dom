@@ -42,6 +42,7 @@ export class MessageHandler {
     }
 
     handleJoinGame(connection, message) {
+        console.log("c")
         const nickname = message.nickname
         const validation = validateNickname(nickname)
 
@@ -61,6 +62,8 @@ export class MessageHandler {
                     nickname: playerData.nickname
                 });
             });
+
+            console.log(connection.playerId)
 
             connection.send(MessageBuilder.lobbyJoined(lobby.id, playerId, players))
         } catch (error) {
