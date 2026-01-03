@@ -53,10 +53,8 @@ export class GameRoom {
 
         Logger.info(`Game ${this.roomId} starting with ${this.players.length} players`);
 
-        // Broadcast game started
         this.broadcast(MessageBuilder.gameStarted(this.roomId, this.mapId, this.mapData, this.players));
 
-        // Send full initial game state
         const fullState = this.engine.serializeFullState();
         this.broadcast(MessageBuilder.fullState(
             fullState.grid,
@@ -66,38 +64,6 @@ export class GameRoom {
         ));
 
         Logger.info(`Game ${this.roomId} started successfully`);
-    }
-
-    handlePlayerInput(playerId, input) {
-        // Validate player
-        if (!this.playerConnections.has(playerId)) {
-            Logger.warn(`Invalid player ${playerId} tried to send input to room ${this.roomId}`);
-            return;
-        }
-
-        // Check game status
-        if (this.status !== 'PLAYING') {
-            Logger.warn(`Input received for room ${this.roomId} but game status is ${this.status}`);
-            return;
-        }
-
-        // Route input to engine
-        try {
-            switch (input.type) {
-                case 'MOVE':
-                    this.engine.processPlayerMove(playerId, input.direction);
-                    break;
-
-                case 'PLACE_BOMB':
-                    this.engine.processPlaceBomb(playerId);
-                    break;
-
-                default:
-                    Logger.warn(`Unknown input type: ${input.type}`);
-            }
-        } catch (error) {
-            Logger.error(`Error processing input in room ${this.roomId}:`, error);
-        }
     }
 
     broadcast(message, excludePlayerId = null) {

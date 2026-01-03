@@ -181,7 +181,6 @@ export class RoomManager {
             // Initialize and start game
             gameRoom.initialize()
                 .then(() => {
-                    Logger.info(`Game room ${roomId} initialized, starting game`);
                     gameRoom.start();
                     Logger.info(`Game ${roomId} started successfully`);
                 })
@@ -217,6 +216,57 @@ export class RoomManager {
         return players;
     }
 
+    handlePlayerMove(playerId, direction) {
+        console.log("Reachs: handlePlayerMove")
+        const roomId = this.playerToRoom.get(playerId);
+        if (!roomId) {
+            Logger.warn(`Player ${playerId} not in any room`);
+            return;
+        }
+
+        const gameRoom = this.activeGames.get(roomId);
+        if (!gameRoom) {
+            Logger.warn(`Room ${roomId} not found for player ${playerId}`);
+            return;
+        }
+
+        if (gameRoom.status !== 'PLAYING') {
+            Logger.warn(`Move input for room ${roomId} but game status is ${gameRoom.status}`);
+            return;
+        }
+
+        try {
+            gameRoom.engine.processPlayerMove(playerId, direction);
+        } catch (error) {
+            Logger.error(`Error processing move in room ${roomId}:`, error);
+        }
+    }
+
+    handlePlaceBomb(playerId) {
+        const roomId = this.playerToRoom.get(playerId);
+        if (!roomId) {
+            Logger.warn(`Player ${playerId} not in any room`);
+            return;
+        }
+
+        const gameRoom = this.activeGames.get(roomId);
+        if (!gameRoom) {
+            Logger.warn(`Room ${roomId} not found for player ${playerId}`);
+            return;
+        }
+
+        if (gameRoom.status !== 'PLAYING') {
+            Logger.warn(`Bomb input for room ${roomId} but game status is ${gameRoom.status}`);
+            return;
+        }
+
+        try {
+            gameRoom.engine.processPlaceBomb(playerId);
+        } catch (error) {
+            Logger.error(`Error placing bomb in room ${roomId}:`, error);
+        }
+    }
+
     handleDisconnect(playerId) {
         Logger.info(`Handling disconnect for player ${playerId}`);
 
@@ -240,8 +290,6 @@ export class RoomManager {
                     clearInterval(this.lobby.countdownTimer);
                 }
                 this.lobby = null;
-                console.log(runInThisContext.lobby)
-                Logger.info('Lobby is empty, cleared');
             }
             else if (this.lobby.players.size < 2 && this.lobby.status === 'WAITING' && this.lobby.waitTimer) {
                 clearTimeout(this.lobby.waitTimer);

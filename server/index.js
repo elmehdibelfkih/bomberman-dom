@@ -68,7 +68,7 @@ const httpServer = initServer(frontendPath).listen(PORT, () => {
 const wss = new WebSocketServer({ server: httpServer })
 
 const messageHandler = new MessageHandler();
-const roomManager = new RoomManager();
+const roomManager = RoomManager.getInstance();
 const connections = new Set();
 
 wss.on('connection', (ws, req) => {
@@ -90,3 +90,4 @@ wss.on('connection', (ws, req) => {
         Logger.error(`WebSocket error for ${playerId}:`, error)
     })
 })
+

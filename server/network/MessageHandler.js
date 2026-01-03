@@ -4,12 +4,13 @@ import { sanitizeChatMessage, validateNickname } from "../utils/validation.js";
 import { MessageBuilder } from "./MessageBuilder.js"
 export class MessageHandler {
     constructor() {
-        this.roomManager = new RoomManager()
+        this.roomManager = RoomManager.getInstance()
     }
 
     handle(connection, rawMessage) {
         try {
             const message = JSON.parse(rawMessage)
+            console.log("Reachs: JSON.parse(rawMessage)")
 
             switch (message.type) {
                 case ClientMessages.JOIN_GAME:
@@ -71,28 +72,12 @@ export class MessageHandler {
 
 
     handleMove(connection, message) {
-        const room = this.roomManager.getRoomForPlayer(connection.playerId);
-        if (!room) {
-            connection.sendError('NO_ROOM', 'Not in a game room');
-            return;
-        }
-
-        room.handlePlayerInput(connection.playerId, {
-            type: 'MOVE',
-            direction: message.direction
-        });
+        console.log("Reachs: handleMove")
+        this.roomManager.handlePlayerMove(connection.playerId, message.direction);
     }
 
     handlePlaceBomb(connection, message) {
-        const room = this.roomManager.getRoomForPlayer(connection.playerId);
-        if (!room) {
-            connection.sendError('NO_ROOM', 'Not in a game room');
-            return;
-        }
-
-        room.handlePlayerInput(connection.playerId, {
-            type: 'PLACE_BOMB'
-        });
+        this.roomManager.handlePlaceBomb(connection.playerId);
     }
 
     handleChat(connection, message) {
