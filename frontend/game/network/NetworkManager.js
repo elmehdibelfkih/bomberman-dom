@@ -27,7 +27,7 @@ export class NetworkManager {
 
     #initWorker() {
         try {
-            this.worker = new SharedWorker('/frontend/game/shared_worker.js', { type: 'module' });
+            this.worker = new SharedWorker('/game/shared_worker.js', { type: 'module' });
             this.port = this.worker.port;
 
             this.port.onmessage = (e) => {
@@ -54,7 +54,7 @@ export class NetworkManager {
             if (rawData === 'ping') {
                 return;
             }
-            
+
             const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
             console.log('Received message:', data);
 
