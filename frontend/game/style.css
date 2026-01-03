@@ -460,3 +460,121 @@ div[class*="soft-block"] img {
   50%  { transform: scale(1.3) rotate(180deg); opacity: 0.7; }
   100% { transform: scale(0)   rotate(360deg); opacity: 0; }
 }
+
+/* Menu Styles */
+#menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--overlay-bg);
+  backdrop-filter: blur(15px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.5s ease;
+}
+
+#menu.hidden {
+  display: none;
+}
+
+.menu-box {
+  background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--primary-bg) 100%);
+  border: 3px solid var(--accent-color);
+  color: var(--text-primary);
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius-lg);
+  text-align: center;
+  max-width: 500px;
+  box-shadow:
+    0 20px 60px var(--shadow-dark),
+    0 0 40px rgba(255, 71, 87, 0.2);
+  animation: slideUp 0.6s ease;
+}
+
+.menu-box h1 {
+  color: var(--accent-color);
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-md);
+  text-shadow: 2px 2px 4px var(--shadow-dark);
+}
+
+.menu-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-xl);
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.menu-btn {
+  background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-hover) 100%);
+  color: var(--text-primary);
+  border: none;
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  font-family: var(--font-pixel);
+  font-size: var(--font-size-md);
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(255, 71, 87, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.menu-btn:hover {
+  background: linear-gradient(135deg, var(--accent-hover) 0%, #e63946 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 71, 87, 0.4);
+}
+
+.menu-btn:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .menu-box {
+    margin: var(--spacing-md);
+    padding: var(--spacing-lg);
+  }
+}
+
+/* Page Container - Full screen wrapper for each route */
+.page-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, var(--primary-bg) 0%, var(--secondary-bg) 100%);
+}
+
+/* Menu page specific styling */
+#menu {
+  background: var(--overlay-bg);
+  backdrop-filter: blur(15px);
+  z-index: 1000;
+  animation: fadeIn 0.5s ease;
+}
+
+/* Game container styling */
+#game-container {
+  z-index: 1;
+}
+
+/* Multiplayer container styling */
+#multiplayer-container {
+  background: var(--overlay-bg);
+  backdrop-filter: blur(15px);
+  z-index: 1000;
+}
