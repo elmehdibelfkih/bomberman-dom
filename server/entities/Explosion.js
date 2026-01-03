@@ -1,5 +1,7 @@
+import { Entity } from "./Entity.js";
+
 export class Explosion extends Entity {
-    constructor(x, y, direction) {
+    constructor(gridX, gridY, direction) {
         super('EXPLOSION')
 
         this.gridX = gridX;

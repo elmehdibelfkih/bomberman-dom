@@ -1,3 +1,5 @@
+import { Entity } from "./Entity.js";
+
 export class PowerUp extends Entity {
     constructor(x, y, type) {
         super('POWERUP');

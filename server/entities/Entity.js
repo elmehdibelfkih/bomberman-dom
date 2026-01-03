@@ -1,4 +1,4 @@
-import { IdGenerator } from "../utils/IdGenerator";
+import { IdGenerator } from "../utils/IdGenerator.js";
 
 export class Entity {
     constructor(type) {
@@ -7,8 +7,8 @@ export class Entity {
         this.alive = true;
     }
 
-    Kill() {
-        this.isAlive = false
+    kill() {
+        this.alive = false
     }
 
     isAlive() {

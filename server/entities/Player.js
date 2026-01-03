@@ -1,12 +1,12 @@
-import { Entity } from "./Entity";
+import { Entity } from "./Entity.js";
 
 export class Player extends Entity {
     constructor(playerId, nickname, x, y) {
         super('PLAYER')
         this.playerId = playerId
-        this.nickanme = nickname
-        this.x = x;
-        this.y = y;
+        this.nickname = nickname
+        this.gridx = x;
+        this.gridy = y;
         this.direction = 'DOWN';
         this.lives = 3;
         this.maxBombs = 1;

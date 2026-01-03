@@ -1,3 +1,5 @@
+import { Entity } from "./Entity.js";
+
 class Block extends Entity {
     constructor(x, y) {
         super('BLOCK');

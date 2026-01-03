@@ -3,6 +3,7 @@ import { MultiplayerGameEngine } from "../game/engine/MultiplayerGameEngine.js";
 import { createEffect } from "../framework/state/signal.js";
 import { NetworkManager } from '../game/network/NetworkManager.js';
 import { setupMultiplayerSync } from '../game/network/MultiplayerSync.js';
+import { NetworkStateSynchronizer } from '../game/network/NetworkStateSynchronizer.js';
 
 class MultiplayerApp {
     constructor() {
@@ -357,6 +358,7 @@ class MultiplayerApp {
     }
 
     async startMultiplayerGame() {
+        console.log('🎮 FRONTEND: Starting multiplayer game with data:', this.gameData);
         document.body.innerHTML = '';
 
         // Create multiplayer game instance
@@ -364,7 +366,7 @@ class MultiplayerApp {
         this.game.setNetworkManager(this.networkManager);
         window.game = this.game;
 
-        // Setup multiplayer synchronization
+        // Setup multiplayer synchronization FIRST
         setupMultiplayerSync(this.game, this.networkManager);
 
         await this.game.intiElements(this.gameData.mapData);
@@ -373,6 +375,12 @@ class MultiplayerApp {
         while (!this.game.player || !this.game.player.playerCoordinate) {
             await new Promise(r => setTimeout(r, 0));
         }
+
+        await this.game.waitForLevel();
+        
+        // NOW initialize players after game elements exist
+        console.log('🎮 FRONTEND: Initializing players after game elements are ready');
+        this.game.playerManager.initializePlayers(this.gameData);
 
         // Create multiplayer UI
         const gameContainer = dom({
@@ -437,9 +445,7 @@ class MultiplayerApp {
             this.eventListeners.push({ element: leaveGameBtn, event: 'click', handler: leaveGameHandler });
         }, 0);
 
-        await this.game.waitForLevel();
         this.game.startGame();
-
         this.setupGameChat();
     }
 

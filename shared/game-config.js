@@ -1,6 +1,6 @@
 export const GAME_CONFIG = {
     BLOCK_SIZE: 68,
-    GRID_WIDTH: 15,
+    GRID_WIDTH: 15, // based on the map
     GRID_HEIGHT: 13,
     BOMB_TIMER: 3000,
     EXPLOSION_DURATION: 500,

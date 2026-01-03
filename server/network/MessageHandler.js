@@ -8,8 +8,10 @@ export class MessageHandler {
     }
 
     handle(connection, rawMessage) {
+        console.log('🔥 SERVER: MessageHandler.handle called with:', rawMessage.toString());
         try {
             const message = JSON.parse(rawMessage)
+            console.log('🔥 SERVER: Parsed message:', message);
 
             switch (message.type) {
                 case ClientMessages.JOIN_GAME:
@@ -71,7 +73,7 @@ export class MessageHandler {
 
 
     handleMove(connection, message) {
-        console.log("Reachs: handleMove")
+        console.log('📡 SERVER: Received MOVE message from player:', connection.playerId, 'direction:', message.direction);
         this.roomManager.handlePlayerMove(connection.playerId, message.direction);
     }
 
