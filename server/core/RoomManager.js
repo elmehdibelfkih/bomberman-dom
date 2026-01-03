@@ -1,13 +1,10 @@
 import { IdGenerator } from "../utils/IdGenerator.js"
 import { GAME_CONFIG } from "../../shared/game-config.js"
 import { MessageBuilder } from "../network/MessageBuilder.js"
-import { readFileSync } from 'fs'
-import { join } from 'path'
 import { Logger } from '../utils/Logger.js'
 import { broadcastWs, broadcastExcludeWs } from '../helpers.js'
 import { GameRoom } from './GameRoom.js'
-
-const TOTAL_MAPS = 10;
+import { getRandomMap } from '../handlers/mapHandler.js'
 
 export class RoomManager {
     static #Instance = null
@@ -137,19 +134,7 @@ export class RoomManager {
     }
 
     loadRandomMap() {
-        const randomMapId = Math.floor(Math.random() * TOTAL_MAPS) + 1;
-        const mapFileName = `level${randomMapId}.json`;
-        const mapPath = join('../frontend/game/assets/maps', mapFileName);
-
-        try {
-            const mapData = readFileSync(mapPath, 'utf-8');
-            const mapJson = JSON.parse(mapData);
-            Logger.info(`Loaded random map: ${mapFileName} (ID: ${randomMapId})`);
-            return { mapId: randomMapId, mapData: mapJson };
-        } catch (error) {
-            Logger.error(`Error loading map ${mapFileName}:`, error);
-            throw new Error('Failed to load map');
-        }
+        return getRandomMap();
     }
 
     startGame(lobby) {
@@ -157,6 +142,8 @@ export class RoomManager {
             Logger.info(`Starting game for lobby ${lobby.id} with ${lobby.players.size} players`);
             
             const { mapId, mapData } = this.loadRandomMap();
+            Logger.info(`Loaded map ${mapId} for game`);
+            
             const roomId = IdGenerator.generateRoomId();
 
             const players = [];
@@ -186,7 +173,8 @@ export class RoomManager {
                     Logger.info(`Game ${roomId} started successfully`);
                 })
                 .catch(error => {
-                    Logger.error(`Failed to start game ${roomId}:`, error);
+                    Logger.error(`Failed to initialize/start game ${roomId}:`, error);
+                    Logger.error(`Error stack:`, error.stack);
                     this.broadcastToLobby(
                         lobby,
                         MessageBuilder.error('GAME_START_FAILED', 'Failed to start game')
@@ -199,6 +187,7 @@ export class RoomManager {
             
         } catch (error) {
             Logger.error(`Error in startGame:`, error);
+            Logger.error(`Error stack:`, error.stack);
             this.broadcastToLobby(
                 lobby,
                 MessageBuilder.error('GAME_START_FAILED', 'Failed to start game')
