@@ -7,6 +7,8 @@ import { Logger } from '../utils/Logger.js'
 import { broadcastWs, broadcastExcludeWs } from '../helpers.js'
 import { GameRoom } from './GameRoom.js'
 
+const TOTAL_MAPS = 10;
+
 export class RoomManager {
     static #Instance = null
     static getInstance() {
@@ -82,8 +84,10 @@ export class RoomManager {
         
         lobby.waitTimer = setTimeout(() => {
             if (lobby.players.size >= 2 && lobby.status === 'WAITING') {
-                Logger.info(`Wait timer expired for lobby ${lobby.id}, starting countdown`);
+                Logger.info(`Wait timer expired for lobby ${lobby.id}, starting countdown with ${lobby.players.size} players`);
                 this.startCountDown(lobby);
+            } else {
+                Logger.info(`Wait timer expired for lobby ${lobby.id}, but only ${lobby.players.size} players - not starting game`);
             }
         }, GAME_CONFIG.WAIT_TIMER);
     }
@@ -133,10 +137,9 @@ export class RoomManager {
     }
 
     loadRandomMap() {
-        const TOTAL_MAPS = 10;
         const randomMapId = Math.floor(Math.random() * TOTAL_MAPS) + 1;
         const mapFileName = `level${randomMapId}.json`;
-        const mapPath = join('./frontend/game/assets/maps', mapFileName);
+        const mapPath = join('../frontend/game/assets/maps', mapFileName);
 
         try {
             const mapData = readFileSync(mapPath, 'utf-8');
@@ -150,45 +153,57 @@ export class RoomManager {
     }
 
     startGame(lobby) {
-        const { mapId, mapData } = this.loadRandomMap();
-        const roomId = IdGenerator.generateRoomId();
+        try {
+            Logger.info(`Starting game for lobby ${lobby.id} with ${lobby.players.size} players`);
+            
+            const { mapId, mapData } = this.loadRandomMap();
+            const roomId = IdGenerator.generateRoomId();
 
-        console.log(mapData)
-
-        const players = [];
-        lobby.players.forEach((playerData, playerId) => {
-            players.push({
-                playerId: playerData.playerId,
-                nickname: playerData.nickname
-            });
-            this.playerToRoom.set(playerData.playerId, roomId);
-        });
-
-        Logger.info(`Creating game room: ${roomId}, map: ${mapId}, players: ${players.length}`);
-
-        const gameRoom = new GameRoom(roomId, players, mapId, mapData);
-
-        lobby.players.forEach((playerData, playerId) => {
-            gameRoom.addPlayerConnection(playerData.playerId, playerData.connection);
-        });
-
-        this.activeGames.set(roomId, gameRoom);
-
-        gameRoom.initialize()
-            .then(() => {
-                gameRoom.start();
-            })
-            .catch(error => {
-                Logger.error(`Failed to start game ${roomId}:`, error);
-                this.broadcastToLobby(
-                    lobby,
-                    MessageBuilder.error('GAME_START_FAILED', 'Failed to start game')
-                );
-                this.activeGames.delete(roomId);
+            const players = [];
+            lobby.players.forEach((playerData, playerId) => {
+                players.push({
+                    playerId: playerData.playerId,
+                    nickname: playerData.nickname
+                });
+                this.playerToRoom.set(playerData.playerId, roomId);
             });
 
-        this.lobby = null;
-        Logger.info('Lobby cleared, ready for new players');
+            Logger.info(`Creating game room: ${roomId}, map: ${mapId}, players: ${players.length}`);
+
+            const gameRoom = new GameRoom(roomId, players, mapId, mapData);
+
+            lobby.players.forEach((playerData, playerId) => {
+                gameRoom.addPlayerConnection(playerData.playerId, playerData.connection);
+            });
+
+            this.activeGames.set(roomId, gameRoom);
+
+            // Initialize and start game
+            gameRoom.initialize()
+                .then(() => {
+                    Logger.info(`Game room ${roomId} initialized, starting game`);
+                    gameRoom.start();
+                    Logger.info(`Game ${roomId} started successfully`);
+                })
+                .catch(error => {
+                    Logger.error(`Failed to start game ${roomId}:`, error);
+                    this.broadcastToLobby(
+                        lobby,
+                        MessageBuilder.error('GAME_START_FAILED', 'Failed to start game')
+                    );
+                    this.activeGames.delete(roomId);
+                });
+
+            this.lobby = null;
+            Logger.info('Lobby cleared, ready for new players');
+            
+        } catch (error) {
+            Logger.error(`Error in startGame:`, error);
+            this.broadcastToLobby(
+                lobby,
+                MessageBuilder.error('GAME_START_FAILED', 'Failed to start game')
+            );
+        }
     }
 
     getPlayersArray(lobby) {

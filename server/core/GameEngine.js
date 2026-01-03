@@ -65,13 +65,17 @@ export class GameEngine {
     }
 
     clearSpawnArea(centerX, centerY) {
+        // Get actual grid dimensions from map data
+        const gridHeight = this.mapData.initial_grid ? this.mapData.initial_grid.length : GAME_CONFIG.GRID_HEIGHT;
+        const gridWidth = this.mapData.initial_grid && this.mapData.initial_grid[0] ? this.mapData.initial_grid[0].length : GAME_CONFIG.GRID_WIDTH;
+        
         // Clear 3x3 area around spawn point to ensure safe spawn
         for (let dx = -1; dx <= 1; dx++) {
             for (let dy = -1; dy <= 1; dy++) {
                 const x = centerX + dx;
                 const y = centerY + dy;
                 
-                if (x >= 0 && x < GAME_CONFIG.GRID_WIDTH && y >= 0 && y < GAME_CONFIG.GRID_HEIGHT) {
+                if (x >= 0 && x < gridWidth && y >= 0 && y < gridHeight) {
                     // Don't remove walls (value 1), only soft blocks (value 2)
                     if (this.mapData.initial_grid && this.mapData.initial_grid[y] && this.mapData.initial_grid[y][x] === 2) {
                         this.mapData.initial_grid[y][x] = 0; // Set to floor
@@ -157,8 +161,12 @@ export class GameEngine {
     }
 
     isValidMove(x, y) {
+        // Get actual grid dimensions from map data
+        const gridHeight = this.mapData.initial_grid ? this.mapData.initial_grid.length : GAME_CONFIG.GRID_HEIGHT;
+        const gridWidth = this.mapData.initial_grid && this.mapData.initial_grid[0] ? this.mapData.initial_grid[0].length : GAME_CONFIG.GRID_WIDTH;
+        
         // Check bounds
-        if (x < 0 || x >= GAME_CONFIG.GRID_WIDTH || y < 0 || y >= GAME_CONFIG.GRID_HEIGHT) {
+        if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) {
             return false;
         }
 
@@ -175,6 +183,10 @@ export class GameEngine {
     }
 
     calculateExplosions(bomb) {
+        // Get actual grid dimensions from map data
+        const gridHeight = this.mapData.initial_grid ? this.mapData.initial_grid.length : GAME_CONFIG.GRID_HEIGHT;
+        const gridWidth = this.mapData.initial_grid && this.mapData.initial_grid[0] ? this.mapData.initial_grid[0].length : GAME_CONFIG.GRID_WIDTH;
+        
         const explosions = [{ gridX: bomb.gridX, gridY: bomb.gridY }];
         const directions = [
             { dx: 0, dy: -1 }, // UP
@@ -188,7 +200,7 @@ export class GameEngine {
                 const x = bomb.gridX + (dir.dx * i);
                 const y = bomb.gridY + (dir.dy * i);
 
-                if (x < 0 || x >= GAME_CONFIG.GRID_WIDTH || y < 0 || y >= GAME_CONFIG.GRID_HEIGHT) {
+                if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) {
                     break;
                 }
 
