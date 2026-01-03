@@ -4,7 +4,7 @@ export class Connection {
     constructor(ws, clientId) {
         this.ws = ws
         this.clientId = clientId
-        this.playerId = null
+        this.playerId = clientId // Use clientId as initial playerId
         this.nickname = null
         this.connected = true
     }
