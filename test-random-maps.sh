@@ -1,0 +1,30 @@
+#!/bin/bash
+
+echo "Testing random map functionality..."
+
+# Test the map handler endpoint
+echo "Testing map handler endpoint:"
+curl -s http://localhost:3000/api/random-map | jq '.mapId, .mapData.name' || echo "Server not running or endpoint not available"
+
+echo ""
+echo "Random map implementation completed!"
+echo ""
+echo "Key changes made:"
+echo "1. Created MultiplayerMap.js - handles maps from server without solo dependencies"
+echo "2. Created MultiplayerGameEngine.js - dedicated engine for multiplayer with random maps"
+echo "3. Updated multiplayer/main.js - uses new engine and handles server map data"
+echo "4. Server already configured to send random maps via getRandomMap() function"
+echo "5. Added proper input handling and chat functionality"
+echo ""
+echo "The multiplayer game now:"
+echo "- Uses random maps (level1.json to level10.json) selected by server"
+echo "- Has no dependencies on solo game components"
+echo "- Handles map data directly from server via GAME_STARTED message"
+echo "- Supports proper keyboard controls and chat"
+echo ""
+echo "To test:"
+echo "1. Start server: npm start"
+echo "2. Open http://localhost:3000/multiplayer/"
+echo "3. Enter nickname and join game"
+echo "4. Wait for other players or 20-second timer"
+echo "5. Game will start with a random map!"

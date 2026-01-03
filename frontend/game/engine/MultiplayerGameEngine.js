@@ -1,7 +1,8 @@
 import { Player } from '../components/player.js'
-import { Map } from '../components/map.js'
+import { MultiplayerMap } from '../components/MultiplayerMap.js'
 import { State } from './state.js'
 import { UI } from '../components/ui.js'
+import { dom } from '../../framwork/index.js'
 
 export class MultiplayerGameEngine {
     static #instance = null
@@ -16,7 +17,7 @@ export class MultiplayerGameEngine {
             throw new Error('Use MultiplayerGameEngine.getInstance()')
         }
         this.state = State.getInstance(this)
-        this.map = Map.getInstance(this)
+        this.map = new MultiplayerMap(this)
         this.player = Player.getInstance(this)
         this.ui = UI.getInstance(this)
         this.networkManager = null
@@ -40,9 +41,60 @@ export class MultiplayerGameEngine {
 
     async intiElements(mapData = null) {
         this.state.initArrowState()
-        await this.map.initMap(mapData)
+        await this.map.initMultiplayerMap(mapData)
         await this.player.initPlayer()
+        this.setupInputHandling()
         return
+    }
+
+    setupInputHandling() {
+        document.addEventListener('keydown', (e) => {
+            if (!this.gameStarted) return
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    e.preventDefault()
+                    this.sendPlayerMove('UP')
+                    break
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    e.preventDefault()
+                    this.sendPlayerMove('DOWN')
+                    break
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    e.preventDefault()
+                    this.sendPlayerMove('LEFT')
+                    break
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    e.preventDefault()
+                    this.sendPlayerMove('RIGHT')
+                    break
+                case ' ':
+                case 'Enter':
+                    e.preventDefault()
+                    this.sendPlaceBomb()
+                    break
+            }
+        })
+    }
+
+    sendPlayerMove(direction) {
+        if (this.networkManager) {
+            this.networkManager.sendPlayerMove(direction)
+        }
+    }
+
+    sendPlaceBomb() {
+        if (this.networkManager) {
+            this.networkManager.sendPlaceBomb()
+        }
     }
 
     run = () => {
@@ -60,44 +112,36 @@ export class MultiplayerGameEngine {
     }
 
     async updateRender(timestamp) {
-        // In multiplayer, most updates come from server
-        // Only update local prediction and rendering
         this.player.updateRender(timestamp)
         this.state.update()
     }
 
-    // Handle server state updates
     handleServerState(gameState) {
-        // Update players
         if (gameState.players) {
             gameState.players.forEach(serverPlayer => {
                 this.updatePlayerFromServer(serverPlayer)
             })
         }
 
-        // Update bombs
         if (gameState.bombs) {
             this.updateBombsFromServer(gameState.bombs)
         }
 
-        // Update powerups
         if (gameState.powerups) {
             this.updatePowerupsFromServer(gameState.powerups)
         }
 
-        // Update map grid
         if (gameState.grid) {
             this.updateMapFromServer(gameState.grid)
         }
     }
 
-    // Handle initial game start with map data
     handleGameStart(gameData) {
         if (gameData.mapData && gameData.players) {
-            // Find this player's spawn position
             const thisPlayer = gameData.players.find(p => p.playerId === this.networkManager.getPlayerId())
             if (thisPlayer) {
                 this.playerSpawn = { x: thisPlayer.spawnX, y: thisPlayer.spawnY }
+                this.playerNickname = thisPlayer.nickname
             }
             this.initializeWithMap(gameData.mapData)
         }
@@ -109,13 +153,18 @@ export class MultiplayerGameEngine {
         const gameContainer = dom({
             tag: 'div',
             attributes: { id: 'multiplayer-game' },
-            children: []
+            children: [
+                {
+                    tag: 'div',
+                    attributes: { id: 'player-info', style: 'position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 10px; border-radius: 5px; z-index: 1000;' },
+                    children: []
+                }
+            ]
         })
         document.body.appendChild(gameContainer)
         
         await this.intiElements(mapData)
         
-        // Set player spawn position if available
         if (this.playerSpawn && this.player && this.player.playerCoordinate) {
             this.player.playerCoordinate.x = this.playerSpawn.x * 64
             this.player.playerCoordinate.y = this.playerSpawn.y * 64
@@ -127,15 +176,14 @@ export class MultiplayerGameEngine {
 
     updatePlayerFromServer(serverPlayer) {
         if (serverPlayer.playerId === this.networkManager.getPlayerId()) {
-            // Update local player with authoritative data
             if (this.player && this.player.playerCoordinate) {
-                this.player.playerCoordinate.x = serverPlayer.gridX
-                this.player.playerCoordinate.y = serverPlayer.gridY
+                this.player.playerCoordinate.x = serverPlayer.gridX * 64
+                this.player.playerCoordinate.y = serverPlayer.gridY * 64
                 this.player.lives = serverPlayer.lives
                 this.player.alive = serverPlayer.alive
+                this.updatePlayerInfo()
             }
         } else {
-            // Update other players
             this.players.set(serverPlayer.playerId, serverPlayer)
         }
     }
@@ -156,25 +204,10 @@ export class MultiplayerGameEngine {
 
     updateMapFromServer(grid) {
         if (this.map && this.map.level) {
-            this.map.level.initial_grid = grid
+            this.map.updateFromServer(grid)
         }
     }
 
-    // Send player movement to server
-    sendPlayerMove(direction) {
-        if (this.networkManager) {
-            this.networkManager.sendPlayerMove(direction)
-        }
-    }
-
-    // Send bomb placement to server
-    sendPlaceBomb() {
-        if (this.networkManager) {
-            this.networkManager.sendPlaceBomb()
-        }
-    }
-
-    // Handle game events from server
     handlePlayerJoined(playerData) {
         this.players.set(playerData.playerId, playerData)
     }
@@ -184,11 +217,20 @@ export class MultiplayerGameEngine {
     }
 
     handlePlayerMoved(playerId, x, y, direction) {
-        const player = this.players.get(playerId)
-        if (player) {
-            player.gridX = x
-            player.gridY = y
-            player.direction = direction
+        if (playerId === this.networkManager.getPlayerId()) {
+            // Update local player position
+            if (this.player && this.player.playerCoordinate) {
+                this.player.playerCoordinate.x = x * 64
+                this.player.playerCoordinate.y = y * 64
+            }
+        } else {
+            // Update other players
+            const player = this.players.get(playerId)
+            if (player) {
+                player.gridX = x
+                player.gridY = y
+                player.direction = direction
+            }
         }
     }
 
@@ -199,7 +241,6 @@ export class MultiplayerGameEngine {
     handleBombExploded(bombId, explosions, destroyedBlocks) {
         this.bombs.delete(bombId)
         
-        // Update map with destroyed blocks
         if (destroyedBlocks && this.map && this.map.level) {
             destroyedBlocks.forEach(block => {
                 if (this.map.level.initial_grid[block.gridY]) {
@@ -217,6 +258,7 @@ export class MultiplayerGameEngine {
         
         if (playerId === this.networkManager.getPlayerId() && this.player) {
             this.player.lives = livesRemaining
+            this.updatePlayerInfo()
         }
     }
 
@@ -255,7 +297,6 @@ export class MultiplayerGameEngine {
             this.IDRE = null
         }
         
-        // Show game over UI
         if (winner && winner.playerId === this.networkManager.getPlayerId()) {
             this.ui.win()
         } else {
@@ -265,7 +306,18 @@ export class MultiplayerGameEngine {
 
     startGame() {
         this.gameStarted = true
+        this.updatePlayerInfo()
         this.run()
+    }
+
+    updatePlayerInfo() {
+        const playerInfo = document.getElementById('player-info')
+        if (!playerInfo || !this.player) return
+        
+        const nickname = this.playerNickname || 'Player'
+        const hearts = '❤️'.repeat(this.player.lives || 3)
+        
+        playerInfo.innerHTML = `${nickname}<br>${hearts}`
     }
 
     stop() {

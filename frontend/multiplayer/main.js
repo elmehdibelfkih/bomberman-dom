@@ -2,7 +2,6 @@ import { Router, dom, usePathname } from '../framwork/index.js'
 import { createEffect } from '../framwork/state/signal.js'
 import { MultiplayerGameEngine } from '../game/engine/MultiplayerGameEngine.js'
 import { NetworkManager } from '../game/network/NetworkManager.js'
-import { setupMultiplayerSync } from '../game/network/MultiplayerSync.js'
 
 class MultiplayerApp {
     constructor() {
@@ -233,88 +232,52 @@ class MultiplayerApp {
         document.body.innerHTML = ''
         
         const networkManager = NetworkManager.getInstance()
-        this.game = MultiplayerGameEngine.getInstance()
-        this.game.setNetworkManager(networkManager)
-        window.game = this.game
+        const game = MultiplayerGameEngine.getInstance()
+        game.setNetworkManager(networkManager)
+        window.game = game
 
-        setupMultiplayerSync(this.game, networkManager)
-
-        await this.game.intiElements()
-
-        while (!this.game.player || !this.game.player.playerCoordinate) {
-            await new Promise(r => setTimeout(r, 0))
-        }
-
-        const gameContainer = dom({
-            tag: 'div',
-            attributes: { id: 'multiplayer-game-container' },
-            children: [
-                {
-                    tag: 'div',
-                    attributes: { id: 'chat-messages-game', class: 'chat-messages-small' },
-                    children: []
-                },
-                {
-                    tag: 'input',
-                    attributes: {
-                        type: 'text',
-                        id: 'chat-input-game',
-                        placeholder: 'Press T to chat...',
-                        style: 'display: none;'
-                    },
-                    children: []
-                }
-            ]
-        })
-        document.body.appendChild(gameContainer)
-
-        await this.game.waitForLevel()
-        this.game.startGame()
-
-        this.setupGameChat(networkManager)
-    }
-
-    setupGameChat(networkManager) {
-        const chatInput = document.getElementById('chat-input-game')
-        let chatVisible = false
-
-        networkManager.on('CHAT_MESSAGE', (data) => {
-            this.addGameChatMessage(data.nickname, data.text)
+        // Wait for game start message from server with random map
+        networkManager.on('GAME_STARTED', (gameData) => {
+            game.handleGameStart(gameData)
         })
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key.toLowerCase() === 't' && !chatVisible) {
-                e.preventDefault()
-                chatVisible = true
-                chatInput.style.display = 'block'
-                chatInput.focus()
-            } else if (e.key === 'Enter' && chatVisible) {
-                e.preventDefault()
-                const message = chatInput.value.trim()
-                if (message) {
-                    networkManager.sendChat(message)
-                    chatInput.value = ''
-                }
-                chatVisible = false
-                chatInput.style.display = 'none'
-            }
+        // Handle server state updates
+        networkManager.on('FULL_STATE', (gameState) => {
+            game.handleServerState(gameState)
         })
-    }
 
-    addGameChatMessage(nickname, text) {
-        const chatMessages = document.getElementById('chat-messages-game')
-        const messageEl = dom({
-            tag: 'div',
-            attributes: { class: 'game-chat-message' },
-            children: [`${nickname}: ${text}`]
+        // Handle game events
+        networkManager.on('PLAYER_MOVED', (data) => {
+            game.handlePlayerMoved(data.playerId, data.gridX, data.gridY, data.direction)
         })
-        chatMessages.appendChild(messageEl)
-        
-        setTimeout(() => {
-            if (messageEl.parentNode) {
-                messageEl.remove()
-            }
-        }, 5000)
+
+        networkManager.on('BOMB_PLACED', (data) => {
+            game.handleBombPlaced(data)
+        })
+
+        networkManager.on('BOMB_EXPLODED', (data) => {
+            game.handleBombExploded(data.bombId, data.explosions, data.destroyedBlocks)
+        })
+
+        networkManager.on('PLAYER_DAMAGED', (data) => {
+            game.handlePlayerDamaged(data.playerId, data.livesRemaining)
+        })
+
+        networkManager.on('PLAYER_DIED', (data) => {
+            game.handlePlayerDied(data.playerId)
+        })
+
+        networkManager.on('POWERUP_SPAWNED', (data) => {
+            game.handlePowerupSpawned(data)
+        })
+
+        networkManager.on('POWERUP_COLLECTED', (data) => {
+            game.handlePowerupCollected(data.playerId, data.powerUpId, data.type, data.newStats)
+        })
+
+        networkManager.on('GAME_OVER', (data) => {
+            game.handleGameEnded(data.winner)
+        })
     }
 }
 
