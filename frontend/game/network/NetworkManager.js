@@ -116,15 +116,14 @@ export class NetworkManager {
         });
     }
 
-    move(direction) {
+    sendPlayerMove(direction) {
         this.send({
             type: 'MOVE',
             direction
         });
     }
 
-
-    placeBomb() {
+    sendPlaceBomb() {
         this.send({
             type: 'PLACE_BOMB'
         });

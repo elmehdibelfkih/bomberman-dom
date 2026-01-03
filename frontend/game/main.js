@@ -1,5 +1,6 @@
 import { Router, dom, usePathname } from "../framwork/index.js";
-import { Game } from "./engine/core.js";
+import { SoloGameEngine } from "./engine/SoloGameEngine.js";
+import { MultiplayerGameEngine } from "./engine/MultiplayerGameEngine.js";
 import { createEffect } from "../framwork/state/signal.js";
 
 // Initialize the router
@@ -66,7 +67,7 @@ function MenuPage() {
 // Solo Game Page
 async function SoloGamePage() {
     // Initialize game - components append themselves to document.body
-    const game = Game.getInstance();
+    const game = SoloGameEngine.getInstance();
     window.game = game;
 
     await game.intiElements();
@@ -387,6 +388,7 @@ function LobbyPage() {
 
         // Handle game start
         networkManager.on('GAME_STARTED', (data) => {
+            sessionStorage.setItem('gameMapData', JSON.stringify(data.mapData));
             router.navigate('/game-multi', true);
         });
 
@@ -517,16 +519,19 @@ function LobbyPage() {
 async function MultiplayerGamePage() {
     const networkManager = NetworkManager.getInstance();
     
+    // Get map data from session storage
+    const mapDataStr = sessionStorage.getItem('gameMapData');
+    const mapData = mapDataStr ? JSON.parse(mapDataStr) : null;
+    
     // Initialize multiplayer game
-    const game = Game.getInstance();
-    game.isMultiplayer = true;
-    game.networkManager = networkManager;
+    const game = MultiplayerGameEngine.getInstance();
+    game.setNetworkManager(networkManager);
     window.game = game;
 
     // Setup multiplayer synchronization
     setupMultiplayerSync(game, networkManager);
 
-    await game.intiElements();
+    await game.intiElements(mapData);
 
     while (!game.player || !game.player.playerCoordinate) {
         await new Promise(r => setTimeout(r, 0));
@@ -576,7 +581,7 @@ async function MultiplayerGamePage() {
 
     // Start the game
     await game.waitForLevel();
-    game.run();
+    game.startGame();
 
     // Setup in-game chat controls
     setupInGameChat(networkManager);

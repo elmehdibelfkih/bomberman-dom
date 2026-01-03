@@ -1,4 +1,4 @@
-import { Game } from '../engine/core.js'
+import { SoloGameEngine } from '../engine/SoloGameEngine.js'
 import { dom } from '../../framwork/index.js'
 
 export class SoloMode {
@@ -17,7 +17,7 @@ export class SoloMode {
 
         document.body.innerHTML = ''
 
-        this.game = Game.getInstance()
+        this.game = SoloGameEngine.getInstance()
         window.game = this.game
 
         await this.game.intiElements()
@@ -165,8 +165,8 @@ export class SoloMode {
         document.body.innerHTML = ''
         
         // Reset game instance
-        if (Game._instance) {
-            Game._instance = null
+        if (SoloGameEngine._instance) {
+            SoloGameEngine._instance = null
         }
         
         window.game = null

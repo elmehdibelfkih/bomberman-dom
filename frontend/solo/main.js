@@ -1,5 +1,5 @@
 import { dom } from '../framwork/index.js'
-import { Game } from '../game/engine/core.js'
+import { SoloGameEngine } from '../game/engine/SoloGameEngine.js'
 
 class SoloApp {
     constructor() {
@@ -47,7 +47,7 @@ class SoloApp {
     async startGame() {
         document.body.innerHTML = ''
         
-        this.game = Game.getInstance()
+        this.game = SoloGameEngine.getInstance()
         window.game = this.game
 
         await this.game.intiElements()

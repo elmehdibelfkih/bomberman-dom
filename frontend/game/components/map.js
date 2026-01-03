@@ -32,8 +32,14 @@ export class Map {
 
     static getInstance = (game) => Map.instance ? Map.instance : new Map(game)
 
-    async initMap() {
-        this.level = await fetch(`/game/assets/maps/level${this.game.state.getLevel()}.json`).then(res => res.json());
+    async initMap(mapData = null) {
+        if (mapData) {
+            // Multiplayer: use server-provided map data
+            this.level = mapData;
+        } else {
+            // Solo: load map based on current level
+            this.level = await fetch(`/game/assets/maps/level${this.game.state.getLevel()}.json`).then(res => res.json());
+        }
         this.enemyCordination = await fetch(`/game/assets/enemycordinate.json`).then(res => res.json())
 
         // Fix relative paths in level data to absolute paths
