@@ -6,17 +6,17 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const MULTIPLAYER_MAPS = [1, 2, 3, 4, 5,6,7,8,9,10]; // Available maps for multiplayer
 
 export function getMultiplayerMap() {
-    const randomIndex = Math.floor(Math.random() * 10);
-    const randomMapId = MULTIPLAYER_MAPS[randomIndex];
-    const mapFileName = `level${randomMapId}.json`;
+    const randomIndex = Math.floor(Math.random() * 10)+1;
+    const mapFileName = `level${randomIndex}.json`;
     const mapPath = join(__dirname, '../../frontend/game/assets/maps', mapFileName);
+
+    console.log(mapPath)
 
     const mapData = readFileSync(mapPath, 'utf-8');
     const mapJson = JSON.parse(mapData);
 
-    Logger.info(`Loaded multiplayer map: ${mapFileName} (ID: ${randomMapId})`);
-    return { mapId: randomMapId, mapData: mapJson };
+    Logger.info(`Loaded multiplayer map: ${mapFileName} (ID: ${randomIndex})`);
+    return { mapId: randomIndex, mapData: mapJson };
 }
