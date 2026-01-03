@@ -5,6 +5,7 @@ import { NetworkStateSynchronizer } from './NetworkStateSynchronizer.js';
 
 // Setup multiplayer synchronization
 export function setupMultiplayerSync(game, networkManager) {
+    console.log('🎮 FRONTEND: Setting up multiplayer sync');
     // Initialize multiplayer player manager
     game.playerManager = new MultiplayerPlayerManager(game, networkManager);
     game.remoteBombs = new Map();
@@ -18,6 +19,7 @@ export function setupMultiplayerSync(game, networkManager) {
     
     // Handle game started - initialize players
     networkManager.on('GAME_STARTED', (data) => {
+        console.log('🎮 FRONTEND: GAME_STARTED received, initializing players');
         game.playerManager.initializePlayers(data);
     });
     
@@ -28,9 +30,9 @@ export function setupMultiplayerSync(game, networkManager) {
 
     // Handle player movements
     networkManager.on('PLAYER_MOVED', (data) => {
-        if (data.playerId !== networkManager.getPlayerId()) {
-            game.playerManager.updateRemotePlayer(data);
-        }
+        console.log('📡 FRONTEND: Received PLAYER_MOVED message:', data);
+        // Update ALL players (including local) with server's authoritative position
+        game.playerManager.updateRemotePlayer(data);
     });
 
     // Handle bomb placement

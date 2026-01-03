@@ -102,12 +102,32 @@ export class State {
     };
 
     setArrowStateKeyDown = (event) => {
+        // Skip arrow key handling in multiplayer mode
+        if (this.game.isMultiplayer) {
+            console.log('🎮 FRONTEND: Skipping State arrow handling - multiplayer mode active');
+            if (event.nativeEvent.key.startsWith('Arrow')) {
+                return; // Let MultiplayerPlayerManager handle arrow keys
+            }
+        }
+        
         // Access native event from synthetic event
         const key = event.nativeEvent ? event.nativeEvent.key : event.key;
-        if (key === 'ArrowUp') this.#ARROW_UP = true
-        if (key === 'ArrowDown') this.#ARROW_DOWN = true
-        if (key === 'ArrowRight') this.#ARROW_RIGHT = true
-        if (key === 'ArrowLeft') this.#ARROW_LEFT = true
+        if (key === 'ArrowUp') {
+            console.log('🎮 FRONTEND: Arrow UP key pressed');
+            this.#ARROW_UP = true;
+        }
+        if (key === 'ArrowDown') {
+            console.log('🎮 FRONTEND: Arrow DOWN key pressed');
+            this.#ARROW_DOWN = true;
+        }
+        if (key === 'ArrowRight') {
+            console.log('🎮 FRONTEND: Arrow RIGHT key pressed');
+            this.#ARROW_RIGHT = true;
+        }
+        if (key === 'ArrowLeft') {
+            console.log('🎮 FRONTEND: Arrow LEFT key pressed');
+            this.#ARROW_LEFT = true;
+        }
         if (key.toLowerCase() === 'p') this.pauseStart()
     }
 

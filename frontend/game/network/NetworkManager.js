@@ -117,6 +117,7 @@ export class NetworkManager {
     }
 
     sendPlayerMove(direction) {
+        console.log('📡 FRONTEND: Sending MOVE message to server, direction:', direction);
         this.send({
             type: 'MOVE',
             direction
