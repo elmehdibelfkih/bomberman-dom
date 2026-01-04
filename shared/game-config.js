@@ -6,8 +6,8 @@ export const GAME_CONFIG = {
     EXPLOSION_DURATION: 1000, // 1 second
     POWERUP_SPAWN_CHANCE: 0.5, // 50%
     STARTING_LIVES: 3,
-    WAIT_TIMER: 20000, // 20 seconds
-    COUNTDOWN_TIMER: 10000, // 10 seconds
+    WAIT_TIMER: 2000, // 20 seconds
+    COUNTDOWN_TIMER: 1000, // 10 seconds
     SPAWN_POSITIONS: [
         { x: 1, y: 1, corner: 'top-left' },
         { x: 13, y: 1, corner: 'top-right' },

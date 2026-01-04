@@ -7,7 +7,6 @@ export class AuthoritativeGameState {
         this.gameRoom = gameRoom;
         this.gameEngine = gameEngine;
         this.lastStateUpdate = Date.now();
-        this.stateUpdateInterval = 100; // 10 FPS state sync
         this.powerUpSpawnQueue = [];
         this.nextPowerUpId = 1;
         this.lastProcessedSequenceNumber = new Map();
@@ -24,37 +23,44 @@ export class AuthoritativeGameState {
     // Validate and process player movement
     validatePlayerMove(playerId, direction, sequenceNumber) {
         const lastSequenceNumber = this.lastProcessedSequenceNumber.get(playerId) || 0;
-        if (sequenceNumber <= lastSequenceNumber) {
-            // Old or out-of-order move, ignore
-            return false;
-        }
+        if (sequenceNumber <= lastSequenceNumber) return false;
 
         const player = this.gameEngine.entities.players.get(playerId);
         if (!player || !player.alive) return false;
 
-        const newPos = this.calculateNewPosition(player, direction);
-        
-        // Server-side collision detection
-        if (!this.isValidPosition(newPos.x, newPos.y, playerId)) {
-            return false;
+        const moveSpeed = player.speed;
+        let newX = player.x;
+        let newY = player.y;
+
+        switch (direction) {
+            case 'UP': newY -= moveSpeed; break;
+            case 'DOWN': newY += moveSpeed; break;
+            case 'LEFT': newX -= moveSpeed; break;
+            case 'RIGHT': newX += moveSpeed; break;
         }
 
-        // Update authoritative position
-        player.gridX = newPos.x;
-        player.gridY = newPos.y;
-        
+        const gridHeight = this.gameEngine.mapData.initial_grid.length;
+        const gridWidth = this.gameEngine.mapData.initial_grid[0].length;
+        const newGridX = Math.floor(newX / GAME_CONFIG.BLOCK_SIZE);
+        const newGridY = Math.floor(newY / GAME_CONFIG.BLOCK_SIZE);
+
+        if (!this.isValidPosition(newGridX, newGridY, playerId)) return false;
+
+        player.x = newX;
+        player.y = newY;
+        player.gridX = newGridX;
+        player.gridY = newGridY;
+
         this.lastProcessedSequenceNumber.set(playerId, sequenceNumber);
-        
-        // Broadcast to all clients
+
         this.gameRoom.broadcast(
-            MessageBuilder.playerMoved(playerId, newPos.x, newPos.y, direction, sequenceNumber)
+            MessageBuilder.playerMoved(playerId, newX, newY, direction, sequenceNumber)
         );
-        
-        // Check for power-up collection
-        this.checkPowerUpCollection(playerId, newPos.x, newPos.y);
-        
+
+        this.checkPowerUpCollection(playerId, newGridX, newGridY);
         return true;
     }
+
 
     // Validate bomb placement
     validateBombPlacement(playerId) {
@@ -64,13 +70,13 @@ export class AuthoritativeGameState {
         // Check bomb count limit
         const activeBombs = Array.from(this.gameEngine.entities.bombs.values())
             .filter(bomb => bomb.playerId === playerId);
-        
+
         if (activeBombs.length >= player.bombCount) return false;
 
         // Check position availability
         const existingBomb = Array.from(this.gameEngine.entities.bombs.values())
             .find(bomb => bomb.gridX === player.gridX && bomb.gridY === player.gridY);
-        
+
         if (existingBomb) return false;
 
         // Create authoritative bomb
@@ -100,37 +106,30 @@ export class AuthoritativeGameState {
         return true;
     }
 
-    // Server-side collision detection
-    isValidPosition(x, y, excludePlayerId = null) {
-        // Check bounds
-        if (x < 0 || x >= GAME_CONFIG.GRID_WIDTH || y < 0 || y < GAME_CONFIG.GRID_HEIGHT) {
+    isValidPosition(targetGridX, targetGridY, excludePlayerId = null) {
+        const gridHeight = this.gameEngine.mapData.initial_grid.length;
+        const gridWidth = this.gameEngine.mapData.initial_grid[0].length;
+
+        console.log('🔍 isValidPosition:', { targetGridX, targetGridY, gridWidth, gridHeight, excludePlayerId });
+
+        if (targetGridY < 0 || targetGridX >= gridWidth || targetGridX < 0 || targetGridY >= gridHeight) {
+            console.log('❌ Out of bounds');
             return false;
         }
 
-        // Check map obstacles
-        if (this.gameEngine.mapData.initial_grid && 
-            this.gameEngine.mapData.initial_grid[y] && 
-            this.gameEngine.mapData.initial_grid[y][x] !== 0) {
+        const cellValue = this.gameEngine.mapData.initial_grid[targetGridY][targetGridX];
+        console.log('🔍 Cell value:', cellValue);
+
+        if (cellValue !== 0 && cellValue !== 4) {
+            console.log('❌ Map obstacle');
             return false;
         }
 
-        // Check other players
-        for (const [playerId, player] of this.gameEngine.entities.players.entries()) {
-            if (playerId !== excludePlayerId && player.alive && 
-                player.gridX === x && player.gridY === y) {
-                return false;
-            }
-        }
-
-        // Check bombs
-        for (const bomb of this.gameEngine.entities.bombs.values()) {
-            if (bomb.gridX === x && bomb.gridY === y) {
-                return false;
-            }
-        }
-
+        console.log('✅ Position valid');
         return true;
     }
+
+
 
     calculateNewPosition(player, direction) {
         let newX = player.gridX;
@@ -159,12 +158,12 @@ export class AuthoritativeGameState {
         // Process explosions
         explosions.forEach(explosion => {
             // Destroy blocks and potentially spawn power-ups
-            if (this.gameEngine.mapData.initial_grid[explosion.gridY] && 
+            if (this.gameEngine.mapData.initial_grid[explosion.gridY] &&
                 this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] === 2) {
-                
+
                 this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] = 0;
                 destroyedBlocks.push({ gridX: explosion.gridX, gridY: explosion.gridY });
-                
+
                 // Fair power-up distribution
                 if (Math.random() < GAME_CONFIG.POWERUP_SPAWN_CHANCE) {
                     spawnedPowerUp = this.spawnPowerUp(explosion.gridX, explosion.gridY);
@@ -206,7 +205,7 @@ export class AuthoritativeGameState {
     spawnPowerUp(gridX, gridY) {
         const powerUpTypes = ['SPEED', 'BOMB_COUNT', 'BOMB_RANGE'];
         const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
-        
+
         const powerUpId = `powerup_${this.nextPowerUpId++}`;
         const powerUp = {
             powerUpId,
@@ -217,7 +216,7 @@ export class AuthoritativeGameState {
         };
 
         this.gameEngine.entities.powerups.set(powerUpId, powerUp);
-        
+
         // Broadcast power-up spawn
         this.gameRoom.broadcast(
             MessageBuilder.powerupSpawned(powerUpId, type, gridX, gridY)
@@ -235,15 +234,15 @@ export class AuthoritativeGameState {
 
                 // Apply power-up effect
                 const newStats = this.applyPowerUp(player, powerUp.type);
-                
+
                 // Remove power-up
                 this.gameEngine.entities.powerups.delete(powerUpId);
-                
+
                 // Broadcast collection
                 this.gameRoom.broadcast(
                     MessageBuilder.powerupCollected(playerId, powerUpId, powerUp.type, newStats)
                 );
-                
+
                 break;
             }
         }

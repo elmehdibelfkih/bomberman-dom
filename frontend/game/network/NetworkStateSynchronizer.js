@@ -62,20 +62,20 @@ export class NetworkStateSynchronizer {
 
     // Update player visual position
     updatePlayerPosition(localPlayer, serverPlayer) {
-        localPlayer.gridX = serverPlayer.gridX;
-        localPlayer.gridY = serverPlayer.gridY;
-        localPlayer.x = serverPlayer.gridX * this.game.map.blockSize;
-        localPlayer.y = serverPlayer.gridY * this.game.map.blockSize;
+        localplayer.gridX = serverplayer.gridX;
+        localplayer.gridY = serverplayer.gridY;
+        localplayer.gridX = serverplayer.gridX * this.game.map.blockSize;
+        localplayer.gridY = serverplayer.gridY * this.game.map.blockSize;
         
         if (localPlayer.element) {
-            localPlayer.element.style.transform = `translate(${localPlayer.x}px, ${localPlayer.y}px)`;
+            localPlayer.element.style.transform = `translate(${localplayer.gridX}px, ${localplayer.gridY}px)`;
         }
     }
 
     // Client-side prediction reconciliation
     reconcileLocalPlayer(localPlayer, serverPlayer) {
-        const positionDiff = Math.abs(localPlayer.gridX - serverPlayer.gridX) + 
-                           Math.abs(localPlayer.gridY - serverPlayer.gridY);
+        const positionDiff = Math.abs(localplayer.gridX - serverplayer.gridX) + 
+                           Math.abs(localplayer.gridY - serverplayer.gridY);
         
         // If significant difference, snap to server position
         if (positionDiff > 1) {

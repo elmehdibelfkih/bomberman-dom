@@ -1,6 +1,7 @@
 import { Logger } from '../utils/Logger.js';
 import { MessageBuilder } from '../network/MessageBuilder.js';
 import { GAME_CONFIG } from '../../shared/game-config.js';
+import { AuthoritativeGameState } from './AuthoritativeGameState.js';
 
 export class GameEngine {
     constructor(gameRoom, mapId, mapData) {
@@ -33,6 +34,8 @@ export class GameEngine {
             this.entities.players.set(player.playerId, {
                 playerId: player.playerId,
                 nickname: player.nickname,
+                x: spawn.x * GAME_CONFIG.BLOCK_SIZE,
+                y: spawn.y * GAME_CONFIG.BLOCK_SIZE,
                 gridX: spawn.x,
                 gridY: spawn.y,
                 lives: GAME_CONFIG.STARTING_LIVES,
@@ -46,6 +49,9 @@ export class GameEngine {
         });
 
         this.gameState.status = 'READY';
+
+        this.authoritativeState = new AuthoritativeGameState(this.gameRoom, this);
+        this.authoritativeState.start();
 
         Logger.info('Game engine initialized successfully');
     }
@@ -75,9 +81,11 @@ export class GameEngine {
         }
     }
 
+
     processPlayerMove(playerId, direction, sequenceNumber) {
         return this.authoritativeState.validatePlayerMove(playerId, direction, sequenceNumber);
     }
+
 
     // Validate and process bomb placement
     processPlaceBomb(playerId) {

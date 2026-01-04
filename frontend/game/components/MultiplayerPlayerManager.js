@@ -74,7 +74,7 @@ export class MultiplayerPlayerManager {
             attributes: {
                 class: 'local-player',
                 id: `player-${player.playerId}`,
-                style: `position: absolute; width: ${frame.width}px; height: ${frame.height}px; background: url('${playerImage}') no-repeat; background-size: auto; background-position: ${frame.x} ${frame.y}; image-rendering: pixelated; transform: translate(${player.x}px, ${player.y}px); z-index: 10;`
+                style: `position: absolute; width: ${frame.width}px; height: ${frame.height}px; background: url('${playerImage}') no-repeat; background-size: auto; background-position: ${frame.x} ${frame.y}; image-rendering: pixelated; transform: translate(${player.gridX}px, ${player.gridY}px); z-index: 10;`
             },
             children: []
         });
@@ -95,7 +95,7 @@ export class MultiplayerPlayerManager {
             attributes: {
                 class: 'remote-player',
                 id: `player-${player.playerId}`,
-                style: `position: absolute; width: ${frame.width}px; height: ${frame.height}px; background: url('${playerImage}') no-repeat; background-size: auto; background-position: ${frame.x} ${frame.y}; image-rendering: pixelated; transform: translate(${player.x}px, ${player.y}px); z-index: 10;`
+                style: `position: absolute; width: ${frame.width}px; height: ${frame.height}px; background: url('${playerImage}') no-repeat; background-size: auto; background-position: ${frame.x} ${frame.y}; image-rendering: pixelated; transform: translate(${player.gridX}px, ${player.gridY}px); z-index: 10;`
             },
             children: []
         });
@@ -201,14 +201,14 @@ export class MultiplayerPlayerManager {
         });
         
         // Update the player's state
-        localPlayer.gridX = reconciledPosition.gridX;
-        localPlayer.gridY = reconciledPosition.gridY;
-        localPlayer.x = reconciledPosition.gridX * this.game.map.blockSize;
-        localPlayer.y = reconciledPosition.gridY * this.game.map.blockSize;
+        localplayer.gridX = reconciledPosition.gridX;
+        localplayer.gridY = reconciledPosition.gridY;
+        localplayer.gridX = reconciledPosition.gridX * this.game.map.blockSize;
+        localplayer.gridY = reconciledPosition.gridY * this.game.map.blockSize;
 
         // Update the DOM
         if (localPlayer.element) {
-            localPlayer.element.style.transform = `translate(${localPlayer.x}px, ${localPlayer.y}px)`;
+            localPlayer.element.style.transform = `translate(${localplayer.gridX}px, ${localplayer.gridY}px)`;
         }
     }
 
@@ -234,8 +234,8 @@ export class MultiplayerPlayerManager {
         
         player.gridX = newX;
         player.gridY = newY;
-        player.x = newX * this.game.map.blockSize + 15; // Add offset like solo mode
-        player.y = newY * this.game.map.blockSize;
+        player.gridX = newX * this.game.map.blockSize + 15; // Add offset like solo mode
+        player.gridY = newY * this.game.map.blockSize;
         
         // Update direction and animation
         const directionMap = {
@@ -250,7 +250,7 @@ export class MultiplayerPlayerManager {
         this.updatePlayerSprite(player);
         
         if (player.element) {
-            player.element.style.transform = `translate(${player.x}px, ${player.y}px)`;
+            player.element.style.transform = `translate(${player.gridX}px, ${player.gridY}px)`;
         }
         
         return true;
@@ -333,8 +333,8 @@ export class MultiplayerPlayerManager {
         
         player.gridX = data.gridX;
         player.gridY = data.gridY;
-        player.x = data.gridX * this.game.map.blockSize + 15;
-        player.y = data.gridY * this.game.map.blockSize;
+        player.gridX = data.gridX * this.game.map.blockSize + 15;
+        player.gridY = data.gridY * this.game.map.blockSize;
         
         if (data.direction) {
             player.direction = data.direction;
@@ -343,7 +343,7 @@ export class MultiplayerPlayerManager {
         }
         
         if (player.element) {
-            player.element.style.transform = `translate(${player.x}px, ${player.y}px)`;
+            player.element.style.transform = `translate(${player.gridX}px, ${player.gridY}px)`;
         }
     }
 

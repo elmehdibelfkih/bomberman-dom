@@ -5,8 +5,8 @@ export class Player extends Entity {
         super('PLAYER')
         this.playerId = playerId
         this.nickname = nickname
-        this.gridx = x;
-        this.gridy = y;
+        this.x = x;
+        this.y = y;
         this.direction = 'DOWN';
         this.lives = 3;
         this.maxBombs = 1;

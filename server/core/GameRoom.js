@@ -92,18 +92,13 @@ export class GameRoom {
         console.log('📡 SERVER: Broadcasting message type:', message.type, 'to room:', this.roomId);
 
         for (const [playerId, connection] of this.playerConnections.entries()) {
-            // Skip excluded player
             if (playerId === excludePlayerId) {
                 continue;
             }
-
-            // Check connection is alive
             if (!connection.isConnected()) {
                 Logger.warn(`Connection for player ${playerId} is dead, skipping broadcast`);
                 continue;
             }
-
-            // Send message
             connection.send(message);
             sentCount++;
         }
