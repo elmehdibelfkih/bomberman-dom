@@ -12,7 +12,7 @@ export class MultiplayerPlayerManager {
         this.ui = new MultiplayerUI(game, networkManager);
         this.sequenceNumber = 0;
         this.pendingMoves = [];
-        this.spawnPositions = GAME_CONFIG.SPAWN_POSITIONS;
+        this.SPAWN_POSITIONS = GAME_CONFIG.SPAWN_POSITIONS;
     }
 
     async initializePlayers(gameData) {

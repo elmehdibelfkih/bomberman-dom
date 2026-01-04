@@ -1,5 +1,7 @@
 import { Logger } from '../utils/Logger.js';
 import { MessageBuilder } from '../network/MessageBuilder.js';
+import { GAME_CONFIG } from '../../shared/game-config.js';
+import { INITIAL_LIVES, INITIAL_SPEED } from '../../shared/constants.js';
 
 export class GameRoom {
     constructor(roomId, players, mapId, mapData) {
@@ -53,19 +55,12 @@ export class GameRoom {
 
         Logger.info(`Game ${this.roomId} starting with ${this.players.length} players`);
 
-        const spawnPositions = [
-            { x: 1, y: 1 },
-            { x: 13, y: 1 },
-            { x: 1, y: 9 },
-            { x: 13, y: 9 }
-        ];
-
         const initialPlayers = this.players.map((player, index) => ({
             ...player,
-            gridX: spawnPositions[index].x,
-            gridY: spawnPositions[index].y,
-            lives: 3,
-            speed: 1,
+            gridX: GAME_CONFIG.SPAWN_POSITIONS[index].x,
+            gridY: GAME_CONFIG.SPAWN_POSITIONS[index].y,
+            lives: INITIAL_LIVES,
+            speed: INITIAL_SPEED,
             bombCount: 1,
             bombRange: 1,
             alive: true

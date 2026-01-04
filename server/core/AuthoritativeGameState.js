@@ -1,7 +1,7 @@
 import { Logger } from '../utils/Logger.js';
 import { MessageBuilder } from '../network/MessageBuilder.js';
 import { GAME_CONFIG } from '../../shared/game-config.js';
-import { BLOCK, ENEMY, FLOOR, PLAYER, WALL } from '../../shared/constants.js';
+import { BLOCK, WALL } from '../../shared/constants.js';
 
 export class AuthoritativeGameState {
     constructor(gameRoom, gameEngine) {
@@ -32,6 +32,8 @@ export class AuthoritativeGameState {
         const moveSpeed = player.speed;
         let newX = player.x;
         let newY = player.y;
+
+        console.log(newX, newY)
 
         switch (direction) {
             case 'UP': newY -= moveSpeed; break;
@@ -107,11 +109,9 @@ export class AuthoritativeGameState {
         return true;
     }
 
-    isValidPosition(targetGridX, targetGridY, excludePlayerId = null) {
+    isValidPosition(targetGridX, targetGridY, excludePlayerId = null, direction) {
         const gridHeight = this.gameEngine.mapData.initial_grid.length;
         const gridWidth = this.gameEngine.mapData.initial_grid[0].length;
-
-        console.log('🔍 isValidPosition:', { targetGridX, targetGridY, gridWidth, gridHeight, excludePlayerId });
 
         if (targetGridY < 0 || targetGridX >= gridWidth || targetGridX < 0 || targetGridY >= gridHeight) {
             console.log('❌ Out of bounds');
@@ -120,6 +120,8 @@ export class AuthoritativeGameState {
 
         const cellValue = this.gameEngine.mapData.initial_grid[targetGridY][targetGridX];
         console.log('🔍 Cell value:', cellValue);
+
+        console.log("X", this.gameEngine.mapId)
 
         if (cellValue == WALL || cellValue == BLOCK) {
             console.log('❌ Map obstacle');

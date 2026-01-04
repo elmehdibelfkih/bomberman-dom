@@ -2,6 +2,7 @@ import { Logger } from '../utils/Logger.js';
 import { MessageBuilder } from '../network/MessageBuilder.js';
 import { GAME_CONFIG } from '../../shared/game-config.js';
 import { AuthoritativeGameState } from './AuthoritativeGameState.js';
+import { INITIAL_SPEED } from '../../shared/constants.js';
 
 export class GameEngine {
     constructor(gameRoom, mapId, mapData) {
@@ -25,12 +26,8 @@ export class GameEngine {
 
     async initialize(players) {
         Logger.info(`Initializing game engine for ${players.length} players`);
-
-        // Initialize players at spawn positions
-        const spawnPositions = GAME_CONFIG.SPAWN_POSITIONS;
-
         players.forEach((player, index) => {
-            const spawn = spawnPositions[index];
+            const spawn = GAME_CONFIG.SPAWN_POSITIONS[index];
             this.entities.players.set(player.playerId, {
                 playerId: player.playerId,
                 nickname: player.nickname,
@@ -39,7 +36,7 @@ export class GameEngine {
                 gridX: spawn.x,
                 gridY: spawn.y,
                 lives: GAME_CONFIG.STARTING_LIVES,
-                speed: 1,
+                speed: INITIAL_SPEED,
                 bombCount: 1,
                 bombRange: 1,
                 alive: true
