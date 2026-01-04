@@ -267,28 +267,6 @@ export class GameEngine {
         return { x: newX, y: newY };
     }
 
-    isValidMove(x, y) {
-        // Get actual grid dimensions from map data
-        const gridHeight = this.mapData.initial_grid ? this.mapData.initial_grid.length : GAME_CONFIG.GRID_HEIGHT;
-        const gridWidth = this.mapData.initial_grid && this.mapData.initial_grid[0] ? this.mapData.initial_grid[0].length : GAME_CONFIG.GRID_WIDTH;
-
-        // Check bounds
-        if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) {
-            return false;
-        }
-
-        // Check for walls/blocks
-        const block = this.getBlockAt(x, y);
-        if (block) return false;
-
-        // Check for bombs
-        const bomb = Array.from(this.entities.bombs.values())
-            .find(bomb => bomb.gridX === x && bomb.gridY === y);
-        if (bomb) return false;
-
-        return true;
-    }
-
     calculateExplosions(bomb) {
         const explosions = [{ gridX: bomb.gridX, gridY: bomb.gridY }];
         const directions = [
