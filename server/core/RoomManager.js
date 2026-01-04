@@ -147,7 +147,7 @@ export class RoomManager {
             const roomId = IdGenerator.generateRoomId();
 
             const players = [];
-            lobby.players.forEach((playerData, playerId) => {
+            lobby.players.forEach((playerData, _) => {
                 players.push({
                     playerId: playerData.playerId,
                     nickname: playerData.nickname
@@ -159,7 +159,7 @@ export class RoomManager {
 
             const gameRoom = new GameRoom(roomId, players, mapId, mapData);
 
-            lobby.players.forEach((playerData, playerId) => {
+            lobby.players.forEach((playerData, _) => {
                 gameRoom.addPlayerConnection(playerData.playerId, playerData.connection);
             });
 
@@ -206,7 +206,7 @@ export class RoomManager {
     }
 
     handlePlayerMove(playerId, direction, sequenceNumber) {
-        console.log("Reachs: handlePlayerMove")
+        console.log('🎮 SERVER: Processing player move for:', playerId, 'direction:', direction);
         const roomId = this.playerToRoom.get(playerId);
         if (!roomId) {
             Logger.warn(`Player ${playerId} not in any room`);

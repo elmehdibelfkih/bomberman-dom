@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,10 +12,12 @@
             background: #222;
             color: #0f0;
         }
+
         .container {
             max-width: 800px;
             margin: 0 auto;
         }
+
         button {
             background: #0f0;
             color: #000;
@@ -25,9 +28,11 @@
             font-family: monospace;
             font-weight: bold;
         }
+
         button:hover {
             background: #0d0;
         }
+
         #log {
             background: #000;
             border: 2px solid #0f0;
@@ -36,24 +41,29 @@
             height: 400px;
             overflow-y: auto;
         }
+
         .log-entry {
             margin: 5px 0;
             padding: 5px;
             border-left: 3px solid #0f0;
             padding-left: 10px;
         }
+
         .log-entry.error {
             border-left-color: #f00;
             color: #f00;
         }
+
         .log-entry.success {
             border-left-color: #0f0;
             color: #0f0;
         }
+
         .log-entry.info {
             border-left-color: #00f;
             color: #0af;
         }
+
         input {
             background: #000;
             color: #0f0;
@@ -62,9 +72,12 @@
             font-family: monospace;
             margin: 5px;
         }
-        h1, h2 {
+
+        h1,
+        h2 {
             color: #0f0;
         }
+
         .status {
             padding: 10px;
             margin: 10px 0;
@@ -72,6 +85,7 @@
             border: 2px solid #0f0;
             border-radius: 5px;
         }
+
         .status-indicator {
             display: inline-block;
             width: 10px;
@@ -79,14 +93,17 @@
             border-radius: 50%;
             margin-right: 10px;
         }
+
         .status-indicator.connected {
             background: #0f0;
         }
+
         .status-indicator.disconnected {
             background: #f00;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>🔌 Bomberman Network Test</h1>
@@ -376,4 +393,5 @@
         addLog('Network test page loaded. Click "Initialize SharedWorker" to start.', 'info');
     </script>
 </body>
+
 </html>

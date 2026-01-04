@@ -27,7 +27,9 @@ export class NetworkManager {
 
     #initWorker() {
         try {
-            this.worker = new SharedWorker('/game/shared_worker.js', { type: 'module' });
+            this.worker = new SharedWorker('/game/shared_worker.js');
+            console.log(this.worker);
+
             this.port = this.worker.port;
 
             this.port.onmessage = (e) => {

@@ -8,12 +8,11 @@ export const sendSuccessHttp = (res, payload) => {
     }))
 }
 
-export const sendErrorHttp = (res, message, statusCode = 400) => {
+export const sendErrorHttp = (res, code, message, statusCode = 400) => {
     res.writeHead(statusCode, { 'Content-type': 'application/json' })
     res.end(JSON.stringify({
         success: false,
         data: { code, message },
-
     }))
 }
 
@@ -26,7 +25,7 @@ export const send404Http = (res) => {
     sendErrorHttp(res, 'NOT_FOUND', 'Resource not found', 404);
 };
 
-export const send500Http = (res, logMessage) => {
+export const send500Http = (res, error) => {
     Logger.error('Internal error:', error);
     sendErrorHttp(res, 'INTERNAL_ERROR', 'Internal server error', 500);
 };
