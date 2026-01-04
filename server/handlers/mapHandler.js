@@ -17,6 +17,17 @@ export function getMultiplayerMap() {
     const mapData = readFileSync(mapPath, 'utf-8');
     const mapJson = JSON.parse(mapData);
 
+    // Remove player (3) from the grid for multiplayer, as players are spawned based on the players array
+    if (mapJson.initial_grid) {
+        for (let y = 0; y < mapJson.initial_grid.length; y++) {
+            for (let x = 0; x < mapJson.initial_grid[y].length; x++) {
+                if (mapJson.initial_grid[y][x] === 3) {
+                    mapJson.initial_grid[y][x] = 0; // Set to floor
+                }
+            }
+        }
+    }
+
     Logger.info(`Loaded multiplayer map: ${mapFileName} (ID: ${randomIndex})`);
     return { mapId: randomIndex, mapData: mapJson };
 }

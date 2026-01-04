@@ -30,12 +30,7 @@ export class GameEngine {
         Logger.info(`Initializing game engine for ${players.length} players`);
 
         // Initialize players at spawn positions
-        const spawnPositions = [
-            { x: 1, y: 1 },   // Top-left
-            { x: 13, y: 1 },  // Top-right
-            { x: 1, y: 9 },   // Bottom-left
-            { x: 13, y: 9 }   // Bottom-right
-        ];
+        const spawnPositions = GAME_CONFIG.SPAWN_POSITIONS;
 
         players.forEach((player, index) => {
             const spawn = spawnPositions[index];
@@ -88,8 +83,8 @@ export class GameEngine {
         }
     }
 
-    processPlayerMove(playerId, direction) {
-        return this.authoritativeState.validatePlayerMove(playerId, direction);
+    processPlayerMove(playerId, direction, sequenceNumber) {
+        return this.authoritativeState.validatePlayerMove(playerId, direction, sequenceNumber);
     }
 
     processPlaceBomb(playerId) {

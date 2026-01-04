@@ -256,9 +256,14 @@ export class Multiplayer {
 
     #startMultiplayerGame(data) {
         this.hideLobbyUI();
-        // Start the game with multiplayer mode enabled
-        // The game should handle this data to set up players
         console.log('Starting multiplayer game with data:', data);
+        
+        // Initialize the multiplayer player manager if it exists
+        if (this.game.multiplayerPlayerManager) {
+            this.game.multiplayerPlayerManager.initializePlayers(data);
+        } else {
+            console.error('MultiplayerPlayerManager not found on game instance');
+        }
     }
 
     #syncGameState(data) {

@@ -10,6 +10,7 @@ export class AuthoritativeGameState {
         this.stateUpdateInterval = 100; // 10 FPS state sync
         this.powerUpSpawnQueue = [];
         this.nextPowerUpId = 1;
+        this.lastProcessedSequenceNumber = new Map();
     }
 
     start() {
@@ -21,7 +22,13 @@ export class AuthoritativeGameState {
     }
 
     // Validate and process player movement
-    validatePlayerMove(playerId, direction) {
+    validatePlayerMove(playerId, direction, sequenceNumber) {
+        const lastSequenceNumber = this.lastProcessedSequenceNumber.get(playerId) || 0;
+        if (sequenceNumber <= lastSequenceNumber) {
+            // Old or out-of-order move, ignore
+            return false;
+        }
+
         const player = this.gameEngine.entities.players.get(playerId);
         if (!player || !player.alive) return false;
 
@@ -36,9 +43,11 @@ export class AuthoritativeGameState {
         player.gridX = newPos.x;
         player.gridY = newPos.y;
         
+        this.lastProcessedSequenceNumber.set(playerId, sequenceNumber);
+        
         // Broadcast to all clients
         this.gameRoom.broadcast(
-            MessageBuilder.playerMoved(playerId, newPos.x, newPos.y, direction)
+            MessageBuilder.playerMoved(playerId, newPos.x, newPos.y, direction, sequenceNumber)
         );
         
         // Check for power-up collection

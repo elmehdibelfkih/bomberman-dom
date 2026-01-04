@@ -72,7 +72,7 @@ export class MessageHandler {
 
     handleMove(connection, message) {
         console.log("Reachs: handleMove")
-        this.roomManager.handlePlayerMove(connection.playerId, message.direction);
+        this.roomManager.handlePlayerMove(connection.playerId, message.direction, message.sequenceNumber);
     }
 
     handlePlaceBomb(connection, message) {

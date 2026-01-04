@@ -205,7 +205,7 @@ export class RoomManager {
         return players;
     }
 
-    handlePlayerMove(playerId, direction) {
+    handlePlayerMove(playerId, direction, sequenceNumber) {
         console.log("Reachs: handlePlayerMove")
         const roomId = this.playerToRoom.get(playerId);
         if (!roomId) {
@@ -225,7 +225,7 @@ export class RoomManager {
         }
 
         try {
-            gameRoom.engine.processPlayerMove(playerId, direction);
+            gameRoom.engine.processPlayerMove(playerId, direction, sequenceNumber);
         } catch (error) {
             Logger.error(`Error processing move in room ${roomId}:`, error);
         }

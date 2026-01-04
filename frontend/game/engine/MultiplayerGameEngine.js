@@ -17,7 +17,6 @@ export class MultiplayerGameEngine {
         }
         this.state = State.getInstance(this)
         this.map = Map.getInstance(this)
-        this.player = Player.getInstance(this)
         this.ui = UI.getInstance(this)
         this.networkManager = null
         this.IDRE = null
@@ -41,7 +40,6 @@ export class MultiplayerGameEngine {
     async intiElements(mapData = null) {
         this.state.initArrowState()
         await this.map.initMap(mapData)
-        await this.player.initPlayer()
         return
     }
 
@@ -60,9 +58,7 @@ export class MultiplayerGameEngine {
     }
 
     async updateRender(timestamp) {
-        // In multiplayer, most updates come from server
-        // Only update local prediction and rendering
-        this.player.updateRender(timestamp)
+        // Player rendering is now handled by MultiplayerPlayerManager
         this.state.update()
     }
 
@@ -115,26 +111,12 @@ export class MultiplayerGameEngine {
         
         await this.intiElements(mapData)
         
-        // Set player spawn position if available
-        if (this.playerSpawn && this.player && this.player.playerCoordinate) {
-            this.player.playerCoordinate.x = this.playerSpawn.x * 64
-            this.player.playerCoordinate.y = this.playerSpawn.y * 64
-        }
-        
         await this.waitForLevel()
         this.startGame()
     }
 
     updatePlayerFromServer(serverPlayer) {
-        if (serverPlayer.playerId === this.networkManager.getPlayerId()) {
-            // Update local player with authoritative data
-            if (this.player && this.player.playerCoordinate) {
-                this.player.playerCoordinate.x = serverPlayer.gridX
-                this.player.playerCoordinate.y = serverPlayer.gridY
-                this.player.lives = serverPlayer.lives
-                this.player.alive = serverPlayer.alive
-            }
-        } else {
+        if (serverPlayer.playerId !== this.networkManager.getPlayerId()) {
             // Update other players
             this.players.set(serverPlayer.playerId, serverPlayer)
         }
@@ -214,20 +196,12 @@ export class MultiplayerGameEngine {
         if (player) {
             player.lives = livesRemaining
         }
-        
-        if (playerId === this.networkManager.getPlayerId() && this.player) {
-            this.player.lives = livesRemaining
-        }
     }
 
     handlePlayerDied(playerId) {
         const player = this.players.get(playerId)
         if (player) {
             player.alive = false
-        }
-        
-        if (playerId === this.networkManager.getPlayerId() && this.player) {
-            this.player.alive = false
         }
     }
 
@@ -241,10 +215,6 @@ export class MultiplayerGameEngine {
         const player = this.players.get(playerId)
         if (player) {
             Object.assign(player, newStats)
-        }
-        
-        if (playerId === this.networkManager.getPlayerId() && this.player) {
-            Object.assign(this.player, newStats)
         }
     }
 

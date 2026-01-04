@@ -116,10 +116,11 @@ export class NetworkManager {
         });
     }
 
-    sendPlayerMove(direction) {
+    sendPlayerMove(direction, sequenceNumber) {
         this.send({
             type: 'MOVE',
-            direction
+            direction,
+            sequenceNumber
         });
     }
 
