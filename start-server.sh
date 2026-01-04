@@ -7,4 +7,4 @@ echo ""
 echo "Press Ctrl+C to stop the server"
 echo ""
 
-cd server && npm start
+cd server && npm start 
