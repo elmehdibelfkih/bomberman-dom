@@ -19,6 +19,9 @@ export class MultiplayerPlayerManager {
         this.localPlayerId = this.networkManager.getPlayerId();
         this.players.clear();
         
+        // Load player coordinate data for sprite cropping
+        this.playerCoordinate = await fetch(`/game/assets/playerCoordinate.json`).then(res => res.json());
+        
         // Use the player image from mapData
         const playerImage = gameData.mapData.player;
         const blockSize = gameData.mapData.block_size;
@@ -31,7 +34,7 @@ export class MultiplayerPlayerManager {
                 nickname: playerData.nickname,
                 gridX: playerData.gridX,
                 gridY: playerData.gridY,
-                x: playerData.gridX * blockSize,
+                x: playerData.gridX * blockSize + 15,
                 y: playerData.gridY * blockSize,
                 lives: playerData.lives,
                 speed: playerData.speed,
@@ -39,7 +42,12 @@ export class MultiplayerPlayerManager {
                 bombRange: playerData.bombRange,
                 alive: true,
                 isLocal: isLocal,
-                element: null
+                element: null,
+                direction: 'Down',
+                frameIndex: 0,
+                movement: false,
+                lastTime: performance.now(),
+                MS_PER_FRAME: 100
             };
             
             this.players.set(playerData.playerId, player);
@@ -55,17 +63,18 @@ export class MultiplayerPlayerManager {
         this.updatePlayersUI();
         this.ui.updateGameStatus('PLAYING', 'Game started!');
 
-        // Unpause the game so player input works
         this.game.state.SetPause(false);
     }
 
     createLocalPlayer(player, playerImage, blockSize) {
+        const frame = this.playerCoordinate[player.direction][player.frameIndex];
+        
         player.element = dom({
             tag: 'div',
             attributes: {
                 class: 'local-player',
                 id: `player-${player.playerId}`,
-                style: `position: absolute; width: ${blockSize}px; height: ${blockSize}px; background: url('${playerImage}') no-repeat; background-size: cover; transform: translate(${player.x}px, ${player.y}px); z-index: 10; border: 2px solid #00ff00;`
+                style: `position: absolute; width: ${frame.width}px; height: ${frame.height}px; background: url('${playerImage}') no-repeat; background-size: auto; background-position: ${frame.x} ${frame.y}; image-rendering: pixelated; transform: translate(${player.x}px, ${player.y}px); z-index: 10;`
             },
             children: []
         });
@@ -79,12 +88,14 @@ export class MultiplayerPlayerManager {
     }
 
     createRemotePlayer(player, playerImage, blockSize) {
+        const frame = this.playerCoordinate[player.direction][player.frameIndex];
+        
         player.element = dom({
             tag: 'div',
             attributes: {
                 class: 'remote-player',
                 id: `player-${player.playerId}`,
-                style: `position: absolute; width: ${blockSize}px; height: ${blockSize}px; background: url('${playerImage}') no-repeat; background-size: cover; transform: translate(${player.x}px, ${player.y}px); z-index: 10; border: 2px solid #ff0000;`
+                style: `position: absolute; width: ${frame.width}px; height: ${frame.height}px; background: url('${playerImage}') no-repeat; background-size: auto; background-position: ${frame.x} ${frame.y}; image-rendering: pixelated; transform: translate(${player.x}px, ${player.y}px); z-index: 10;`
             },
             children: []
         });
@@ -223,14 +234,43 @@ export class MultiplayerPlayerManager {
         
         player.gridX = newX;
         player.gridY = newY;
-        player.x = newX * this.game.map.blockSize;
+        player.x = newX * this.game.map.blockSize + 15; // Add offset like solo mode
         player.y = newY * this.game.map.blockSize;
+        
+        // Update direction and animation
+        const directionMap = {
+            'UP': 'walkingUp',
+            'DOWN': 'walkingDown', 
+            'LEFT': 'walkingLeft',
+            'RIGHT': 'walkingRight'
+        };
+        
+        player.direction = directionMap[direction];
+        player.movement = true;
+        this.updatePlayerSprite(player);
         
         if (player.element) {
             player.element.style.transform = `translate(${player.x}px, ${player.y}px)`;
         }
         
         return true;
+    }
+
+    updatePlayerSprite(player) {
+        if (!player.element || !this.playerCoordinate) return;
+        
+        const frame = this.playerCoordinate[player.direction][player.frameIndex];
+        const fx = parseFloat(frame.x);
+        const fy = parseFloat(frame.y);
+        
+        player.element.style.width = `${frame.width}px`;
+        player.element.style.height = `${frame.height}px`;
+        player.element.style.backgroundPosition = `${fx}px ${fy}px`;
+        
+        // Animate frame for walking
+        if (player.movement) {
+            player.frameIndex = (player.frameIndex + 1) % this.playerCoordinate[player.direction].length;
+        }
     }
 
     canMoveTo(gridX, gridY) {
@@ -293,8 +333,14 @@ export class MultiplayerPlayerManager {
         
         player.gridX = data.gridX;
         player.gridY = data.gridY;
-        player.x = data.gridX * this.game.map.blockSize;
+        player.x = data.gridX * this.game.map.blockSize + 15;
         player.y = data.gridY * this.game.map.blockSize;
+        
+        if (data.direction) {
+            player.direction = data.direction;
+            player.movement = true;
+            this.updatePlayerSprite(player);
+        }
         
         if (player.element) {
             player.element.style.transform = `translate(${player.x}px, ${player.y}px)`;
