@@ -53,18 +53,23 @@ class SoloApp {
                             children: ['Play against AI enemies']
                         },
                         {
-                            tag: 'button',
-                            attributes: { id: 'start-solo-btn', class: 'menu-btn' },
-                            children: ['START GAME']
-                        },
-                        {
-                            tag: 'a',
-                            attributes: {
-                                href: '../index.html',
-                                class: 'menu-btn',
-                                style: 'margin-top: 1rem; text-decoration: none;'
-                            },
-                            children: ['BACK TO HOME']
+                            tag: 'div',
+                            attributes: { class: 'menu-buttons' },
+                            children: [
+                                {
+                                    tag: 'button',
+                                    attributes: { id: 'start-solo-btn', class: 'menu-btn' },
+                                    children: ['START GAME']
+                                },
+                                {
+                                    tag: 'a',
+                                    attributes: {
+                                        href: '../index.html',
+                                        class: 'menu-btn'
+                                    },
+                                    children: ['BACK TO HOME']
+                                }
+                            ]
                         }
                     ]
                 }
