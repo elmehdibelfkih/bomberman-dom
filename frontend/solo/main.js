@@ -5,14 +5,35 @@ class SoloApp {
     constructor() {
         this.game = null;
         this.eventListeners = [];
+        this.mainContainer = null;  // Main container for managing DOM
+        this.currentView = null;    // Track current view element
         this.init();
     }
 
     async init() {
+        // Create and set main container if it doesn't exist
+        if (!this.mainContainer) {
+            this.mainContainer = dom({
+                tag: 'div',
+                attributes: { id: 'app-container' },
+                children: []
+            });
+            document.body.appendChild(this.mainContainer);
+        }
         this.createMenu();
     }
 
+    clearCurrentView() {
+        if (this.currentView && this.currentView.parentNode === this.mainContainer) {
+            this.mainContainer.removeChild(this.currentView);
+        }
+        this.currentView = null;
+    }
+
     createMenu() {
+        // Clear any existing view
+        this.clearCurrentView();
+        
         const menu = dom({
             tag: 'div',
             attributes: { class: 'page-container' },
@@ -50,19 +71,22 @@ class SoloApp {
             ]
         });
 
-        document.body.appendChild(menu);
+        this.currentView = menu;
+        this.mainContainer.appendChild(menu);
 
         setTimeout(() => {
             const startBtn = document.getElementById('start-solo-btn');
-            const startHandler = () => this.startGame();
-            startBtn.addEventListener('click', startHandler);
-            this.eventListeners.push({ element: startBtn, event: 'click', handler: startHandler });
+            if (startBtn) {
+                const startHandler = () => this.startGame();
+                startBtn.addEventListener('click', startHandler);
+                this.eventListeners.push({ element: startBtn, event: 'click', handler: startHandler });
+            }
         }, 0);
     }
 
     async startGame() {
-        // Clean up menu
-        document.body.innerHTML = '';
+        // Clear current view and cleanup
+        this.clearCurrentView();
         this.cleanupEventListeners();
 
         // Create solo game instance
@@ -80,13 +104,21 @@ class SoloApp {
     }
 
     createGameUI() {
-        const levelDisplay = dom({
+        this.clearCurrentView();
+        
+        const gameContainer = dom({
             tag: 'div',
-            attributes: { id: 'level-display' },
-            children: []
+            attributes: { id: 'solo-game-container', style: 'position: relative;' },
+            children: [
+                {
+                    tag: 'div',
+                    attributes: { id: 'level-display' },
+                    children: []
+                }
+            ]
         });
-        document.body.appendChild(levelDisplay);
 
+        // Create control panel
         const controls = dom({
             tag: 'div',
             attributes: { class: 'Controls' },
@@ -146,17 +178,23 @@ class SoloApp {
                 }
             ]
         });
-        document.body.appendChild(controls);
+
+        // Add game elements to container
+        this.mainContainer.appendChild(gameContainer);
+        this.mainContainer.appendChild(controls);
+        this.currentView = gameContainer;  // Track the game view
 
         // Add home button event listener
         setTimeout(() => {
             const homeBtn = document.getElementById('home-btn');
-            const homeHandler = () => {
-                this.cleanup();
-                window.location.href = '../index.html';
-            };
-            homeBtn.addEventListener('click', homeHandler);
-            this.eventListeners.push({ element: homeBtn, event: 'click', handler: homeHandler });
+            if (homeBtn) {
+                const homeHandler = () => {
+                    this.cleanup();
+                    window.location.href = '../index.html';
+                };
+                homeBtn.addEventListener('click', homeHandler);
+                this.eventListeners.push({ element: homeBtn, event: 'click', handler: homeHandler });
+            }
         }, 0);
     }
 
@@ -165,10 +203,18 @@ class SoloApp {
 
         const levelDisplay = document.getElementById('level-display');
         if (levelDisplay && this.game.map && this.game.map.level) {
-            levelDisplay.textContent = `${this.game.map.level.name}`;
+            const levelText = dom({
+                tag: 'div',
+                attributes: {
+                    style: 'text-align: center; color: white; font-size: 24px; padding: 20px;'
+                },
+                children: [this.game.map.level.name]
+            });
+            levelDisplay.appendChild(levelText);
             levelDisplay.classList.add('show');
         }
 
+        this.game.state.initArrowState();
         this.game.state.stopTimer();
         this.game.state.resetTimer();
         this.game.state.setTime(this.game.map.level.level_time);
@@ -177,10 +223,25 @@ class SoloApp {
 
         setTimeout(() => {
             this.game.state.pauseStart();
+            this.game.state.updatePauseIcon();  // Update icon to show pause state
             if (levelDisplay) {
                 levelDisplay.classList.remove('show');
             }
         }, 2000);
+
+        // Monitor for restart and handle it
+        this.monitorRestart();
+    }
+
+    monitorRestart() {
+        const checkRestart = setInterval(() => {
+            // Check if restart flag is set and game is in rest state
+            if (this.game && this.game.stateofrest && this.game.state.Isrestar()) {
+                clearInterval(checkRestart);
+                this.game.state.Restar(); // Reset the restart flag
+                this.startGame(); // Restart the game
+            }
+        }, 100);
     }
 
     cleanupEventListeners() {
@@ -198,7 +259,10 @@ class SoloApp {
         }
 
         this.cleanupEventListeners();
-        document.body.innerHTML = '';
+        
+        // Properly remove the current view element
+        this.clearCurrentView();
+        
         SoloGameEngine.resetInstance();
         this.game = null;
         window.game = null;

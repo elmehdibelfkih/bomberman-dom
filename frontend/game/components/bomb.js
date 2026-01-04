@@ -78,6 +78,12 @@ export class Bomb {
     }
 
     async updateRender(timestamp) {
+        // Don't update if game is paused, but keep rendering
+        if (this.game.state && this.game.state.isPaused()) {
+            this.render();
+            return true;
+        }
+        
         if (this.done) {
             this.render()
             return true

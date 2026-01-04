@@ -96,9 +96,14 @@ export class State {
     }
 
     updateSoundIcon = () => {
-        const ic = document.getElementById('Icon');
-        if (!ic) return;
-        ic.src = this.#SOUND ? './icon/volume-2.svg' : './icon/volume-x.svg';
+        const soundBtn = document.getElementById('sound');
+        if (!soundBtn) return;
+        
+        const soundIcon = soundBtn.querySelector('img');
+        if (!soundIcon) return;
+        
+        const newSrc = this.#SOUND ? '/game/icon/volume-2.svg' : '/game/icon/volume-x.svg';
+        soundIcon.src = newSrc;
     };
 
     setArrowStateKeyDown = (event) => {
@@ -126,11 +131,21 @@ export class State {
         const pauseBtn = document.getElementById('star_pause');
         const soundBtn = document.getElementById('sound');
 
-        eventManager.addEventListener(refBtn, 'click', this._throttledRestar);
-        eventManager.addEventListener(pauseBtn, 'click', this._boundTransfer);
-        eventManager.addEventListener(soundBtn, 'click', this._boundSwitch);
+        if (refBtn) {
+            eventManager.addEventListener(refBtn, 'click', this._throttledRestar);
+        }
+        if (pauseBtn) {
+            eventManager.addEventListener(pauseBtn, 'click', this._boundTransfer);
+        }
+        if (soundBtn) {
+            eventManager.addEventListener(soundBtn, 'click', this._boundSwitch);
+        }
         eventManager.addEventListener(document.body, 'keydown', this._boundKeyDown);
         eventManager.addEventListener(document.body, 'keyup', this._boundKeyUp);
+        
+        // Set initial icons based on current state
+        this.updateSoundIcon();
+        this.updatePauseIcon();
     }
 
     pauseStart = helpers.throttle(() => {
@@ -145,15 +160,19 @@ export class State {
         }
     }
     updatePauseIcon = () => {
-        const icon = document.getElementById('icon');
+        const pauseBtn = document.getElementById('star_pause');
+        if (!pauseBtn) return;
+        
+        const icon = pauseBtn.querySelector('img');
         if (!icon) return;
+        
         if (!this.#PAUSE) {
-            icon.src = './icon/pause.svg';
+            icon.src = '/game/icon/pause.svg';
             icon.alt = 'pause';
             this.isStar = false;
         } else {
-            icon.src = './icon/play.svg';
-            icon.alt = 'star';
+            icon.src = '/game/icon/play.svg';
+            icon.alt = 'play';
             this.isStar = true;
         }
     }
@@ -184,24 +203,44 @@ export class State {
     };
 
     switch() {
-        const ic = document.getElementById('Icon')
-        if (!this.game.map.backGroundMusic) return;
-        if (this.#SOUND) {
-            ic.src = './icon/volume-x.svg'
-            this.game.map.backGroundMusic.volume = 0.0;
-            this.#SOUND = false
-        } else {
-            ic.src = './icon/volume-2.svg'
-            this.game.map.backGroundMusic.volume = 0.3;
-            this.#SOUND = true
+        // Check if background music exists
+        if (!this.game || !this.game.map || !this.game.map.backGroundMusic) {
+            console.warn('Sound switch: Background music not available');
+            return;
         }
+        
+        console.log('Sound state before toggle:', this.#SOUND);
+        
+        // Toggle sound state
+        if (this.#SOUND) {
+            this.game.map.backGroundMusic.volume = 0.0;
+            this.#SOUND = false;
+        } else {
+            this.game.map.backGroundMusic.volume = 0.3;
+            this.#SOUND = true;
+        }
+        
+        console.log('Sound state after toggle:', this.#SOUND);
+        
+        // Update the icon to reflect the new state
+        this.updateSoundIcon();
     }
 
     removeEventListeners() {
-        document.getElementById('ref')?.removeEventListener('click', this._throttledRestar);
-        document.getElementById('star_pause')?.removeEventListener('click', this._boundTransfer);
-        document.getElementById('sound')?.removeEventListener('click', this._boundSwitch);
-        document.removeEventListener('keydown', this._boundKeyDown);
-        document.removeEventListener('keyup', this._boundKeyUp);
+        const refBtn = document.getElementById('ref');
+        const pauseBtn = document.getElementById('star_pause');
+        const soundBtn = document.getElementById('sound');
+        
+        if (refBtn) {
+            eventManager.removeEventListener(refBtn, 'click', this._throttledRestar);
+        }
+        if (pauseBtn) {
+            eventManager.removeEventListener(pauseBtn, 'click', this._boundTransfer);
+        }
+        if (soundBtn) {
+            eventManager.removeEventListener(soundBtn, 'click', this._boundSwitch);
+        }
+        eventManager.removeEventListener(document.body, 'keydown', this._boundKeyDown);
+        eventManager.removeEventListener(document.body, 'keyup', this._boundKeyUp);
     }
 }

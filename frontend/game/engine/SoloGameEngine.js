@@ -103,6 +103,10 @@ export class SoloGameEngine {
         await this.player.initPlayer()
         this.enemie = new Enemy(this)
         this.stateofrest = false
+        // Reset and start timer with the current level time
+        this.state.resetTimer()
+        this.state.setTime(this.map.level.level_time)
+        this.state.startTimer()
         this.run()
     }
 
