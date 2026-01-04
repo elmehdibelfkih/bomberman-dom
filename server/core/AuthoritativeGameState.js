@@ -1,6 +1,7 @@
 import { Logger } from '../utils/Logger.js';
 import { MessageBuilder } from '../network/MessageBuilder.js';
 import { GAME_CONFIG } from '../../shared/game-config.js';
+import { BLOCK, ENEMY, FLOOR, PLAYER, WALL } from '../../shared/constants.js';
 
 export class AuthoritativeGameState {
     constructor(gameRoom, gameEngine) {
@@ -120,7 +121,7 @@ export class AuthoritativeGameState {
         const cellValue = this.gameEngine.mapData.initial_grid[targetGridY][targetGridX];
         console.log('🔍 Cell value:', cellValue);
 
-        if (cellValue !== 0 && cellValue !== 4) {
+        if (cellValue == WALL || cellValue == BLOCK) {
             console.log('❌ Map obstacle');
             return false;
         }
