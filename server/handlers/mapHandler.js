@@ -16,7 +16,6 @@ export function getMultiplayerMap() {
     const mapData = readFileSync(mapPath, 'utf-8');
     const mapJson = JSON.parse(mapData);
 
-
     const toAvoid = []
     GAME_CONFIG.SPAWN_POSITIONS.forEach(position => {
         toAvoid.push({

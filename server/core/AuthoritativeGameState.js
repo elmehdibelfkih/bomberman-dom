@@ -116,6 +116,12 @@ export class AuthoritativeGameState {
                 return false;
             }
 
+            for (const bomb of this.gameEngine.entities.bombs.values()) {
+                if (bomb.gridX === gridX && bomb.gridY === gridY) {
+                    return false;
+                }
+            }
+
             const cellValue = this.gameEngine.mapData.initial_grid[gridY][gridX];
             if (cellValue === WALL || cellValue === BLOCK || cellValue === BOMB) {
                 return false;
