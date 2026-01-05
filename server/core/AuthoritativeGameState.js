@@ -157,8 +157,7 @@ export class AuthoritativeGameState {
 
         return { x: newX, y: newY };
     }
-
-    // Process bomb explosion with authoritative damage
+    
     processBombExplosion(bombId) {
         const bomb = this.gameEngine.entities.bombs.get(bombId);
         if (!bomb) return;
