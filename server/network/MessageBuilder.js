@@ -65,12 +65,14 @@ export const MessageBuilder = {
     };
   },
 
-  playerMoved(playerId, gridX, gridY, direction, sequenceNumber) {
+  playerMoved(playerId, x, y, gridX, gridY, direction, sequenceNumber) {
     return {
       type: 'PLAYER_MOVED',
       playerId,
-      x: gridX,
-      y: gridY,
+      x: x,
+      y: y,
+      gridX: gridX,
+      gridY: gridY,
       direction,
       sequenceNumber,
     };

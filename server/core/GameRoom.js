@@ -55,16 +55,21 @@ export class GameRoom {
 
         Logger.info(`Game ${this.roomId} starting with ${this.players.length} players`);
 
-        const initialPlayers = this.players.map((player, index) => ({
-            ...player,
-            gridX: GAME_CONFIG.SPAWN_POSITIONS[index].x,
-            gridY: GAME_CONFIG.SPAWN_POSITIONS[index].y,
-            lives: INITIAL_LIVES,
-            speed: INITIAL_SPEED,
-            bombCount: 1,
-            bombRange: 1,
-            alive: true
-        }));
+        const initialPlayers = this.players.map((player, index) => {
+            const spawn = GAME_CONFIG.SPAWN_POSITIONS[index];
+            return {
+                ...player,
+                gridX: spawn.x,
+                gridY: spawn.y,
+                x: spawn.x * GAME_CONFIG.BLOCK_SIZE,
+                y: spawn.y * GAME_CONFIG.BLOCK_SIZE,
+                lives: INITIAL_LIVES,
+                speed: INITIAL_SPEED,
+                bombCount: 1,
+                bombRange: 1,
+                alive: true
+            };
+        });
 
         for (const [playerId, connection] of this.playerConnections.entries()) {
             if (connection.isConnected()) {
@@ -80,6 +85,7 @@ export class GameRoom {
 
         Logger.info(`Game ${this.roomId} started - event-driven mode active`);
     }
+
 
     broadcast(message, excludePlayerId = null) {
         let sentCount = 0;

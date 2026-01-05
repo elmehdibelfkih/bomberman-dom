@@ -175,6 +175,7 @@ export class GlobalEventManager {
                 const handlerRecord = list[i];
                 if (!handlerRecord || typeof handlerRecord.fn !== 'function') continue;
 
+                console.log()
                 syntheticEvent.currentTarget = node;
 
                 try {

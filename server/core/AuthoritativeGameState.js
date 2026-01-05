@@ -1,7 +1,7 @@
 import { Logger } from '../utils/Logger.js';
 import { MessageBuilder } from '../network/MessageBuilder.js';
 import { GAME_CONFIG } from '../../shared/game-config.js';
-import { BLOCK, WALL } from '../../shared/constants.js';
+import { BLOCK, BOMB, WALL } from '../../shared/constants.js';
 
 export class AuthoritativeGameState {
     constructor(gameRoom, gameEngine) {
@@ -33,8 +33,6 @@ export class AuthoritativeGameState {
         let newX = player.x;
         let newY = player.y;
 
-        console.log(newX, newY)
-
         switch (direction) {
             case 'UP': newY -= moveSpeed; break;
             case 'DOWN': newY += moveSpeed; break;
@@ -42,47 +40,33 @@ export class AuthoritativeGameState {
             case 'RIGHT': newX += moveSpeed; break;
         }
 
-        const gridHeight = this.gameEngine.mapData.initial_grid.length;
-        const gridWidth = this.gameEngine.mapData.initial_grid[0].length;
-        const newGridX = Math.floor(newX / GAME_CONFIG.BLOCK_SIZE);
-        const newGridY = Math.floor(newY / GAME_CONFIG.BLOCK_SIZE);
-
-        if (!this.isValidPosition(newGridX, newGridY, playerId)) return false;
+        if (!this.isValidPosition(newX, newY, direction, playerId)) return false;
 
         player.x = newX;
         player.y = newY;
-        player.gridX = newGridX;
-        player.gridY = newGridY;
+        player.gridX = Math.floor(newX / GAME_CONFIG.BLOCK_SIZE);
+        player.gridY = Math.floor(newY / GAME_CONFIG.BLOCK_SIZE);
 
         this.lastProcessedSequenceNumber.set(playerId, sequenceNumber);
 
         this.gameRoom.broadcast(
-            MessageBuilder.playerMoved(playerId, newX, newY, direction, sequenceNumber)
+            MessageBuilder.playerMoved(playerId, newX, newY, player.gridX, player.gridY, direction, sequenceNumber)
         );
 
-        this.checkPowerUpCollection(playerId, newGridX, newGridY);
+        this.checkPowerUpCollection(playerId, player.gridX, player.gridY);
         return true;
     }
 
 
-    // Validate bomb placement
     validateBombPlacement(playerId) {
         const player = this.gameEngine.entities.players.get(playerId);
         if (!player || !player.alive) return false;
 
-        // Check bomb count limit
         const activeBombs = Array.from(this.gameEngine.entities.bombs.values())
             .filter(bomb => bomb.playerId === playerId);
 
         if (activeBombs.length >= player.bombCount) return false;
 
-        // Check position availability
-        const existingBomb = Array.from(this.gameEngine.entities.bombs.values())
-            .find(bomb => bomb.gridX === player.gridX && bomb.gridY === player.gridY);
-
-        if (existingBomb) return false;
-
-        // Create authoritative bomb
         const bombId = `bomb_${Date.now()}_${playerId}`;
         const bomb = {
             bombId,
@@ -96,12 +80,10 @@ export class AuthoritativeGameState {
 
         this.gameEngine.entities.bombs.set(bombId, bomb);
 
-        // Broadcast bomb placement
         this.gameRoom.broadcast(
             MessageBuilder.bombPlaced(bombId, playerId, player.gridX, player.gridY, player.bombRange)
         );
 
-        // Schedule explosion
         setTimeout(() => {
             this.processBombExplosion(bombId);
         }, GAME_CONFIG.BOMB_TIMER);
@@ -109,30 +91,52 @@ export class AuthoritativeGameState {
         return true;
     }
 
-    isValidPosition(targetGridX, targetGridY, excludePlayerId = null, direction) {
+    isValidPosition(newX, newY, direction) {
         const gridHeight = this.gameEngine.mapData.initial_grid.length;
         const gridWidth = this.gameEngine.mapData.initial_grid[0].length;
 
-        if (targetGridY < 0 || targetGridX >= gridWidth || targetGridX < 0 || targetGridY >= gridHeight) {
-            console.log('❌ Out of bounds');
-            return false;
+        const playerDimensions = this.getPlayerDimensions(direction);
+        const width = playerDimensions.width;
+        const height = playerDimensions.height;
+
+        // future player's position, but by his corners
+        const corners = [
+            { x: newX, y: newY },
+            { x: newX + width - 1, y: newY },
+            { x: newX, y: newY + height - 1 },
+            { x: newX + width - 1, y: newY + height - 1 }
+        ];
+
+        // check if those positions aren't filled with a block or wall
+        for (const corner of corners) {
+            const gridX = Math.floor(corner.x / GAME_CONFIG.BLOCK_SIZE);
+            const gridY = Math.floor(corner.y / GAME_CONFIG.BLOCK_SIZE);
+
+            if (gridX < 0 || gridX >= gridWidth || gridY < 0 || gridY >= gridHeight) {
+                return false;
+            }
+
+            const cellValue = this.gameEngine.mapData.initial_grid[gridY][gridX];
+            if (cellValue === WALL || cellValue === BLOCK || cellValue === BOMB) {
+                return false;
+            }
         }
 
-        const cellValue = this.gameEngine.mapData.initial_grid[targetGridY][targetGridX];
-        console.log('🔍 Cell value:', cellValue);
-
-        console.log("X", this.gameEngine.mapId)
-
-        if (cellValue == WALL || cellValue == BLOCK) {
-            console.log('❌ Map obstacle');
-            return false;
-        }
-
-        console.log('✅ Position valid');
         return true;
     }
 
-
+    getPlayerDimensions(direction) {
+        switch (direction) {
+            case 'LEFT':
+            case 'RIGHT':
+                return { width: 25, height: 64 };
+            case 'UP':
+            case 'DOWN':
+                return { width: 33, height: 64 };
+            default:
+                return { width: 33, height: 64 };
+        }
+    }
 
     calculateNewPosition(player, direction) {
         let newX = player.gridX;
@@ -162,7 +166,7 @@ export class AuthoritativeGameState {
         explosions.forEach(explosion => {
             // Destroy blocks and potentially spawn power-ups
             if (this.gameEngine.mapData.initial_grid[explosion.gridY] &&
-                this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] === 2) {
+                this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] === BLOCK) {
 
                 this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] = 0;
                 destroyedBlocks.push({ gridX: explosion.gridX, gridY: explosion.gridY });
@@ -277,7 +281,7 @@ export class AuthoritativeGameState {
             { dx: 0, dy: -1 }, // UP
             { dx: 0, dy: 1 },  // DOWN
             { dx: -1, dy: 0 }, // LEFT
-            { dx: 1, dy: 0 }   // RIGHT
+            { dx: 1, dy: 0 }
         ];
 
         directions.forEach(dir => {
@@ -290,9 +294,9 @@ export class AuthoritativeGameState {
                 }
 
                 const cell = this.gameEngine.mapData.initial_grid[y][x];
-                if (cell === 1) { // Wall
-                    break;
-                } else if (cell === 2) { // Soft block
+                if (cell === WALL) {
+                    break
+                } else if (cell === BLOCK) {
                     explosions.push({ gridX: x, gridY: y });
                     break;
                 } else {
