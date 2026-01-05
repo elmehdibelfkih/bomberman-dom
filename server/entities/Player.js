@@ -1,3 +1,4 @@
+import { INITIAL_SPEED } from "../../shared/constants.js";
 import { Entity } from "./Entity.js";
 
 export class Player extends Entity {
@@ -12,7 +13,7 @@ export class Player extends Entity {
         this.maxBombs = 1;
         this.activeBombs = 0;
         this.bombRange = 1;
-        this.speed = 1;
+        this.speed = INITIAL_SPEED;
         this.powerups = [];
     }
 

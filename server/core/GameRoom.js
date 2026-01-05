@@ -1,5 +1,7 @@
 import { Logger } from '../utils/Logger.js';
 import { MessageBuilder } from '../network/MessageBuilder.js';
+import { GAME_CONFIG } from '../../shared/game-config.js';
+import { INITIAL_LIVES, INITIAL_SPEED } from '../../shared/constants.js';
 
 export class GameRoom {
     constructor(roomId, players, mapId, mapData) {
@@ -53,23 +55,21 @@ export class GameRoom {
 
         Logger.info(`Game ${this.roomId} starting with ${this.players.length} players`);
 
-        const spawnPositions = [
-            { x: 1, y: 1 },
-            { x: 13, y: 1 },
-            { x: 1, y: 9 },
-            { x: 13, y: 9 }
-        ];
-
-        const initialPlayers = this.players.map((player, index) => ({
-            ...player,
-            gridX: spawnPositions[index].x,
-            gridY: spawnPositions[index].y,
-            lives: 3,
-            speed: 1,
-            bombCount: 1,
-            bombRange: 1,
-            alive: true
-        }));
+        const initialPlayers = this.players.map((player, index) => {
+            const spawn = GAME_CONFIG.SPAWN_POSITIONS[index];
+            return {
+                ...player,
+                gridX: spawn.x,
+                gridY: spawn.y,
+                x: spawn.x * GAME_CONFIG.BLOCK_SIZE,
+                y: spawn.y * GAME_CONFIG.BLOCK_SIZE,
+                lives: INITIAL_LIVES,
+                speed: INITIAL_SPEED,
+                bombCount: 1,
+                bombRange: 1,
+                alive: true
+            };
+        });
 
         for (const [playerId, connection] of this.playerConnections.entries()) {
             if (connection.isConnected()) {
@@ -85,6 +85,7 @@ export class GameRoom {
 
         Logger.info(`Game ${this.roomId} started - event-driven mode active`);
     }
+
 
     broadcast(message, excludePlayerId = null) {
         let sentCount = 0;

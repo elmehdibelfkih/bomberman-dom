@@ -8,10 +8,8 @@ export class MessageHandler {
     }
 
     handle(connection, rawMessage) {
-        console.log('🔥 SERVER: MessageHandler.handle called with:', rawMessage.toString());
         try {
             const message = JSON.parse(rawMessage)
-            console.log('🔥 SERVER: Parsed message:', message);
 
             switch (message.type) {
                 case ClientMessages.JOIN_GAME:

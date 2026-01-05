@@ -53,9 +53,6 @@ export function initServer(directoryPath) {
 
             res.writeHead(200, {
                 'Content-Type': MIME_TYPES[ext] || 'text/plain',
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0'
             });
             res.end(content);
 

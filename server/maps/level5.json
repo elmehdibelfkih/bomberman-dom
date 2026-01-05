@@ -1,0 +1,47 @@
+{
+  "name": "Maze of Mild Regret",
+  "initial_grid": [
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,1,0,0,0,0,0,0,0,1,0,1,0,0,0,1,0,0,0,1],
+    [1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1],
+    [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,1],
+    [1,0,1,1,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+    [1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1],
+    [1,0,1,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+
+  ],
+
+  "enemy_speed": 3,
+  "hiden_harts_quantity": 3,
+  "bomb_quantity_at_time": 1,
+  "block_size": 68,
+  "explosion_time": 1500,
+  "level_time": 60,
+
+  "enemy": "./assets/images/grue.png",
+  "player": "./assets/images/player.png",
+
+  "wall": "./assets/images/wall/wall_17.png",
+  "floor": "./assets/images/floor/floor_58.png",
+  "block": "./assets/images/soft_block/block_3.png",
+
+  "bomb": "./assets/images/Bomb/bomb0.png",
+  "electric_shock_img": "./assets/images/shock/Explosion_0.png",
+  "player_explosion_img": "./assets/images/explosion/explosion_2/Explosion_1.png",
+
+  "back_ground_music": "./assets/audios/background/happy_adventure.mp3",
+  "shock_sound": "./assets/audios/buzz.ogg",
+  "dying_sound": "./assets/audios/die1.mp3",
+  
+  "time_img": "./assets/images/loot/time.png",
+  "speed_img": "./assets/images/loot/speed.png",
+  "heart_img": "./assets/images/loot/heart.png",
+
+  "time_sound": "./assets/audios/timesounde.mp3",
+  "speed_sound": "./assets/audios/CoinGet.mp3",
+  "heart_sound": "./assets/audios/heart.mp3"
+}
