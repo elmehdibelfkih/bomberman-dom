@@ -31,11 +31,13 @@ export class GameEngine {
 
         players.forEach((player, index) => {
             const spawn = spawnPositions[index];
+            const blockSize = this.mapData?.block_size || GAME_CONFIG.BLOCK_SIZE;
+
             this.entities.players.set(player.playerId, {
                 playerId: player.playerId,
                 nickname: player.nickname,
-                x: spawn.x * GAME_CONFIG.BLOCK_SIZE,
-                y: spawn.y * GAME_CONFIG.BLOCK_SIZE,
+                x: spawn.x * blockSize,
+                y: spawn.y * blockSize,
                 gridX: spawn.x,
                 gridY: spawn.y,
                 lives: GAME_CONFIG.STARTING_LIVES,
@@ -136,7 +138,10 @@ export class GameEngine {
         console.log('🔍 SERVER: Checking position validity:', { x, y, excludePlayerId });
 
         // Check bounds
-        if (x < 0 || x >= GAME_CONFIG.GRID_WIDTH || y < 0 || y >= GAME_CONFIG.GRID_HEIGHT) {
+        const gridHeight = this.mapData?.initial_grid?.length ?? GAME_CONFIG.GRID_HEIGHT;
+        const gridWidth = this.mapData?.initial_grid?.[0]?.length ?? GAME_CONFIG.GRID_WIDTH;
+
+        if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) {
             console.log('❌ SERVER: Position out of bounds');
             return false;
         }
@@ -241,6 +246,9 @@ export class GameEngine {
     }
 
     calculateExplosions(bomb) {
+        const gridHeight = this.mapData?.initial_grid?.length ?? GAME_CONFIG.GRID_HEIGHT;
+        const gridWidth = this.mapData?.initial_grid?.[0]?.length ?? GAME_CONFIG.GRID_WIDTH;
+
         const explosions = [{ gridX: bomb.gridX, gridY: bomb.gridY }];
         const directions = [
             { dx: 0, dy: -1 }, // UP
@@ -254,7 +262,7 @@ export class GameEngine {
                 const x = bomb.gridX + (dir.dx * i);
                 const y = bomb.gridY + (dir.dy * i);
 
-                if (x < 0 || x >= GAME_CONFIG.GRID_WIDTH || y < 0 || y >= GAME_CONFIG.GRID_HEIGHT) {
+                if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) {
                     break;
                 }
 

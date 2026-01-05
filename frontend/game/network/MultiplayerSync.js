@@ -11,6 +11,7 @@ export function setupMultiplayerSync(game, networkManager) {
     game.playerManager = new MultiplayerPlayerManager(game, networkManager);
     game.bombManager = new BombManager(game);
     game.powerUpManager = new PowerUpManager(game);
+    game.remoteBombs = game.remoteBombs || new Map();
     
     // Initialize network state synchronizer
     game.stateSynchronizer = new NetworkStateSynchronizer(game, networkManager);
@@ -30,13 +31,23 @@ export function setupMultiplayerSync(game, networkManager) {
     });
 
     // Handle player movements
-    networkManager.on('PLAYER_MOVED', (data) => {
-        if (data.playerId === networkManager.getPlayerId()) {
-            game.playerManager.reconcileLocalPlayer(data);
+    const handlePlayerMoved = (data) => {
+        // Normalize server payload (server sends x/y as grid coords)
+        const normalized = {
+            ...data,
+            gridX: data.gridX ?? data.x,
+            gridY: data.gridY ?? data.y
+        };
+
+        if (normalized.playerId === networkManager.getPlayerId()) {
+            game.playerManager.reconcileLocalPlayer(normalized);
         } else {
-            game.playerManager.updateRemotePlayer(data);
+            game.playerManager.updateRemotePlayer(normalized);
         }
-    });
+    };
+
+    networkManager.on('PLAYER_MOVED', handlePlayerMoved);
+    networkManager.on('PLAYER_STATE', handlePlayerMoved); // fallback if server sends different type
 
     // Handle bomb placement
     networkManager.on('BOMB_PLACED', (data) => {

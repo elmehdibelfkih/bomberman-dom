@@ -1,6 +1,7 @@
 export const FLOOR = 0
 export const WALL = 1
 export const BLOCK = 2
+export const SOFT_BLOCK = 2 // Alias for soft/destructible blocks used in maps
 export const PLAYER = 3
 export const ENEMY = 4
 export const BOMB = 5

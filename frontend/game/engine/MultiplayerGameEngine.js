@@ -58,6 +58,14 @@ export class MultiplayerGameEngine {
     }
 
     async updateRender(timestamp) {
+        // Update enemies (solo uses the same map/enemy classes)
+        if (this.map?.enemys?.length) {
+            this.map.enemys = this.map.enemys.filter(enemy => {
+                enemy.updateRender(timestamp)
+                return !enemy.dead
+            })
+        }
+
         // Player rendering is now handled by MultiplayerPlayerManager
         this.state.update()
     }

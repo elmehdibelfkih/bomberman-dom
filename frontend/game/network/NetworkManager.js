@@ -27,7 +27,8 @@ export class NetworkManager {
 
     #initWorker() {
         try {
-            this.worker = new SharedWorker('/frontend/game/shared_worker.js', {type: 'module'});
+            // Serve from frontend root: static handler maps /game/... directly to frontend/game/...
+            this.worker = new SharedWorker('/game/shared_worker.js', {type: 'module'});
             console.log(this.worker);
 
             this.port = this.worker.port;

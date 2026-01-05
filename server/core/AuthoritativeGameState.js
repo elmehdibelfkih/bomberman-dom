@@ -28,33 +28,31 @@ export class AuthoritativeGameState {
         const player = this.gameEngine.entities.players.get(playerId);
         if (!player || !player.alive) return false;
 
-        const moveSpeed = player.speed;
-        let newX = player.x;
-        let newY = player.y;
+        const blockSize = this.gameEngine.mapData?.block_size || GAME_CONFIG.BLOCK_SIZE;
+
+        // Move in grid units, not pixels
+        let newGridX = player.gridX;
+        let newGridY = player.gridY;
 
         switch (direction) {
-            case 'UP': newY -= moveSpeed; break;
-            case 'DOWN': newY += moveSpeed; break;
-            case 'LEFT': newX -= moveSpeed; break;
-            case 'RIGHT': newX += moveSpeed; break;
+            case 'UP': newGridY--; break;
+            case 'DOWN': newGridY++; break;
+            case 'LEFT': newGridX--; break;
+            case 'RIGHT': newGridX++; break;
         }
-
-        const gridHeight = this.gameEngine.mapData.initial_grid.length;
-        const gridWidth = this.gameEngine.mapData.initial_grid[0].length;
-        const newGridX = Math.floor(newX / GAME_CONFIG.BLOCK_SIZE);
-        const newGridY = Math.floor(newY / GAME_CONFIG.BLOCK_SIZE);
 
         if (!this.isValidPosition(newGridX, newGridY, playerId)) return false;
 
-        player.x = newX;
-        player.y = newY;
         player.gridX = newGridX;
         player.gridY = newGridY;
+        player.x = newGridX * blockSize;
+        player.y = newGridY * blockSize;
 
         this.lastProcessedSequenceNumber.set(playerId, sequenceNumber);
 
         this.gameRoom.broadcast(
-            MessageBuilder.playerMoved(playerId, newX, newY, direction, sequenceNumber)
+            // Broadcast grid coordinates; client can derive pixels from blockSize
+            MessageBuilder.playerMoved(playerId, player.gridX, player.gridY, direction, sequenceNumber)
         );
 
         this.checkPowerUpCollection(playerId, newGridX, newGridY);

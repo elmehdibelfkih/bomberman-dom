@@ -40,6 +40,8 @@ export class Map {
             // Solo: load map based on current level
             this.level = await fetch(`/game/assets/maps/level${this.game.state.getLevel()}.json`).then(res => res.json());
         }
+        // Cache block size for consistent pixel calculations across components
+        this.blockSize = this.level.block_size;
         this.enemyCordination = await fetch(`/game/assets/enemycordinate.json`).then(res => res.json())
 
         // Fix relative paths in level data to absolute paths

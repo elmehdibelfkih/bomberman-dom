@@ -68,13 +68,15 @@ export class MultiplayerPlayerManager {
 
     createLocalPlayer(player, playerImage, blockSize) {
         const frame = this.playerCoordinate[player.direction][player.frameIndex];
+        const px = player.gridX * (this.getBlockSize() || blockSize) + 15;
+        const py = player.gridY * (this.getBlockSize() || blockSize);
         
         player.element = dom({
             tag: 'div',
             attributes: {
                 class: 'local-player',
                 id: `player-${player.playerId}`,
-                style: `position: absolute; width: ${frame.width}px; height: ${frame.height}px; background: url('${playerImage}') no-repeat; background-size: auto; background-position: ${frame.x} ${frame.y}; image-rendering: pixelated; transform: translate(${player.gridX}px, ${player.gridY}px); z-index: 10;`
+                style: `position: absolute; width: ${frame.width}px; height: ${frame.height}px; background: url('${playerImage}') no-repeat; background-size: auto; background-position: ${frame.x} ${frame.y}; image-rendering: pixelated; transform: translate(${px}px, ${py}px); z-index: 10;`
             },
             children: []
         });
@@ -89,13 +91,15 @@ export class MultiplayerPlayerManager {
 
     createRemotePlayer(player, playerImage, blockSize) {
         const frame = this.playerCoordinate[player.direction][player.frameIndex];
+        const px = player.gridX * (this.getBlockSize() || blockSize) + 15;
+        const py = player.gridY * (this.getBlockSize() || blockSize);
         
         player.element = dom({
             tag: 'div',
             attributes: {
                 class: 'remote-player',
                 id: `player-${player.playerId}`,
-                style: `position: absolute; width: ${frame.width}px; height: ${frame.height}px; background: url('${playerImage}') no-repeat; background-size: auto; background-position: ${frame.x} ${frame.y}; image-rendering: pixelated; transform: translate(${player.gridX}px, ${player.gridY}px); z-index: 10;`
+                style: `position: absolute; width: ${frame.width}px; height: ${frame.height}px; background: url('${playerImage}') no-repeat; background-size: auto; background-position: ${frame.x} ${frame.y}; image-rendering: pixelated; transform: translate(${px}px, ${py}px); z-index: 10;`
             },
             children: []
         });
@@ -176,8 +180,8 @@ export class MultiplayerPlayerManager {
 
         // Authoritative position from server
         const serverPosition = {
-            gridX: data.x,
-            gridY: data.y,
+            gridX: data.gridX ?? data.x,
+            gridY: data.gridY ?? data.y,
         };
 
         // Remove processed moves from the buffer
@@ -201,14 +205,16 @@ export class MultiplayerPlayerManager {
         });
         
         // Update the player's state
-        localplayer.gridX = reconciledPosition.gridX;
-        localplayer.gridY = reconciledPosition.gridY;
-        localplayer.gridX = reconciledPosition.gridX * this.game.map.blockSize;
-        localplayer.gridY = reconciledPosition.gridY * this.game.map.blockSize;
+        localPlayer.gridX = reconciledPosition.gridX;
+        localPlayer.gridY = reconciledPosition.gridY;
+
+        const blockSize = this.getBlockSize();
+        const pixelX = localPlayer.gridX * blockSize + 15;
+        const pixelY = localPlayer.gridY * blockSize;
 
         // Update the DOM
         if (localPlayer.element) {
-            localPlayer.element.style.transform = `translate(${localplayer.gridX}px, ${localplayer.gridY}px)`;
+            localPlayer.element.style.transform = `translate(${pixelX}px, ${pixelY}px)`;
         }
     }
 
@@ -234,8 +240,9 @@ export class MultiplayerPlayerManager {
         
         player.gridX = newX;
         player.gridY = newY;
-        player.gridX = newX * this.game.map.blockSize + 15; // Add offset like solo mode
-        player.gridY = newY * this.game.map.blockSize;
+        const blockSize = this.getBlockSize();
+        const pixelX = newX * blockSize + 15; // Add offset like solo mode
+        const pixelY = newY * blockSize;
         
         // Update direction and animation
         const directionMap = {
@@ -250,7 +257,7 @@ export class MultiplayerPlayerManager {
         this.updatePlayerSprite(player);
         
         if (player.element) {
-            player.element.style.transform = `translate(${player.gridX}px, ${player.gridY}px)`;
+            player.element.style.transform = `translate(${pixelX}px, ${pixelY}px)`;
         }
         
         return true;
@@ -313,7 +320,7 @@ export class MultiplayerPlayerManager {
             }
         }
         
-        this.networkManager.placeBomb();
+        this.networkManager.sendPlaceBomb();
         return true;
     }
 
@@ -333,8 +340,9 @@ export class MultiplayerPlayerManager {
         
         player.gridX = data.gridX;
         player.gridY = data.gridY;
-        player.gridX = data.gridX * this.game.map.blockSize + 15;
-        player.gridY = data.gridY * this.game.map.blockSize;
+        const blockSize = this.getBlockSize();
+        const pixelX = data.gridX * blockSize + 15;
+        const pixelY = data.gridY * blockSize;
         
         if (data.direction) {
             player.direction = data.direction;
@@ -343,8 +351,12 @@ export class MultiplayerPlayerManager {
         }
         
         if (player.element) {
-            player.element.style.transform = `translate(${player.gridX}px, ${player.gridY}px)`;
+            player.element.style.transform = `translate(${pixelX}px, ${pixelY}px)`;
         }
+    }
+
+    getBlockSize() {
+        return this.game?.map?.blockSize || this.game?.map?.level?.block_size || GAME_CONFIG.BLOCK_SIZE;
     }
 
     damagePlayer(playerId, livesRemaining) {
@@ -366,14 +378,49 @@ export class MultiplayerPlayerManager {
         if (!player) return;
         
         player.alive = false;
-        
-        if (player.element) {
-            player.element.style.opacity = '0.5';
-            player.element.style.filter = 'grayscale(100%)';
-        }
+        this.playDeathEffect(player);
         
         this.ui.showPlayerDied(playerId);
         this.checkWinCondition();
+    }
+
+    playDeathEffect(player) {
+        // Fade & grayscale the sprite
+        if (player.element) {
+            player.element.style.opacity = '0.3';
+            player.element.style.filter = 'grayscale(100%)';
+        }
+
+        // Create a simple explosion animation similar to solo mode
+        const grid = document.getElementById('grid');
+        if (!grid || !this.game?.map?.level?.player_explosion_img) return;
+
+        const blockSize = this.getBlockSize();
+        const expSize = blockSize; // match tile size
+        const baseImg = this.game.map.level.player_explosion_img;
+
+        const explosion = dom({
+            tag: 'img',
+            attributes: {
+                class: 'player-death-effect',
+                style: `position: absolute; transform: translate(${player.gridX * blockSize}px, ${player.gridY * blockSize}px); width: ${expSize}px; height: ${expSize}px; z-index: 20;`
+            },
+            children: []
+        });
+
+        grid.appendChild(explosion);
+
+        let frame = 1;
+        const maxFrame = 10;
+
+        const interval = setInterval(() => {
+            explosion.src = baseImg.replace(/\d+\.png/, `${frame}.png`);
+            frame += 1;
+            if (frame > maxFrame) {
+                clearInterval(interval);
+                explosion.remove();
+            }
+        }, 50);
     }
 
     checkWinCondition() {
