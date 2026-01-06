@@ -1,7 +1,7 @@
 import { Logger } from '../utils/Logger.js';
 import { MessageBuilder } from '../network/MessageBuilder.js';
 import { GAME_CONFIG } from '../../shared/game-config.js';
-import { BLOCK, BOMB, WALL } from '../../shared/constants.js';
+import { BLOCK, BOMB, FLOOR, POWERUP_BLOCK_PASS, POWERUP_BOMB, POWERUP_BOMB_PASS, POWERUP_FLAME, POWERUP_EXTRA_LIFE, POWERUP_SPEED, WALL } from '../../shared/constants.js';
 
 export class AuthoritativeGameState {
     constructor(gameRoom, gameEngine) {
@@ -13,15 +13,6 @@ export class AuthoritativeGameState {
         this.lastProcessedSequenceNumber = new Map();
     }
 
-    start() {
-        Logger.info('Authoritative game state started - event-driven mode');
-    }
-
-    stop() {
-        // No timers to clean up in event-driven mode
-    }
-
-    // Validate and process player movement
     validatePlayerMove(playerId, direction, sequenceNumber) {
         const lastSequenceNumber = this.lastProcessedSequenceNumber.get(playerId) || 0;
         if (sequenceNumber <= lastSequenceNumber) return false;
@@ -65,7 +56,7 @@ export class AuthoritativeGameState {
         const activeBombs = Array.from(this.gameEngine.entities.bombs.values())
             .filter(bomb => bomb.playerId === playerId);
 
-        if (activeBombs.length >= player.bombCount) return false;
+        if (activeBombs.length >= player.maxBombs) return false;
 
         const bombId = `bomb_${Date.now()}_${playerId}`;
         const bomb = {
@@ -91,7 +82,7 @@ export class AuthoritativeGameState {
         return true;
     }
 
-    isValidPosition(newX, newY, direction) {
+    isValidPosition(newX, newY, direction, playerId) {
         const gridHeight = this.gameEngine.mapData.initial_grid.length;
         const gridWidth = this.gameEngine.mapData.initial_grid[0].length;
 
@@ -116,9 +107,24 @@ export class AuthoritativeGameState {
                 return false;
             }
 
+            for (const bomb of this.gameEngine.entities.bombs.values()) {
+                if (bomb.gridX === gridX && bomb.gridY === gridY) {
+                    return false;
+                }
+            }
+
             const cellValue = this.gameEngine.mapData.initial_grid[gridY][gridX];
-            if (cellValue === WALL || cellValue === BLOCK || cellValue === BOMB) {
+            if (cellValue === WALL) {
                 return false;
+            }
+
+            const player = this.gameEngine.entities.players.get(playerId)
+            if (cellValue === BOMB && !player.bombPass) {
+                return false
+            }
+
+            if (cellValue === BLOCK && !player.blockPass) {
+                return false
             }
         }
 
@@ -152,7 +158,6 @@ export class AuthoritativeGameState {
         return { x: newX, y: newY };
     }
 
-    // Process bomb explosion with authoritative damage
     processBombExplosion(bombId) {
         const bomb = this.gameEngine.entities.bombs.get(bombId);
         if (!bomb) return;
@@ -164,20 +169,17 @@ export class AuthoritativeGameState {
 
         // Process explosions
         explosions.forEach(explosion => {
-            // Destroy blocks and potentially spawn power-ups
             if (this.gameEngine.mapData.initial_grid[explosion.gridY] &&
                 this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] === BLOCK) {
 
-                this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] = 0;
+                this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] = FLOOR;
                 destroyedBlocks.push({ gridX: explosion.gridX, gridY: explosion.gridY });
 
-                // Fair power-up distribution
                 if (Math.random() < GAME_CONFIG.POWERUP_SPAWN_CHANCE) {
                     spawnedPowerUp = this.spawnPowerUp(explosion.gridX, explosion.gridY);
                 }
             }
 
-            // Damage players
             this.gameEngine.entities.players.forEach(player => {
                 if (player.gridX === explosion.gridX && player.gridY === explosion.gridY && player.alive) {
                     player.lives--;
@@ -196,21 +198,17 @@ export class AuthoritativeGameState {
             });
         });
 
-        // Remove bomb
         this.gameEngine.entities.bombs.delete(bombId);
 
-        // Broadcast explosion
         this.gameRoom.broadcast(
             MessageBuilder.bombExploded(bombId, explosions, destroyedBlocks, damagedPlayers, spawnedPowerUp)
         );
 
-        // Check win condition
         this.checkWinCondition();
     }
 
-    // Fair power-up distribution system
     spawnPowerUp(gridX, gridY) {
-        const powerUpTypes = ['SPEED', 'BOMB_COUNT', 'BOMB_RANGE'];
+        const powerUpTypes = [POWERUP_SPEED, POWERUP_BOMB, POWERUP_FLAME, POWERUP_BOMB_PASS];
         const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
 
         const powerUpId = `powerup_${this.nextPowerUpId++}`;
@@ -224,7 +222,6 @@ export class AuthoritativeGameState {
 
         this.gameEngine.entities.powerups.set(powerUpId, powerUp);
 
-        // Broadcast power-up spawn
         this.gameRoom.broadcast(
             MessageBuilder.powerupSpawned(powerUpId, type, gridX, gridY)
         );
@@ -232,20 +229,20 @@ export class AuthoritativeGameState {
         return powerUp;
     }
 
-    // Check power-up collection
     checkPowerUpCollection(playerId, gridX, gridY) {
         for (const [powerUpId, powerUp] of this.gameEngine.entities.powerups.entries()) {
             if (powerUp.gridX === gridX && powerUp.gridY === gridY) {
                 const player = this.gameEngine.entities.players.get(playerId);
                 if (!player) continue;
 
-                // Apply power-up effect
                 const newStats = this.applyPowerUp(player, powerUp.type);
 
-                // Remove power-up
+                if (powerUp.type !== POWERUP_EXTRA_LIFE) {
+                    this.powerUpSchedule(player, powerUp.type)
+                }
+
                 this.gameEngine.entities.powerups.delete(powerUpId);
 
-                // Broadcast collection
                 this.gameRoom.broadcast(
                     MessageBuilder.powerupCollected(playerId, powerUpId, powerUp.type, newStats)
                 );
@@ -255,33 +252,77 @@ export class AuthoritativeGameState {
         }
     }
 
+    powerUpSchedule(player, type) {
+        if (player.powerUpTimers.has(type)) {
+            clearTimeout(player.powerUpTimers.get(type))
+        }
+
+        const powerUpTimerId = setTimeout(() => {
+            player.powerUpTimers.delete(powerUpTimerId)
+            this.removePowerUp(player, type)
+        }, 4000);
+
+        player.powerUpTimers.set(type, powerUpTimerId)
+    }
+
+    removePowerUp(player, type) {
+        switch (type) {
+            case POWERUP_SPEED:
+                player.speed--
+                break;
+            case POWERUP_BOMB:
+                player.maxBombs--
+                break;
+            case POWERUP_FLAME:
+                player.bombRange--
+                break;
+            case POWERUP_BOMB_PASS:
+                player.bombPass--
+                break
+            case POWERUP_BLOCK_PASS:
+                player.blockPass--
+                break
+        }
+    }
+
     applyPowerUp(player, type) {
         switch (type) {
-            case 'SPEED':
+            case POWERUP_SPEED:
                 player.speed = Math.min(player.speed + 1, 5);
                 break;
-            case 'BOMB_COUNT':
-                player.bombCount = Math.min(player.bombCount + 1, 5);
+            case POWERUP_BOMB:
+                player.maxBombs = Math.min(player.maxBombs + 1, 5);
                 break;
-            case 'BOMB_RANGE':
+            case POWERUP_FLAME:
                 player.bombRange = Math.min(player.bombRange + 1, 5);
+            case POWERUP_BOMB_PASS:
+                player.bombPass = Math.min(player.bombPass + 1, 5)
+                break;
+            case POWERUP_BLOCK_PASS:
+                player.blockPass = Math.min(player.blockPass + 1, 5)
+                break;
+            case POWERUP_EXTRA_LIFE:
+                player.lives = Math.min(player.lives + 1, 5)
                 break;
         }
 
         return {
             speed: player.speed,
-            bombCount: player.bombCount,
-            bombRange: player.bombRange
+            maxBombs: player.maxBombs,
+            bombRange: player.bombRange,
+            bombPass: player.bombPass,
+            blockPass: player.blockPass,
+            lives: player.lives
         };
     }
 
     calculateExplosions(bomb) {
         const explosions = [{ gridX: bomb.gridX, gridY: bomb.gridY }];
         const directions = [
-            { dx: 0, dy: -1 }, // UP
-            { dx: 0, dy: 1 },  // DOWN
-            { dx: -1, dy: 0 }, // LEFT
-            { dx: 1, dy: 0 }
+            { dx: 0, dy: -1 }, // up
+            { dx: 0, dy: 1 },  // down
+            { dx: -1, dy: 0 }, // left
+            { dx: 1, dy: 0 } // right
         ];
 
         directions.forEach(dir => {
@@ -317,6 +358,4 @@ export class AuthoritativeGameState {
             this.gameRoom.endGame('LAST_PLAYER_STANDING', winner);
         }
     }
-
-
 }

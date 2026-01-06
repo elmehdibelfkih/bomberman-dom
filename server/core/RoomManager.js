@@ -51,7 +51,7 @@ export class RoomManager {
             this.lobby = this.createLobby()
         }
 
-        this.lobby.players.set(playerId, { playerId, nickname, connection })
+        this.lobby.players.set(playerId, { nickname, connection })
         const playerPosition = this.lobby.players.size;
 
         if (this.lobby.players.size === 2 && !this.lobby.waitTimer) {
@@ -73,7 +73,6 @@ export class RoomManager {
     }
 
     startWaitTimer(lobby) {
-        Logger.info(`Starting 20-second wait timer for lobby ${lobby.id}`);
         this.broadcastToLobby(lobby, {
             type: 'WAIT_TIMER_STARTED',
             message: '20-second timer started. Game will begin when 4 players join or timer expires.'
@@ -96,9 +95,8 @@ export class RoomManager {
         }
 
         lobby.status = 'COUNTDOWN';
-        let remaining = GAME_CONFIG.COUNTDOWN_TIMER / 1000; // Convert to seconds
+        let remaining = GAME_CONFIG.COUNTDOWN_TIMER / 1000;
 
-        Logger.info(`Starting 10-second countdown for lobby ${lobby.id}`);
         this.broadcastToLobby(lobby, MessageBuilder.countdownStart(remaining));
 
         lobby.countdownTimer = setInterval(() => {
@@ -106,7 +104,6 @@ export class RoomManager {
 
             if (remaining > 0) {
                 this.broadcastToLobby(lobby, MessageBuilder.countdownTick(remaining));
-                Logger.debug(`Countdown tick: ${remaining} seconds remaining`);
             } else {
                 clearInterval(lobby.countdownTimer);
                 lobby.countdownTimer = null;
@@ -147,20 +144,20 @@ export class RoomManager {
             const roomId = IdGenerator.generateRoomId();
 
             const players = [];
-            lobby.players.forEach((playerData, _) => {
+            lobby.players.forEach((playerData, playerId) => {
                 players.push({
-                    playerId: playerData.playerId,
+                    playerId: playerId,
                     nickname: playerData.nickname
                 });
-                this.playerToRoom.set(playerData.playerId, roomId);
+                this.playerToRoom.set(playerId, roomId);
             });
 
             Logger.info(`Creating game room: ${roomId}, map: ${mapId}, players: ${players.length}`);
 
             const gameRoom = new GameRoom(roomId, players, mapId, mapData);
 
-            lobby.players.forEach((playerData, _) => {
-                gameRoom.addPlayerConnection(playerData.playerId, playerData.connection);
+            lobby.players.forEach((playerData, playerId) => {
+                gameRoom.addPlayerConnection(playerId, playerData.connection);
             });
 
             this.activeGames.set(roomId, gameRoom);
@@ -198,7 +195,7 @@ export class RoomManager {
         const players = [];
         lobby.players.forEach((playerData, playerId) => {
             players.push({
-                playerId: playerData.playerId,
+                playerId: playerId,
                 nickname: playerData.nickname
             });
         });

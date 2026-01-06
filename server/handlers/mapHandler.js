@@ -16,7 +16,6 @@ export function getMultiplayerMap() {
     const mapData = readFileSync(mapPath, 'utf-8');
     const mapJson = JSON.parse(mapData);
 
-
     const toAvoid = []
     GAME_CONFIG.SPAWN_POSITIONS.forEach(position => {
         toAvoid.push({
@@ -25,14 +24,14 @@ export function getMultiplayerMap() {
         })
     })
 
-    // for (let i = 0; i < mapJson.initial_grid.length; i++) {
-    //     for (let j = 0; j < mapJson.initial_grid[0].length; j++) {
-    //         if (mapJson.initial_grid[i][j] == 0 && Math.random() > 0.7
-    //             && !toAvoid.find(p => p.x == i && p.y == j)) {
-    //             mapJson.initial_grid[i][j] = BLOCK
-    //         }
-    //     }
-    // }
+    for (let i = 0; i < mapJson.initial_grid.length; i++) {
+        for (let j = 0; j < mapJson.initial_grid[0].length; j++) {
+            if (mapJson.initial_grid[i][j] == 0 && Math.random() > 0.7
+                && !toAvoid.find(p => p.x == i && p.y == j)) {
+                mapJson.initial_grid[i][j] = BLOCK
+            }
+        }
+    }
 
     Logger.info(`Loaded multiplayer map: ${mapFileName} (ID: ${randomIndex})`);
     return { mapId: randomIndex, mapData: mapJson };
