@@ -301,17 +301,20 @@ export class AuthoritativeGameState {
                 player.bombPass = Math.min(player.bombPass + 1, 5)
                 break;
             case POWERUP_BLOCK_PASS:
-                player.blockPass = Math.min(player.bombPass + 1, 5)
+                player.blockPass = Math.min(player.blockPass + 1, 5)
                 break;
             case POWERUP_EXTRA_LIFE:
-                player.blockPass = Math.min(player.lives + 1, 5)
+                player.lives = Math.min(player.lives + 1, 5)
                 break;
         }
 
         return {
             speed: player.speed,
             maxBombs: player.maxBombs,
-            bombRange: player.bombRange
+            bombRange: player.bombRange,
+            bombPass: player.bombPass,
+            blockPass: player.blockPass,
+            lives: player.lives
         };
     }
 
