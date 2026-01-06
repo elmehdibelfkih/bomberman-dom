@@ -199,7 +199,8 @@ export class MultiplayerPlayerManager {
             gridX: data.x,
             gridY: data.y,
         };
-
+        console.log(serverPosition);
+        
         // Remove processed moves from the buffer
         this.pendingMoves = this.pendingMoves.filter(move => move.sequenceNumber > data.sequenceNumber);
 
@@ -223,8 +224,8 @@ export class MultiplayerPlayerManager {
         // Update the player's state
         localPlayer.gridX = reconciledPosition.gridX;
         localPlayer.gridY = reconciledPosition.gridY;
-        localPlayer.x = reconciledPosition.gridX * this.game.map.blockSize;
-        localPlayer.y = reconciledPosition.gridY * this.game.map.blockSize;
+        localPlayer.x = reconciledPosition.gridX * this.game.map.level.block_size;
+        localPlayer.y = reconciledPosition.gridY * this.game.map.level.block_size;
 
         // Update the DOM
         if (localPlayer.element) {
@@ -256,8 +257,8 @@ export class MultiplayerPlayerManager {
 
         player.gridX = newGridX;
         player.gridY = newGridY;
-        player.x = newGridX * this.game.map.blockSize + 15;
-        player.y = newGridY * this.game.map.blockSize;
+        player.x = newGridX * this.game.map.level.block_size + 15;
+        player.y = newGridY * this.game.map.level.block_size;
 
         const directionMap = {
             'UP': 'walkingUp',
@@ -356,8 +357,8 @@ export class MultiplayerPlayerManager {
 
         player.x = data.x;
         player.y = data.y;
-        player.gridX = Math.floor(data.x / this.game.map.blockSize);
-        player.gridY = Math.floor(data.y / this.game.map.blockSize);
+        player.gridX = Math.floor(data.x / this.game.map.level.block_size);
+        player.gridY = Math.floor(data.y / this.game.map.level.block_size);
 
         if (data.direction) {
             player.direction = data.direction;
