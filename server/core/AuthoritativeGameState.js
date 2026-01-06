@@ -1,7 +1,7 @@
 import { Logger } from '../utils/Logger.js';
 import { MessageBuilder } from '../network/MessageBuilder.js';
 import { GAME_CONFIG } from '../../shared/game-config.js';
-import { BLOCK, BOMB, FLOOR, POWERUP_BOMB, POWERUP_BOMB_PASS, POWERUP_FLAME, POWERUP_SPEED, WALL } from '../../shared/constants.js';
+import { BLOCK, BOMB, FLOOR, POWERUP_BLOCK_PASS, POWERUP_BOMB, POWERUP_BOMB_PASS, POWERUP_FLAME, POWERUP_EXTRA_LIFE, POWERUP_SPEED, WALL } from '../../shared/constants.js';
 
 export class AuthoritativeGameState {
     constructor(gameRoom, gameEngine) {
@@ -114,13 +114,16 @@ export class AuthoritativeGameState {
             }
 
             const cellValue = this.gameEngine.mapData.initial_grid[gridY][gridX];
-            if (cellValue === WALL || cellValue === BLOCK) {
+            if (cellValue === WALL) {
                 return false;
             }
 
             const player = this.gameEngine.entities.players.get(playerId)
-
             if (cellValue === BOMB && !player.bombPass) {
+                return false
+            }
+
+            if (cellValue === BLOCK && !player.blockPass) {
                 return false
             }
         }
@@ -236,16 +239,9 @@ export class AuthoritativeGameState {
 
                 const newStats = this.applyPowerUp(player, powerUp.type);
 
-                if (player.powerUpTimers.has(powerUp.type)) {
-                    clearTimeout(player.powerUpTimers.get(powerUp.type))
+                if (powerUp.type !== POWERUP_EXTRA_LIFE) {
+                    this.powerUpSchedule(player, powerUp.type)
                 }
-
-                const powerUpTimerId = setTimeout(() => {
-                    player.powerUpTimers.delete(powerUpTimerId)
-                    this.removePowerUp(player, powerUp.type)
-                }, 4000);
-
-                player.powerUpTimers.set(powerUp.type, powerUpTimerId)
 
                 this.gameEngine.entities.powerups.delete(powerUpId);
 
@@ -256,6 +252,19 @@ export class AuthoritativeGameState {
                 break;
             }
         }
+    }
+
+    powerUpSchedule(player, type) {
+        if (player.powerUpTimers.has(type)) {
+            clearTimeout(player.powerUpTimers.get(type))
+        }
+
+        const powerUpTimerId = setTimeout(() => {
+            player.powerUpTimers.delete(powerUpTimerId)
+            this.removePowerUp(player, type)
+        }, 4000);
+
+        player.powerUpTimers.set(type, powerUpTimerId)
     }
 
     removePowerUp(player, type) {
@@ -272,6 +281,9 @@ export class AuthoritativeGameState {
             case POWERUP_BOMB_PASS:
                 player.bombPass--
                 break
+            case POWERUP_BLOCK_PASS:
+                player.blockPass--
+                break
         }
     }
 
@@ -287,6 +299,12 @@ export class AuthoritativeGameState {
                 player.bombRange = Math.min(player.bombRange + 1, 5);
             case POWERUP_BOMB_PASS:
                 player.bombPass = Math.min(player.bombPass + 1, 5)
+                break;
+            case POWERUP_BLOCK_PASS:
+                player.blockPass = Math.min(player.bombPass + 1, 5)
+                break;
+            case POWERUP_EXTRA_LIFE:
+                player.blockPass = Math.min(player.lives + 1, 5)
                 break;
         }
 
