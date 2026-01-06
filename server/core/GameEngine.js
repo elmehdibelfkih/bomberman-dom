@@ -3,6 +3,7 @@ import { MessageBuilder } from '../network/MessageBuilder.js';
 import { GAME_CONFIG } from '../../shared/game-config.js';
 import { AuthoritativeGameState } from './AuthoritativeGameState.js';
 import { INITIAL_SPEED } from '../../shared/constants.js';
+import { Player } from '../entities/Player.js';
 
 export class GameEngine {
     constructor(gameRoom, mapId, mapData) {
@@ -28,21 +29,15 @@ export class GameEngine {
         Logger.info(`Initializing game engine for ${players.length} players`);
         players.forEach((player, index) => {
             const spawn = GAME_CONFIG.SPAWN_POSITIONS[index];
-            this.entities.players.set(player.playerId, {
-                playerId: player.playerId,
-                nickname: player.nickname,
-                x: spawn.x * GAME_CONFIG.BLOCK_SIZE,
-                y: spawn.y * GAME_CONFIG.BLOCK_SIZE,
-                gridX: spawn.x,
-                gridY: spawn.y,
-                lives: GAME_CONFIG.STARTING_LIVES,
-                speed: INITIAL_SPEED,
-                bombCount: 1,
-                bombRange: 1,
-                alive: true
-            });
+            this.entities.players.set(player.playerId,
+                new Player(player.playerId, player.nickname,
+                    spawn.x * GAME_CONFIG.BLOCK_SIZE,
+                    spawn.y * GAME_CONFIG.BLOCK_SIZE,
+                    spawn.x, spawn.y)
+            );
 
-            this.clearSpawnArea(spawn.x, spawn.y);
+
+            // this.clearSpawnArea(spawn.x, spawn.y);
         });
 
         this.gameState.status = 'READY';
@@ -69,7 +64,6 @@ export class GameEngine {
                     if (this.mapData.initial_grid && this.mapData.initial_grid[y] && this.mapData.initial_grid[y][x] === 2) {
                         this.mapData.initial_grid[y][x] = 0; // Set to floor
 
-                        // Remove from blocks entity map
                         const blockKey = `${x}_${y}`;
                         this.entities.blocks.delete(blockKey);
                     }

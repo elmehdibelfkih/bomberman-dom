@@ -2,31 +2,54 @@ import { INITIAL_SPEED } from "../../shared/constants.js";
 import { Entity } from "./Entity.js";
 
 export class Player extends Entity {
-    constructor(playerId, nickname, x, y) {
-        super('PLAYER')
-        this.playerId = playerId
-        this.nickname = nickname
+    constructor(playerId, nickname, x, y, gridX, gridY) {
+        super('PLAYER');
+        this.playerId = playerId;
+        this.nickname = nickname;
         this.x = x;
         this.y = y;
-        this.direction = 'DOWN';
+        this.gridX = gridX;
+        this.gridY = gridY;
         this.lives = 3;
         this.maxBombs = 1;
         this.activeBombs = 0;
         this.bombRange = 1;
         this.speed = INITIAL_SPEED;
-        this.powerups = [];
+        this.bombPass = 0;
+        this.powerUpTimers = new Map();
     }
 
     takeDamage() {
-
+        this.lives--;
+        if (this.lives <= 0) this.kill();
+        return this.lives;
     }
 
     canPlaceBomb() {
-
+        return this.activeBombs < this.maxBombs;
     }
 
-    incrementActiveBombs() { }
-    decrementActiveBombs() { }
-    addPowerUp(type) { }
-    serialize() { }
+    incrementActiveBombs() {
+        this.activeBombs++;
+    }
+
+    decrementActiveBombs() {
+        this.activeBombs--;
+    }
+
+    serialize() {
+        return {
+            playerId: this.playerId,
+            nickname: this.nickname,
+            x: this.x,
+            y: this.y,
+            gridX: this.gridX,
+            gridY: this.gridY,
+            lives: this.lives,
+            speed: this.speed,
+            bombCount: this.maxBombs,
+            bombRange: this.bombRange,
+            alive: this.alive
+        };
+    }
 }
