@@ -43,6 +43,11 @@ export class RoomManager {
     joinLobby(connection, nickname) {
         const playerId = connection.playerId;
 
+        const roomId = this.playerToRoom.get(playerId)
+        if (this.activeGames.get(roomId)) {
+            return
+        }
+
         if (!this.lobby) {
             this.lobby = this.createLobby()
         }
@@ -161,6 +166,7 @@ export class RoomManager {
             });
 
             this.activeGames.set(roomId, gameRoom);
+            console.log("1: ", roomId)
 
             // Initialize and start game
             gameRoom.initialize()

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Bomberman Test Client</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: monospace; background: #111; color: #0f0; padding: 20px; }
+        #container { max-width: 1400px; margin: 0 auto; }
+        #game-canvas { 
+            border: 3px solid #0f0; 
+            background: #000; 
+            display: block; 
+            margin: 20px auto;
+        }
+        .controls { text-align: center; margin: 20px 0; }
+        button { 
+            background: #000; 
+            color: #0f0; 
+            border: 2px solid #0f0; 
+            padding: 10px 20px; 
+            margin: 5px; 
+            cursor: pointer; 
+            font-family: monospace;
+        }
+        button:hover { background: #0f0; color: #000; }
+        input { 
+            background: #000; 
+            color: #0f0; 
+            border: 2px solid #0f0; 
+            padding: 8px; 
+            font-family: monospace; 
+        }
+        #log { 
+            background: #000; 
+            border: 2px solid #0f0; 
+            padding: 10px; 
+            height: 200px; 
+            overflow-y: auto; 
+            font-size: 11px;
+        }
+        .status { padding: 10px; background: #000; border: 2px solid #0f0; margin: 10px 0; }
+        .connected { color: #0f0; }
+        .disconnected { color: #f00; }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>🎮 Bomberman Test Client</h1>
+        
+        <div class="status">
+            Status: <span id="status" class="disconnected">Disconnected</span> | 
+            Player: <span id="player-id">-</span>
+        </div>
+
+        <div class="controls">
+            <input type="text" id="nickname" placeholder="Nickname" value="Player1">
+            <button onclick="connect()">Connect & Join</button>
+        </div>
+
+        <canvas id="game-canvas" width="1088" height="680"></canvas>
+
+        <div class="controls">
+            <div><button onclick="move('UP')">↑ UP (W)</button></div>
+            <div>
+                <button onclick="move('LEFT')">← LEFT (A)</button>
+                <button onclick="placeBomb()">💣 BOMB (SPACE)</button>
+                <button onclick="move('RIGHT')">→ RIGHT (D)</button>
+            </div>
+            <div><button onclick="move('DOWN')">↓ DOWN (S)</button></div>
+        </div>
+
+        <div id="log"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const logEl = document.getElementById('log');
+        const statusEl = document.getElementById('status');
+        const playerIdEl = document.getElementById('player-id');
+
+        let ws = null;
+        let playerId = null;
+        let gameState = { players: [], bombs: [], powerups: [], grid: null };
+        let sequenceNumber = 0;
+        const BLOCK_SIZE = 68;
+
+        const COLORS = {
+            FLOOR: '#222',
+            WALL: '#666',
+            BLOCK: '#a52',
+            PLAYER: ['#0ff', '#f0f', '#ff0', '#0f0'],
+            BOMB: '#f00',
+            POWERUP: '#00f'
+        };
+
+        function log(msg) {
+            const time = new Date().toLocaleTimeString();
+            logEl.innerHTML += `[${time}] ${msg}<br>`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function connect() {
+            const nickname = document.getElementById('nickname').value || 'Player1';
+            ws = new WebSocket('ws://localhost:3000');
+
+            ws.onopen = () => {
+                statusEl.textContent = 'Connected';
+                statusEl.className = 'connected';
+                log('✅ Connected to server');
+                
+                ws.send(JSON.stringify({
+                    type: 'JOIN_GAME',
+                    nickname: nickname
+                }));
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleMessage(data);
+            };
+
+            ws.onerror = () => {
+                log('❌ WebSocket error');
+                statusEl.textContent = 'Error';
+                statusEl.className = 'disconnected';
+            };
+
+            ws.onclose = () => {
+                log('🔌 Disconnected');
+                statusEl.textContent = 'Disconnected';
+                statusEl.className = 'disconnected';
+            };
+        }
+
+        function handleMessage(data) {
+            log(`📨 ${data.type}`);
+
+            switch(data.type) {
+                case 'LOBBY_JOINED':
+                    playerId = data.playerId;
+                    playerIdEl.textContent = playerId;
+                    log(`🎮 Joined lobby as ${playerId}`);
+                    break;
+
+                case 'GAME_STARTED':
+                    playerId = data.yourPlayerId;
+                    playerIdEl.textContent = playerId;
+                    gameState.grid = data.mapData.initial_grid;
+                    gameState.players = data.players || [];
+                    log(`🎯 Game started! Map: ${data.mapData.name}`);
+                    render();
+                    break;
+
+                case 'FULL_STATE':
+                    gameState.players = data.players || [];
+                    gameState.bombs = data.bombs || [];
+                    gameState.powerups = data.powerups || [];
+                    if (data.grid) gameState.grid = data.grid.initial_grid;
+                    render();
+                    break;
+
+                case 'PLAYER_MOVED':
+                    updatePlayer(data.playerId, { x: data.x, y: data.y, gridX: data.gridX, gridY: data.gridY });
+                    render();
+                    break;
+
+                case 'BOMB_PLACED':
+                    gameState.bombs.push({ bombId: data.bombId, gridX: data.gridX, gridY: data.gridY, playerId: data.playerId });
+                    render();
+                    break;
+
+                case 'BOMB_EXPLODED':
+                    gameState.bombs = gameState.bombs.filter(b => b.bombId !== data.bombId);
+                    if (data.destroyedBlocks) {
+                        data.destroyedBlocks.forEach(block => {
+                            if (gameState.grid && gameState.grid[block.gridY]) {
+                                gameState.grid[block.gridY][block.gridX] = 0;
+                            }
+                        });
+                    }
+                    render();
+                    break;
+
+                case 'POWERUP_SPAWNED':
+                    gameState.powerups.push({ powerUpId: data.powerUpId, type: data.type, gridX: data.gridX, gridY: data.gridY });
+                    render();
+                    break;
+
+                case 'POWERUP_COLLECTED':
+                    gameState.powerups = gameState.powerups.filter(p => p.powerUpId !== data.powerUpId);
+                    render();
+                    break;
+
+                case 'PLAYER_DIED':
+                    const deadPlayer = gameState.players.find(p => p.playerId === data.playerId);
+                    if (deadPlayer) deadPlayer.alive = false;
+                    render();
+                    break;
+
+                case 'COUNTDOWN_TICK':
+                    log(`⏱️ Starting in ${data.remaining}s`);
+                    break;
+            }
+        }
+
+        function updatePlayer(pid, data) {
+            let player = gameState.players.find(p => p.playerId === pid);
+            if (player) {
+                Object.assign(player, data);
+            } else {
+                gameState.players.push({ playerId: pid, alive: true, ...data });
+            }
+        }
+
+        function move(direction) {
+            if (!ws || ws.readyState !== WebSocket.OPEN) return;
+            sequenceNumber++;
+            ws.send(JSON.stringify({
+                type: 'MOVE',
+                direction: direction,
+                sequenceNumber: sequenceNumber
+            }));
+        }
+
+        function placeBomb() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) return;
+            ws.send(JSON.stringify({
+                type: 'PLACE_BOMB'
+            }));
+        }
+
+        function render() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (!gameState.grid) return;
+
+            const grid = gameState.grid;
+
+            // Draw grid
+            for (let y = 0; y < grid.length; y++) {
+                for (let x = 0; x < grid[y].length; x++) {
+                    const cell = grid[y][x];
+                    let color = COLORS.FLOOR;
+                    
+                    if (cell === 1) color = COLORS.WALL;
+                    else if (cell === 2) color = COLORS.BLOCK;
+
+                    ctx.fillStyle = color;
+                    ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                    
+                    ctx.strokeStyle = '#333';
+                    ctx.strokeRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                }
+            }
+
+            // Draw powerups
+            gameState.powerups.forEach(powerup => {
+                ctx.fillStyle = COLORS.POWERUP;
+                ctx.fillRect(
+                    powerup.gridX * BLOCK_SIZE + 15,
+                    powerup.gridY * BLOCK_SIZE + 15,
+                    BLOCK_SIZE - 30,
+                    BLOCK_SIZE - 30
+                );
+                ctx.fillStyle = '#fff';
+                ctx.font = '12px monospace';
+                ctx.fillText(powerup.type[0], powerup.gridX * BLOCK_SIZE + 25, powerup.gridY * BLOCK_SIZE + 40);
+            });
+
+            // Draw bombs
+            gameState.bombs.forEach(bomb => {
+                ctx.fillStyle = COLORS.BOMB;
+                ctx.beginPath();
+                ctx.arc(
+                    bomb.gridX * BLOCK_SIZE + BLOCK_SIZE/2,
+                    bomb.gridY * BLOCK_SIZE + BLOCK_SIZE/2,
+                    20, 0, Math.PI * 2
+                );
+                ctx.fill();
+            });
+
+            // Draw players
+            gameState.players.forEach((player, idx) => {
+                if (player.alive === false) return;
+                
+                ctx.fillStyle = COLORS.PLAYER[idx % COLORS.PLAYER.length];
+                const px = player.x !== undefined ? player.x : player.gridX * BLOCK_SIZE;
+                const py = player.y !== undefined ? player.y : player.gridY * BLOCK_SIZE;
+                
+                ctx.fillRect(px, py, 30, 60);
+
+                // Player label
+                ctx.fillStyle = '#fff';
+                ctx.font = '10px monospace';
+                const label = player.playerId === playerId ? 'YOU' : `P${idx}`;
+                ctx.fillText(label, px + 5, py - 5);
+                
+                // Lives
+                ctx.fillText(`❤${player.lives || 3}`, px + 5, py + 75);
+            });
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowUp': case 'w': case 'W': move('UP'); e.preventDefault(); break;
+                case 'ArrowDown': case 's': case 'S': move('DOWN'); e.preventDefault(); break;
+                case 'ArrowLeft': case 'a': case 'A': move('LEFT'); e.preventDefault(); break;
+                case 'ArrowRight': case 'd': case 'D': move('RIGHT'); e.preventDefault(); break;
+                case ' ': case 'Enter': placeBomb(); e.preventDefault(); break;
+            }
+        });
+
+        // Render loop
+        setInterval(render, 50);
+
+        log('🚀 Ready! Enter nickname and click Connect & Join');
+    </script>
+</body>
+</html>

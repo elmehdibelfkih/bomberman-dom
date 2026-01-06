@@ -65,7 +65,7 @@ export class MessageHandler {
 
             connection.send(MessageBuilder.lobbyJoined(lobby.id, playerId, players, playerPosition))
         } catch (error) {
-            connection.sendError('JOIN_FAILED', error.message);
+            connection.sendError('JOIN_FAILED', 'Error joining a lobby for an unknown reason');
         }
     }
 
