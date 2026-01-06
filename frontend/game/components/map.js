@@ -26,7 +26,11 @@ export class Map {
         this.tiles = [];
         this.blockElements = [];
         this.backGroundMusic;
-        this.container = dom({ tag: "div", attributes: { id: "grid-container" }, children: [] });
+        this.container = dom({ 
+            tag: "div",
+            attributes: { id: "grid-container" },
+            children: [] 
+        });
         document.body.appendChild(this.container)
     }
 
@@ -34,10 +38,8 @@ export class Map {
 
     async initMap(mapData = null) {
         if (mapData) {
-            // Multiplayer: use server-provided map data
             this.level = mapData;
         } else {
-            // Solo: load map based on current level
             this.level = await fetch(`/game/assets/maps/level${this.game.state.getLevel()}.json`).then(res => res.json());
         }
         this.enemyCordination = await fetch(`/game/assets/enemycordinate.json`).then(res => res.json())

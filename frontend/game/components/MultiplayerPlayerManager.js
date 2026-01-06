@@ -1,7 +1,7 @@
 import { dom, eventManager } from '../../framework/index.js';
 import * as consts from '../utils/consts.js';
 import { MultiplayerUI } from './MultiplayerUI.js';
-import { GAME_CONFIG } from '../../shared/game-config.js';
+// import { GAME_CONFIG } from '../../shared/game-config.js';
 
 export class MultiplayerPlayerManager {
     constructor(game, networkManager) {
@@ -12,7 +12,7 @@ export class MultiplayerPlayerManager {
         this.ui = new MultiplayerUI(game, networkManager);
         this.sequenceNumber = 0;
         this.pendingMoves = [];
-        this.SPAWN_POSITIONS = GAME_CONFIG.SPAWN_POSITIONS;
+        // this.SPAWN_POSITIONS = GAME_CONFIG.SPAWN_POSITIONS;
     }
 
     async initializePlayers(gameData) {
@@ -49,6 +49,7 @@ export class MultiplayerPlayerManager {
                 lastTime: performance.now(),
                 MS_PER_FRAME: 100
             };
+            // console.log(player);
 
             this.players.set(playerData.playerId, player);
 
@@ -57,6 +58,8 @@ export class MultiplayerPlayerManager {
             } else {
                 this.createRemotePlayer(player, playerImage, blockSize);
             }
+            console.log("==hada l player =>", player);
+
         });
 
         this.setupControls();
@@ -74,7 +77,14 @@ export class MultiplayerPlayerManager {
             attributes: {
                 class: 'local-player',
                 id: `player-${player.playerId}`,
-                style: `position: absolute; width: ${frame.width}px; height: ${frame.height}px; background: url('${playerImage}') no-repeat; background-size: auto; background-position: ${frame.x} ${frame.y}; image-rendering: pixelated; transform: translate(${player.x}px, ${player.y}px); z-index: 10;`
+                style: `position: absolute; width: ${frame.width}px;
+                height: ${frame.height}px;
+                background: url('${playerImage}') no-repeat;
+                background-size: auto;
+                background-position: ${frame.x} ${frame.y};
+                image-rendering: pixelated;
+                transform: translate(${player.x}px, ${player.y}px);
+                z-index: 10;`
             },
             children: []
         });
@@ -84,7 +94,7 @@ export class MultiplayerPlayerManager {
             gridElement.appendChild(player.element);
         }
 
-        this.clearSpawnArea(player.gridX, player.gridY);
+        // this.clearSpawnArea(player.gridX, player.gridY);
     }
 
     createRemotePlayer(player, playerImage, blockSize) {
@@ -95,7 +105,14 @@ export class MultiplayerPlayerManager {
             attributes: {
                 class: 'remote-player',
                 id: `player-${player.playerId}`,
-                style: `position: absolute; width: ${frame.width}px; height: ${frame.height}px; background: url('${playerImage}') no-repeat; background-size: auto; background-position: ${frame.x} ${frame.y}; image-rendering: pixelated; transform: translate(${player.x}px, ${player.y}px); z-index: 10;`
+                style: `position: absolute; width: ${frame.width}px;
+                height: ${frame.height}px;
+                background: url('${playerImage}') no-repeat;
+                background-size: auto;
+                background-position: ${frame.x} ${frame.y};
+                image-rendering: pixelated;
+                transform: translate(${player.x}px, ${player.y}px);
+                z-index: 10;`
             },
             children: []
         });
@@ -105,32 +122,34 @@ export class MultiplayerPlayerManager {
             gridElement.appendChild(player.element);
         }
 
-        this.clearSpawnArea(player.gridX, player.gridY);
+        // this.clearSpawnArea(player.gridX, player.gridY);
     }
 
-    clearSpawnArea(gridX, gridY) {
-        const gridHeight = this.game.map.gridArray.length;
-        const gridWidth = this.game.map.gridArray[0].length;
+    // clearSpawnArea(gridX, gridY) {
+    //     const gridHeight = this.game.map.gridArray.length;
+    //     const gridWidth = this.game.map.gridArray[0].length;
 
-        for (let dx = -1; dx <= 1; dx++) {
-            for (let dy = -1; dy <= 1; dy++) {
-                const x = gridX + dx;
-                const y = gridY + dy;
-                if (x >= 0 && x < gridWidth && y >= 0 && y < gridHeight) {
-                    if (this.game.map.gridArray[y] && this.game.map.gridArray[y][x] === consts.SOFT_BLOCK) {
-                        this.game.map.gridArray[y][x] = consts.FLOOR;
-                        const blockElement = document.querySelector(`[data-row-index="${x}"][data-col-index="${y}"]`);
-                        if (blockElement) {
-                            blockElement.remove();
-                        }
-                    }
-                }
-            }
-        }
-    }
+    //     for (let dx = -1; dx <= 1; dx++) {
+    //         for (let dy = -1; dy <= 1; dy++) {
+    //             const x = gridX + dx;
+    //             const y = gridY + dy;
+    //             if (x >= 0 && x < gridWidth && y >= 0 && y < gridHeight) {
+    //                 if (this.game.map.gridArray[y] && this.game.map.gridArray[y][x] === consts.SOFT_BLOCK) {
+    //                     this.game.map.gridArray[y][x] = consts.FLOOR;
+    //                     const blockElement = document.querySelector(`[data-row-index="${x}"][data-col-index="${y}"]`);
+    //                     if (blockElement) {
+    //                         blockElement.remove();
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
     setupControls() {
         const localPlayer = Array.from(this.players.values()).find(p => p.isLocal);
+        console.log("local player: => ", localPlayer);
+        
         if (!localPlayer) return;
 
         eventManager.addEventListener(document.body, 'keydown', (event) => {
@@ -139,6 +158,7 @@ export class MultiplayerPlayerManager {
             const key = event.nativeEvent.key;
             let moved = false;
             let direction = '';
+            // console.log("hani hnaaa =>", localPlayer);
 
             switch (key) {
                 case 'ArrowUp':
@@ -213,6 +233,9 @@ export class MultiplayerPlayerManager {
     }
 
     movePlayer(player, direction) {
+
+        console.log("player from move player: =>", player);
+        
         if (!player.alive) return false;
 
         let newGridX = player.gridX;

@@ -358,7 +358,7 @@ class MultiplayerApp {
     }
 
     async startMultiplayerGame() {
-        console.log('🎮 FRONTEND: Starting multiplayer game with data:', this.gameData);
+        // console.log('🎮 FRONTEND: Starting multiplayer game with data:', this.gameData);
         document.body.innerHTML = '';
 
         // Create multiplayer game instance

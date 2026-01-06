@@ -28,7 +28,7 @@ export class NetworkManager {
     #initWorker() {
         try {
             this.worker = new SharedWorker('../../shared_worker.js', {type: 'module'});
-            console.log(this.worker);
+            // console.log(this.worker);
 
             this.port = this.worker.port;
 
@@ -44,7 +44,7 @@ export class NetworkManager {
 
             this.port.postMessage("INIT_WS");
 
-            console.log('NetworkManager initialized with SharedWorker');
+            // console.log('NetworkManager initialized with SharedWorker');
         } catch (error) {
             console.error('Failed to initialize SharedWorker:', error);
         }
@@ -58,7 +58,7 @@ export class NetworkManager {
             }
 
             const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
-            console.log('Received message:', data);
+            // console.log('Received message:', data);
 
             // Store playerId when joining lobby
             if (data.type === 'LOBBY_JOINED' && data.playerId) {
