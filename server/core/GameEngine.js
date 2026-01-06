@@ -37,13 +37,13 @@ export class GameEngine {
             );
 
 
-            // this.clearSpawnArea(spawn.x, spawn.y);
+            this.clearSpawnArea(spawn.x, spawn.y);
         });
 
         this.gameState.status = 'READY';
 
         this.authoritativeState = new AuthoritativeGameState(this.gameRoom, this);
-        this.authoritativeState.start();
+        // this.authoritativeState.start();
 
         Logger.info('Game engine initialized successfully');
     }

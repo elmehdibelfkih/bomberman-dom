@@ -175,13 +175,11 @@ export class AuthoritativeGameState {
                 this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] = FLOOR;
                 destroyedBlocks.push({ gridX: explosion.gridX, gridY: explosion.gridY });
 
-                // Fair power-up distribution
                 if (Math.random() < GAME_CONFIG.POWERUP_SPAWN_CHANCE) {
                     spawnedPowerUp = this.spawnPowerUp(explosion.gridX, explosion.gridY);
                 }
             }
 
-            // Damage players
             this.gameEngine.entities.players.forEach(player => {
                 if (player.gridX === explosion.gridX && player.gridY === explosion.gridY && player.alive) {
                     player.lives--;
