@@ -58,6 +58,9 @@ export class MultiplayerGameEngine {
     }
 
     async updateRender(timestamp) {
+        if (this.playerManager) {
+            this.playerManager.update(timestamp);
+        }
         // Player rendering is now handled by MultiplayerPlayerManager
         this.state.update()
     }

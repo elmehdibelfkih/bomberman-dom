@@ -19,11 +19,6 @@ export function setupMultiplayerSync(game, networkManager) {
     const chatNotification = ChatNotification.getInstance();
     chatNotification.showChatHelp();
     
-    // Handle game started - initialize players
-    networkManager.on('GAME_STARTED', (data) => {
-        game.playerManager.initializePlayers(data);
-    });
-    
     // Handle full game state - use synchronizer
     networkManager.on('FULL_STATE', (data) => {
         game.stateSynchronizer.handleFullState(data);

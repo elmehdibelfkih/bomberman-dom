@@ -366,24 +366,11 @@ class MultiplayerApp {
         this.game.setNetworkManager(this.networkManager);
         window.game = this.game;
 
-        // Import and create MultiplayerPlayerManager
-        const { MultiplayerPlayerManager } = await import('../game/components/MultiplayerPlayerManager.js');
-        this.game.multiplayerPlayerManager = new MultiplayerPlayerManager(this.game, this.networkManager);
-
-        // Setup multiplayer synchronization
+        // Setup multiplayer synchronization (this will create game.playerManager)
         setupMultiplayerSync(this.game, this.networkManager);
 
+        // Initialize map and other elements
         await this.game.intiElements(this.gameData.mapData);
-
-        // Initialize players with the game data
-        if (this.gameData && this.gameData.players) {
-            await this.game.multiplayerPlayerManager.initializePlayers(this.gameData);
-        }
-
-        while (!this.game.player || !this.game.player.playerCoordinate) {
-            await new Promise(r => setTimeout(r, 0));
-        }
-
         await this.game.waitForLevel();
         
         // NOW initialize players after game elements exist

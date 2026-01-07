@@ -58,7 +58,7 @@ export class NetworkManager {
             }
 
             const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
-            // console.log('Received message:', data);
+            console.log('Received message:', data);
 
             // Store playerId when joining lobby
             if (data.type === 'LOBBY_JOINED' && data.playerId) {
