@@ -1,5 +1,5 @@
 import * as helpers from '../utils/helpers.js';
-import { eventManager } from '../../framework/index.js';
+import { eventManager, createSignal } from '../../framework/index.js';
 export class State {
 
     #CURRENT_LEVEL = 1
@@ -11,10 +11,6 @@ export class State {
     #MAX_ALLOWED_BOMBS = 1
     #GAME_OVER = false
     #SOUND = true
-    #ARROW_UP = false
-    #ARROW_DOWN = false
-    #ARROW_RIGHT = false
-    #ARROW_LEFT = false
     #TIME = 0
     #TIMER_ID = null
     #RESTART = false
@@ -31,14 +27,25 @@ export class State {
         this._boundKeyDown = this.setArrowStateKeyDown.bind(this);
         this._boundKeyUp = this.setArrowStateKeyUp.bind(this);
         this._throttledRestar = helpers.throttle(this._boundRestar, 1000);
+
+        // Initialize arrow state signals
+        const [getArrowUp, setArrowUp] = createSignal(false, "arrowUp");
+        const [getArrowDown, setArrowDown] = createSignal(false, "arrowDown");
+        const [getArrowRight, setArrowRight] = createSignal(false, "arrowRight");
+        const [getArrowLeft, setArrowLeft] = createSignal(false, "arrowLeft");
+
+        this.arrowUp = { get: getArrowUp, set: setArrowUp };
+        this.arrowDown = { get: getArrowDown, set: setArrowDown };
+        this.arrowRight = { get: getArrowRight, set: setArrowRight };
+        this.arrowLeft = { get: getArrowLeft, set: setArrowLeft };
     }
 
     static getInstance = (game) => State.instance ? State.instance : new State(game)
     isSoundOn = () => this.#SOUND;
-    isArrowUp = () => this.#ARROW_UP
-    isArrowDown = () => this.#ARROW_DOWN
-    isArrowRight = () => this.#ARROW_RIGHT
-    isArrowLeft = () => this.#ARROW_LEFT
+    isArrowUp = () => this.arrowUp.get()
+    isArrowDown = () => this.arrowDown.get()
+    isArrowRight = () => this.arrowRight.get()
+    isArrowLeft = () => this.arrowLeft.get()
     updatesound = (ff) => this.#SOUND = ff
     nextLevel = () => this.#CURRENT_LEVEL = this.#CURRENT_LEVEL += 1
     getcurentlevel = () => this.#CURRENT_LEVEL
@@ -104,20 +111,20 @@ export class State {
     setArrowStateKeyDown = (event) => {
         // Access native event from synthetic event
         const key = event.nativeEvent ? event.nativeEvent.key : event.key;
-        if (key === 'ArrowUp') this.#ARROW_UP = true
-        if (key === 'ArrowDown') this.#ARROW_DOWN = true
-        if (key === 'ArrowRight') this.#ARROW_RIGHT = true
-        if (key === 'ArrowLeft') this.#ARROW_LEFT = true
+        if (key === 'ArrowUp') this.arrowUp.set(true)
+        if (key === 'ArrowDown') this.arrowDown.set(true)
+        if (key === 'ArrowRight') this.arrowRight.set(true)
+        if (key === 'ArrowLeft') this.arrowLeft.set(true)
         if (key.toLowerCase() === 'p') this.pauseStart()
     }
 
     setArrowStateKeyUp = (event) => {
         // Access native event from synthetic event
         const key = event.nativeEvent ? event.nativeEvent.key : event.key;
-        if (key === 'ArrowUp') this.#ARROW_UP = false
-        if (key === 'ArrowDown') this.#ARROW_DOWN = false
-        if (key === 'ArrowRight') this.#ARROW_RIGHT = false
-        if (key === 'ArrowLeft') this.#ARROW_LEFT = false
+        if (key === 'ArrowUp') this.arrowUp.set(false)
+        if (key === 'ArrowDown') this.arrowDown.set(false)
+        if (key === 'ArrowRight') this.arrowRight.set(false)
+        if (key === 'ArrowLeft') this.arrowLeft.set(false)
     }
 
     initArrowState() {
