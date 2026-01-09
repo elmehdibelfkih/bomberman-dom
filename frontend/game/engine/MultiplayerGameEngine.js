@@ -19,6 +19,7 @@ export class MultiplayerGameEngine {
         this.map = Map.getInstance(this)
         this.ui = UI.getInstance(this)
         this.networkManager = null
+        this.router = null
         this.IDRE = null
         this.isMultiplayer = true
         this.gameStarted = false
@@ -29,6 +30,10 @@ export class MultiplayerGameEngine {
 
     setNetworkManager(networkManager) {
         this.networkManager = networkManager
+    }
+
+    setRouter(router) {
+        this.router = router
     }
 
     async waitForLevel() {

@@ -1,23 +1,22 @@
-import { Router } from './router.js'
-import { createMemo } from '../state/signal.js'
+import { Router } from './router.js';
+import { createMemo } from '../state/signal.js';
 
-export function usePathname() {
+export const usePathname = () => {
     return Router.instance.getPathname;
 }
 
-export function useSearchParams() {
+export const useSearchParams = () => {
     return Router.instance.getSearchParams;
 }
 
-export function useHash() {
+export const useHash = () => {
     return Router.instance.getHash;
 }
 
-export function useSearchParam(key) {
+export const useSearchParam = (key) => {
     return createMemo(() => Router.instance.getSearchParam(key));
 }
 
-export function useNavigate() {
+export const useNavigate = () => {
     return (path, replace = false) => Router.instance.navigate(path, replace);
 }
-

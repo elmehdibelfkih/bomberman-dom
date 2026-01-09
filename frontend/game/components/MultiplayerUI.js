@@ -1,9 +1,10 @@
 import { dom } from '../../framework/index.js';
 
 export class MultiplayerUI {
-    constructor(game, networkManager) {
+    constructor(game, networkManager, router) {
         this.game = game;
         this.networkManager = networkManager;
+        this.router = router;
         this.elements = {};
         this.gameStatus = 'WAITING';
         this.init();
@@ -319,7 +320,7 @@ export class MultiplayerUI {
                             tag: 'button',
                             attributes: {
                                 class: 'menu-btn',
-                                onclick: () => { router.navigate('/', true); }
+                                onclick: () => { this.router.navigate('/', true); }
                             },
                             children: ['Back to Menu']
                         }

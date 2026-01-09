@@ -11,26 +11,20 @@ class WebSocketManger {
     }
 
     #initWebsocket() {
-        console.log("this.initWebsocket")
-        console.log("-")
         if (this.ws) return // already has websocket
         this.ws = new WebSocket(this.url);
 
         this.ws.onopen = () => {
-            console.log("ws connection opened")
             this.#burstQueue();
             this.reconnectTimer = null;
         }
         this.ws.onmessage = (e) => {
-            console.log(e.data)
             this.#broadcast(e.data)
         }
         this.ws.onerror = (err) => {
-            console.log("ws error", err)
             this.ws?.close()
         }
         this.ws.onclose = () => {
-            console.log("closing websocket")
             this.ws = null;
             this.#tryReconnect();
         }
@@ -43,7 +37,6 @@ class WebSocketManger {
                 p.postMessage(data);
                 alivePorts.push(p)
             } catch {
-                console.warn("dead port found!")
             }
         }
         this.ports = alivePorts
@@ -81,7 +74,6 @@ class WebSocketManger {
                 try {
                     message = JSON.parse(message);
                 } catch (err) {
-                    console.warn("Invalid JSON message:", message);
                     return;
                 }
             }
@@ -90,7 +82,6 @@ class WebSocketManger {
             const portIndex = this.ports.indexOf(port);
             message.origin = portIndex;
 
-            console.log("Sending message:", message);
             this.#sendOrQueue(JSON.stringify(message));
         };
     }

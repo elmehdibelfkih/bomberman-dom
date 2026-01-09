@@ -364,6 +364,7 @@ class MultiplayerApp {
         // Create multiplayer game instance
         this.game = MultiplayerGameEngine.getInstance();
         this.game.setNetworkManager(this.networkManager);
+        this.game.setRouter(this.router);
         window.game = this.game;
 
         // Setup multiplayer synchronization (this will create game.playerManager)

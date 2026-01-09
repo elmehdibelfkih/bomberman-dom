@@ -8,3 +8,4 @@ export * from './router/useRouter.js'
 export * from './state/signal.js'
 export * from './dom/show.js'
 export { Router } from './router/router.js';
+export { usePathname } from './router/useRouter.js';

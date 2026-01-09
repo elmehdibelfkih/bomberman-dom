@@ -1,20 +1,19 @@
 import { dom, eventManager } from '../../framework/index.js';
 import * as consts from '../utils/consts.js';
 import { MultiplayerUI } from './MultiplayerUI.js';
-// import { GAME_CONFIG } from '../../shared/game-config.js';
 
 export class MultiplayerPlayerManager {
-    constructor(game, networkManager) {
+    constructor(game, networkManager, router) {
         this.game = game;
         this.networkManager = networkManager;
+        this.router = router;
         this.players = new Map();
         this.localPlayerId = null;
-        this.ui = new MultiplayerUI(game, networkManager);
+        this.ui = new MultiplayerUI(game, networkManager, this.router);
         this.sequenceNumber = 0;
         this.pendingMoves = [];
         this.lastServerUpdateTime = 0;
         this.serverUpdateInterval = 100; // ms
-        // this.SPAWN_POSITIONS = GAME_CONFIG.SPAWN_POSITIONS;
     }
 
     async initializePlayers(gameData) {
@@ -51,7 +50,6 @@ export class MultiplayerPlayerManager {
                 lastTime: performance.now(),
                 MS_PER_FRAME: 100
             };
-            // console.log(player);
 
             this.players.set(playerData.playerId, player);
 
@@ -60,7 +58,6 @@ export class MultiplayerPlayerManager {
             } else {
                 this.createRemotePlayer(player, playerImage, blockSize);
             }
-            console.log("==hada l player =>", player);
 
         });
 
@@ -95,8 +92,6 @@ export class MultiplayerPlayerManager {
         if (gridElement) {
             gridElement.appendChild(player.element);
         }
-
-        // this.clearSpawnArea(player.gridX, player.gridY);
     }
 
     createRemotePlayer(player, playerImage, blockSize) {
@@ -123,30 +118,7 @@ export class MultiplayerPlayerManager {
         if (gridElement) {
             gridElement.appendChild(player.element);
         }
-
-        // this.clearSpawnArea(player.gridX, player.gridY);
     }
-
-    // clearSpawnArea(gridX, gridY) {
-    //     const gridHeight = this.game.map.gridArray.length;
-    //     const gridWidth = this.game.map.gridArray[0].length;
-
-    //     for (let dx = -1; dx <= 1; dx++) {
-    //         for (let dy = -1; dy <= 1; dy++) {
-    //             const x = gridX + dx;
-    //             const y = gridY + dy;
-    //             if (x >= 0 && x < gridWidth && y >= 0 && y < gridHeight) {
-    //                 if (this.game.map.gridArray[y] && this.game.map.gridArray[y][x] === consts.SOFT_BLOCK) {
-    //                     this.game.map.gridArray[y][x] = consts.FLOOR;
-    //                     const blockElement = document.querySelector(`[data-row-index="${x}"][data-col-index="${y}"]`);
-    //                     if (blockElement) {
-    //                         blockElement.remove();
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
 
     setupControls() {
         const localPlayer = this.players.get(this.localPlayerId);
@@ -200,7 +172,6 @@ export class MultiplayerPlayerManager {
     }
 
     update(timestamp) {
-        console.log("kayan l update");
         
         const localPlayer = this.players.get(this.localPlayerId);
         if (!localPlayer || localPlayer.dying || this.game.state.isPaused()) {
