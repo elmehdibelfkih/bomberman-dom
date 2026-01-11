@@ -3,7 +3,7 @@ import { MultiplayerGameEngine } from "../game/engine/MultiplayerGameEngine.js";
 import { createEffect } from "../framework/state/signal.js";
 import { NetworkManager } from '../game/network/NetworkManager.js';
 import { setupMultiplayerSync } from '../game/network/MultiplayerSync.js';
-import { NetworkStateSynchronizer } from '../game/network/NetworkStateSynchronizer.js';
+// import { NetworkStateSynchronizer } from '../game/network/NetworkStateSynchronizer.js';
 
 class MultiplayerApp {
     constructor() {
