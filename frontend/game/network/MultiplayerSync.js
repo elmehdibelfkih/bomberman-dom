@@ -1,19 +1,14 @@
-import { dom } from '../../framework/index.js';
 import { ChatNotification } from '../utils/ChatNotification.js';
-import { MultiplayerPlayerManager } from '../components/MultiplayerPlayerManager.js';
 import { NetworkStateSynchronizer } from './NetworkStateSynchronizer.js';
-import { BombManager } from '../components/BombManager.js';
-import { PowerUpManager } from '../components/PowerUpManager.js';
 
 // Setup multiplayer synchronization
 export function setupMultiplayerSync(game, networkManager) {
-    // Initialize managers
-    game.playerManager = new MultiplayerPlayerManager(game, networkManager);
-    game.bombManager = new BombManager(game);
-    game.powerUpManager = new PowerUpManager(game);
-    
-    // Initialize network state synchronizer
-    game.stateSynchronizer = new NetworkStateSynchronizer(game, networkManager);
+    // Managers are now initialized in MultiplayerGameEngine
+
+    // Initialize network state synchronizer if not already present
+    if (!game.stateSynchronizer) {
+        game.stateSynchronizer = new NetworkStateSynchronizer(game, networkManager);
+    }
     
     // Initialize chat notifications
     const chatNotification = ChatNotification.getInstance();

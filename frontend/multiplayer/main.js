@@ -358,27 +358,14 @@ class MultiplayerApp {
     }
 
     async startMultiplayerGame() {
-        // console.log('🎮 FRONTEND: Starting multiplayer game with data:', this.gameData);
         document.body.innerHTML = '';
 
-        // Create multiplayer game instance
         this.game = MultiplayerGameEngine.getInstance();
         this.game.setNetworkManager(this.networkManager);
         this.game.setRouter(this.router);
-        window.game = this.game;
 
-        // Setup multiplayer synchronization (this will create game.playerManager)
-        setupMultiplayerSync(this.game, this.networkManager);
+        await this.game.initGame(this.gameData);
 
-        // Initialize map and other elements
-        await this.game.intiElements(this.gameData.mapData);
-        await this.game.waitForLevel();
-        
-        // NOW initialize players after game elements exist
-        console.log('🎮 FRONTEND: Initializing players after game elements are ready');
-        this.game.playerManager.initializePlayers(this.gameData);
-
-        // Create multiplayer UI
         const gameContainer = dom({
             tag: 'div',
             attributes: { id: 'multiplayer-game-container' },
@@ -416,32 +403,10 @@ class MultiplayerApp {
                         }
                     ]
                 },
-                {
-                    tag: 'button',
-                    attributes: {
-                        id: 'leave-game-btn',
-                        class: 'menu-btn',
-                        style: 'position: fixed; top: 20px; right: 20px; z-index: 1000;'
-                    },
-                    children: ['LEAVE GAME']
-                }
             ]
         });
         document.body.appendChild(gameContainer);
 
-        // Add leave game button handler
-        setTimeout(() => {
-            const leaveGameBtn = document.getElementById('leave-game-btn');
-            const leaveGameHandler = () => {
-                // todo: handle this
-                this.cleanup();
-                window.location.href = '../index.html';
-            };
-            leaveGameBtn.addEventListener('click', leaveGameHandler);
-            this.eventListeners.push({ element: leaveGameBtn, event: 'click', handler: leaveGameHandler });
-        }, 0);
-
-        this.game.startGame();
         this.setupGameChat();
     }
 

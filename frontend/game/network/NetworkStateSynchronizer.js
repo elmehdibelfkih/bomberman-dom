@@ -62,10 +62,10 @@ export class NetworkStateSynchronizer {
 
     // Update player visual position
     updatePlayerPosition(localPlayer, serverPlayer) {
-        localplayer.gridX = serverplayer.gridX;
-        localplayer.gridY = serverplayer.gridY;
-        localplayer.gridX = serverplayer.gridX * this.game.map.blockSize;
-        localplayer.gridY = serverplayer.gridY * this.game.map.blockSize;
+        localPlayer.gridX = serverPlayer.gridX;
+        localPlayer.gridY = serverPlayer.gridY;
+        localPlayer.gridX = serverPlayer.gridX * this.game.map.blockSize;
+        localPlayer.gridY = serverPlayer.gridY * this.game.map.blockSize;
         
         if (localPlayer.element) {
             localPlayer.element.style.transform = `translate(${localplayer.gridX}px, ${localplayer.gridY}px)`;
