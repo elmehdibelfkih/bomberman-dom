@@ -86,22 +86,20 @@ export class MultiplayerPlayerManager {
     }
 
     update(timestamp) {
-        this.players.forEach(player => {
-            player.update(timestamp);
-            player.render();
-        });
-
-        const localPlayer = this.players.get(this.localPlayerId);
-        if (!localPlayer || !localPlayer.alive || this.game.state.isPaused()) {
-            if (this.game.state.isPaused()) {
-                this.players.forEach(p => p.movement = false);
-            }
+        if (this.game.state.isPaused()) {
+            this.players.forEach(p => {
+                p.movement = false;
+                p.render(); // Keep rendering static players
+            });
             return;
         }
 
-        localPlayer.move(this.game, this.game.state);
+        this.players.forEach(player => {
+            player.updateRender(timestamp, this.game, this.game.state);
+        });
 
-        if (localPlayer.movement && timestamp - this.lastServerUpdateTime > this.serverUpdateInterval) {
+        const localPlayer = this.players.get(this.localPlayerId);
+        if (localPlayer && localPlayer.alive && localPlayer.movement && (timestamp - this.lastServerUpdateTime > this.serverUpdateInterval)) {
             const sequenceNumber = ++this.sequenceNumber;
             let direction = 'STOP';
             if (localPlayer.direction.includes('Up')) direction = 'UP';
@@ -201,7 +199,7 @@ export class MultiplayerPlayerManager {
 
         player.updateState(newStats);
 
-        this.ui.showPowerUpCollected(playerId, powerUpType);
+        this.ui.showPowerUpCollected(playerId, powerUpTpe);
         this.updatePlayersUI();
     }
 
