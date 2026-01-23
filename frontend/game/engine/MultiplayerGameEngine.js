@@ -33,6 +33,10 @@ export class MultiplayerGameEngine {
         this.gameStarted = false;
     }
 
+    init () {
+        
+    }
+
     setNetworkManager(networkManager) {
         this.networkManager = networkManager;
     }

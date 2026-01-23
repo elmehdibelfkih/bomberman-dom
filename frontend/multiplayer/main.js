@@ -3,6 +3,7 @@ import { MultiplayerGameEngine } from "../game/engine/MultiplayerGameEngine.js";
 import { createEffect } from "../framework/state/signal.js";
 import { NetworkManager } from '../game/network/NetworkManager.js';
 import { setupMultiplayerSync } from '../game/network/MultiplayerSync.js';
+import { getGameContainer } from "../game/utils/helpers.js";
 // import { NetworkStateSynchronizer } from '../game/network/NetworkStateSynchronizer.js';
 
 class MultiplayerApp {
@@ -360,52 +361,15 @@ class MultiplayerApp {
     async startMultiplayerGame() {
         document.body.innerHTML = '';
 
+        // the multi player game engine
+        // handle the game loop
         this.game = MultiplayerGameEngine.getInstance();
         this.game.setNetworkManager(this.networkManager);
         this.game.setRouter(this.router);
-
         await this.game.initGame(this.gameData);
 
-        const gameContainer = dom({
-            tag: 'div',
-            attributes: { id: 'multiplayer-game-container' },
-            children: [
-                {
-                    tag: 'div',
-                    attributes: { id: 'players-info', class: 'players-info' },
-                    children: [
-                        {
-                            tag: 'h3',
-                            attributes: {},
-                            children: ['Players']
-                        }
-                    ]
-                },
-                {
-                    tag: 'div',
-                    attributes: { id: 'game-chat', class: 'game-chat' },
-                    children: [
-                        {
-                            tag: 'div',
-                            attributes: { id: 'chat-messages-game', class: 'chat-messages-small' },
-                            children: []
-                        },
-                        {
-                            tag: 'input',
-                            attributes: {
-                                type: 'text',
-                                id: 'chat-input-game',
-                                placeholder: 'Press T to chat...',
-                                maxlength: '100',
-                                style: 'display: none;'
-                            },
-                            children: []
-                        }
-                    ]
-                },
-            ]
-        });
-        document.body.appendChild(gameContainer);
+        // UI place holders
+        document.body.appendChild(getGameContainer());
 
         this.setupGameChat();
     }
