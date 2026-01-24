@@ -25,6 +25,7 @@ export class MultiplayerPlayer {
         this.element = null;
         this.playerCoordinate = null;
         this.animate = false;
+        this.frame = null;
     }
 
     async init() {
@@ -33,7 +34,7 @@ export class MultiplayerPlayer {
     }
 
     createPlayerElement() {
-        const frame = this.playerCoordinate[this.direction][this.frameIndex];
+        this.frame = this.playerCoordinate[this.direction][this.frameIndex];
         const playerClass = this.isLocal ? 'local-player' : 'remote-player';
 
         this.element = dom({
@@ -42,8 +43,8 @@ export class MultiplayerPlayer {
                 class: playerClass,
                 id: `player-${this.playerId}`,
                 style: `position: absolute; 
-                        width: ${frame.width}px;
-                        height: ${frame.height}px;
+                        width: ${this.frame.width}px;
+                        height: ${this.frame.height}px;
                         background: url('${this.playerImage}') no-repeat;
                         image-rendering: pixelated;
                         transform: translate(${this.x}px, ${this.y}px);
@@ -51,7 +52,7 @@ export class MultiplayerPlayer {
             },
             children: []
         });
-        this.element.style.backgroundPosition = `${frame.x}px ${frame.y}px`;
+        this.element.style.backgroundPosition = `${this.frame.x} ${this.frame.y}`;
 
         const gridElement = document.getElementById('grid');
         if (gridElement) {
@@ -67,18 +68,21 @@ export class MultiplayerPlayer {
                 const delta = timestamp - this.lastTime;
                 if (delta >= this.MS_PER_FRAME) {
                     this.lastTime = timestamp;
+                    this.frame = this.playerCoordinate[this.direction]?.[this.frameIndex];
                     this.frameIndex = (this.frameIndex + 1) % this.playerCoordinate[this.direction]?.length;
                     this.animate = true;
                 }
             } else {
                 this.frameIndex = 0;
+                this.frame = this.playerCoordinate[this.direction]?.[this.frameIndex];
+                this.animate = true;
             }
         }
         this.render();
     }
     
     movePlayer(timestamp, game, gameState) {
-        if (!this.alive || this.dying) return false;
+        if (!this.alive || this.dying) return;
 
         this.movement = false;
         this.up(game, gameState);
@@ -90,30 +94,30 @@ export class MultiplayerPlayer {
             this.direction = this.direction.replace("walking", '');
             this.animate = true;
             this.frameIndex = 0;
+            this.frame = this.playerCoordinate[this.direction][this.frameIndex];
+            return;
         }
 
         const delta = timestamp - this.lastTime;
         if ((delta >= this.MS_PER_FRAME) && this.movement) {
+            this.frame = this.playerCoordinate[this.direction][this.frameIndex];
             this.lastTime = timestamp;
             this.frameIndex = (this.frameIndex + 1) % this.playerCoordinate[this.direction].length;
             this.animate = true;
         }
-        
-        return this.movement;
     }
 
     render() {
-        if (!this.element) return;
+        if (!this.element || !this.frame) return;
 
         this.element.style.transform = `translate(${this.x}px, ${this.y}px)`;
 
         if (this.animate) {
-            const frame = this.playerCoordinate[this.direction]?.[this.frameIndex];
-            if (frame) {
-                this.element.style.width = `${frame.width}px`;
-                this.element.style.height = `${frame.height}px`;
-                this.element.style.backgroundPosition = `${frame.x}px ${frame.y}px`;
-            }
+            const fx = parseFloat(this.frame.x);
+            const fy = parseFloat(this.frame.y);
+            this.element.style.width = `${this.frame.width}px`;
+            this.element.style.height = `${this.frame.height}px`;
+            this.element.style.backgroundPosition = `${fx}px ${fy}px`;
             this.animate = false;
         }
     }
@@ -259,9 +263,8 @@ export class MultiplayerPlayer {
     }
     
     getPlayerDimensions() {
-        if (!this.playerCoordinate || !this.playerCoordinate[this.direction]) return { width: 30, height: 40 };
-        const frame = this.playerCoordinate[this.direction]?.[this.frameIndex];
-        return { width: frame?.width ?? 30, height: frame?.height ?? 40 };
+        if (!this.playerCoordinate || !this.frame) return { width: 30, height: 40 }; // fallback
+        return { width: this.frame.width ?? 30, height: this.frame.height ?? 40 };
     }
 
     remove() {

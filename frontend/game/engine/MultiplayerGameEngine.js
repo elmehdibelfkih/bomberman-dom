@@ -95,9 +95,9 @@ export class MultiplayerGameEngine {
         if (this.playerManager) {
             this.playerManager.update(timestamp);
         }
-        if (this.bombManager) {
-            this.bombManager.update(timestamp);
-        }
+        // if (this.bombManager) {
+        //     this.bombManager.update(timestamp);
+        // }
         this.state.update();
     }
 

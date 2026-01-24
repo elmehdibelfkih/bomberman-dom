@@ -89,7 +89,7 @@ export class MultiplayerPlayerManager {
         if (this.game.state.isPaused()) {
             this.players.forEach(p => {
                 p.movement = false;
-                p.render(); // Keep rendering static players
+                p.render();
             });
             return;
         }
@@ -199,7 +199,7 @@ export class MultiplayerPlayerManager {
 
         player.updateState(newStats);
 
-        this.ui.showPowerUpCollected(playerId, powerUpTpe);
+        this.ui.showPowerUpCollected(playerId, powerUpType);
         this.updatePlayersUI();
     }
 
