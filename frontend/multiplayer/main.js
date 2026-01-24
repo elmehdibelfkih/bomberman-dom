@@ -295,42 +295,53 @@ class MultiplayerApp {
     }
 
     updatePlayerList(players) {
+        console.log('Updating player list:', players);
         const playerCount = document.getElementById('player-count');
         const playerList = document.getElementById('player-list');
 
         if (!playerCount || !playerList) return;
 
         playerCount.textContent = `Players: ${players.length}/4`;
+        playerCount.style.color = players.length >= 2 ? 'var(--timer-color)' : 'var(--accent-color)';
 
-        if (players.length >= 2) {
-            playerCount.style.color = 'var(--timer-color)';
-        } else {
-            playerCount.style.color = 'var(--accent-color)';
+        const playerElements = new Map(
+            Array.from(playerList.children).map(el => [el.dataset.playerId, el])
+        );
+
+        const incomingPlayerIds = new Set(players.map(p => p.playerId));
+
+        // Remove players who left
+        for (const [playerId, element] of playerElements.entries()) {
+            if (!incomingPlayerIds.has(playerId)) {
+                element.remove();
+            }
         }
 
-        playerList.innerHTML = '';
-
+        // Add/update/reorder players
         players.forEach((player, index) => {
-            const playerEl = dom({
-                tag: 'div',
-                attributes: {
-                    class: 'player-item',
-                    style: `animation-delay: ${index * 0.1}s;`
-                },
-                children: [
-                    {
-                        tag: 'span',
-                        attributes: { class: 'player-number' },
-                        children: [`P${index + 1}`]
-                    },
-                    {
-                        tag: 'span',
-                        attributes: { class: 'player-nickname' },
-                        children: [player.nickname]
-                    }
-                ]
-            });
-            playerList.appendChild(playerEl);
+            let playerEl = playerElements.get(player.playerId);
+
+            if (!playerEl) {
+                // Player is new, create element
+                playerEl = dom({
+                    tag: 'div',
+                    attributes: { class: 'player-item', 'data-player-id': player.playerId },
+                    children: [
+                        { tag: 'span', attributes: { class: 'player-number' } },
+                        { tag: 'span', attributes: { class: 'player-nickname' } },
+                    ]
+                });
+            }
+
+            // Update content
+            playerEl.querySelector('.player-number').textContent = `P${index + 1}`;
+            playerEl.querySelector('.player-nickname').textContent = player.nickname;
+            playerEl.style.animationDelay = `${index * 0.1}s`;
+
+            // Ensure correct order
+            if (playerList.children[index] !== playerEl) {
+                playerList.insertBefore(playerEl, playerList.children[index]);
+            }
         });
     }
 

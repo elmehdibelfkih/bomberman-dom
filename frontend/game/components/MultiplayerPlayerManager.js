@@ -11,8 +11,6 @@ export class MultiplayerPlayerManager {
         this.players = new Map();
         this.localPlayerId = null;
         this.ui = new MultiplayerUI(game, networkManager, this.router);
-        this.sequenceNumber = 0;
-        this.pendingMoves = [];
         this.lastServerUpdateTime = 0;
         this.serverUpdateInterval = 100; // ms
     }
@@ -64,25 +62,8 @@ export class MultiplayerPlayerManager {
     reconcileLocalPlayer(data) {
         const localPlayer = this.players.get(this.localPlayerId);
         if (!localPlayer) return;
-
-        if (localPlayer.movement) {
-            return;
-        }
-
-        const serverGridX = data.x;
-        const serverGridY = data.y;
-
-        this.pendingMoves = this.pendingMoves.filter(move => move.sequenceNumber > data.sequenceNumber);
-
-        const serverX = serverGridX * this.game.map.level.block_size + 15;
-        const serverY = serverGridY * this.game.map.level.block_size;
-
-        const error = Math.sqrt(Math.pow(localPlayer.x - serverX, 2) + Math.pow(localPlayer.y - serverY, 2));
-
-        if (error > 5) {
-            localPlayer.x = serverX;
-            localPlayer.y = serverY;
-        }
+        
+        localPlayer.reconcileWithServer(data, this.networkManager);
     }
 
     update(timestamp) {
@@ -98,18 +79,17 @@ export class MultiplayerPlayerManager {
             player.updateRender(timestamp, this.game, this.game.state);
         });
 
+        // Send local player movement to server
         const localPlayer = this.players.get(this.localPlayerId);
         if (localPlayer && localPlayer.alive && localPlayer.movement && (timestamp - this.lastServerUpdateTime > this.serverUpdateInterval)) {
-            const sequenceNumber = ++this.sequenceNumber;
             let direction = 'STOP';
             if (localPlayer.direction.includes('Up')) direction = 'UP';
             else if (localPlayer.direction.includes('Down')) direction = 'DOWN';
             else if (localPlayer.direction.includes('Left')) direction = 'LEFT';
             else if (localPlayer.direction.includes('Right')) direction = 'RIGHT';
 
-            if (direction !== 'STOP') {
-                this.networkManager.sendPlayerMove(direction, sequenceNumber);
-                this.pendingMoves.push({ direction, sequenceNumber, x: localPlayer.x, y: localPlayer.y });
+            if (direction !== 'STOP' && localPlayer.sequenceNumber) {
+                this.networkManager.sendPlayerMove(direction, localPlayer.sequenceNumber);
             }
             this.lastServerUpdateTime = timestamp;
         }
@@ -148,7 +128,7 @@ export class MultiplayerPlayerManager {
         const player = this.players.get(data.playerId);
         if (!player || player.isLocal) return;
 
-        player.updateState(data);
+        player.updateStateFromServer(data);
     }
 
     damagePlayer(playerId, livesRemaining) {
@@ -197,7 +177,7 @@ export class MultiplayerPlayerManager {
         const player = this.players.get(playerId);
         if (!player) return;
 
-        player.updateState(newStats);
+        player.updateStateFromServer(newStats);
 
         this.ui.showPowerUpCollected(playerId, powerUpType);
         this.updatePlayersUI();

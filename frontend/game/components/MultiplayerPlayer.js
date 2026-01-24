@@ -26,6 +26,12 @@ export class MultiplayerPlayer {
         this.playerCoordinate = null;
         this.animate = false;
         this.frame = null;
+        
+        // Client-side prediction for local player
+        if (this.isLocal) {
+            this.sequenceNumber = 0;
+            this.pendingMoves = [];
+        }
     }
 
     async init() {
@@ -62,23 +68,31 @@ export class MultiplayerPlayer {
 
     updateRender(timestamp, game, gameState) {
         if (this.isLocal) {
-            this.movePlayer(timestamp, game, gameState);
+            this.handleLocalPlayerUpdate(timestamp, game, gameState);
         } else {
-            if (this.movement) {
-                const delta = timestamp - this.lastTime;
-                if (delta >= this.MS_PER_FRAME) {
-                    this.lastTime = timestamp;
-                    this.frame = this.playerCoordinate[this.direction]?.[this.frameIndex];
-                    this.frameIndex = (this.frameIndex + 1) % this.playerCoordinate[this.direction]?.length;
-                    this.animate = true;
-                }
-            } else {
-                this.frameIndex = 0;
-                this.frame = this.playerCoordinate[this.direction]?.[this.frameIndex];
-                this.animate = true;
-            }
+            this.handleRemotePlayerAnimation(timestamp);
         }
         this.render();
+    }
+    
+    handleLocalPlayerUpdate(timestamp, game, gameState) {
+        this.movePlayer(timestamp, game, gameState);
+    }
+    
+    handleRemotePlayerAnimation(timestamp) {
+        if (this.movement) {
+            const delta = timestamp - this.lastTime;
+            if (delta >= this.MS_PER_FRAME) {
+                this.lastTime = timestamp;
+                this.frame = this.playerCoordinate[this.direction]?.[this.frameIndex];
+                this.frameIndex = (this.frameIndex + 1) % this.playerCoordinate[this.direction]?.length;
+                this.animate = true;
+            }
+        } else {
+            this.frameIndex = 0;
+            this.frame = this.playerCoordinate[this.direction]?.[this.frameIndex];
+            this.animate = true;
+        }
     }
     
     movePlayer(timestamp, game, gameState) {
@@ -122,19 +136,19 @@ export class MultiplayerPlayer {
         }
     }
 
-    updateState(playerData) {
+    updateStateFromServer(serverData) {
         const oldX = this.x;
         const oldY = this.y;
     
-        this.x = playerData.x;
-        this.y = playerData.y;
-        this.gridX = playerData.gridX;
-        this.gridY = playerData.gridY;
-        this.lives = playerData.lives;
-        this.speed = playerData.speed;
-        this.bombCount = playerData.bombCount;
-        this.bombRange = playerData.bombRange;
-        this.alive = playerData.alive;
+        this.x = serverData.x;
+        this.y = serverData.y;
+        this.gridX = serverData.gridX;
+        this.gridY = serverData.gridY;
+        this.lives = serverData.lives;
+        this.speed = serverData.speed;
+        this.bombCount = serverData.bombCount;
+        this.bombRange = serverData.bombRange;
+        this.alive = serverData.alive;
         
         const dx = this.x - oldX;
         const dy = this.y - oldY;
@@ -156,6 +170,86 @@ export class MultiplayerPlayer {
             }
             this.animate = true;
         }
+    }
+    
+    reconcileWithServer(serverData, networkManager) {
+        if (!this.isLocal) return;
+        
+        // Remove acknowledged moves
+        this.pendingMoves = this.pendingMoves.filter(m => m.sequenceNumber > serverData.sequenceNumber);
+        
+        // Server sends pixel coordinates directly
+        const serverX = serverData.x;
+        const serverY = serverData.y;
+        const error = Math.sqrt(Math.pow(this.x - serverX, 2) + Math.pow(this.y - serverY, 2));
+        
+        // If error is significant, correct position
+        if (error > 5) {
+            this.x = serverX;
+            this.y = serverY;
+            this.gridX = serverData.gridX;
+            this.gridY = serverData.gridY;
+        }
+        
+        // Update stats from server
+        this.lives = serverData.lives || this.lives;
+        this.speed = serverData.speed || this.speed;
+        this.bombCount = serverData.bombCount || this.bombCount;
+        this.bombRange = serverData.bombRange || this.bombRange;
+        this.alive = serverData.alive !== undefined ? serverData.alive : this.alive;
+    }
+    
+    predictMove(direction, game) {
+        if (!this.isLocal) return null;
+        
+        const oldX = this.x;
+        const oldY = this.y;
+        
+        // Apply movement prediction
+        switch(direction) {
+            case 'UP':
+                if (this.canPlayerMoveTo(game, this.x, this.y - this.speed)) {
+                    this.y -= this.speed;
+                    this.direction = 'walkingUp';
+                    this.movement = true;
+                }
+                break;
+            case 'DOWN':
+                if (this.canPlayerMoveTo(game, this.x, this.y + this.speed)) {
+                    this.y += this.speed;
+                    this.direction = 'walkingDown';
+                    this.movement = true;
+                }
+                break;
+            case 'LEFT':
+                if (this.canPlayerMoveTo(game, this.x - this.speed, this.y)) {
+                    this.x -= this.speed;
+                    this.direction = 'walkingLeft';
+                    this.movement = true;
+                }
+                break;
+            case 'RIGHT':
+                if (this.canPlayerMoveTo(game, this.x + this.speed, this.y)) {
+                    this.x += this.speed;
+                    this.direction = 'walkingRight';
+                    this.movement = true;
+                }
+                break;
+        }
+        
+        // If movement occurred, track it
+        if (oldX !== this.x || oldY !== this.y) {
+            const move = {
+                sequenceNumber: ++this.sequenceNumber,
+                direction,
+                x: this.x,
+                y: this.y
+            };
+            this.pendingMoves.push(move);
+            return move;
+        }
+        
+        return null;
     }
 
     up(game, gameState) {

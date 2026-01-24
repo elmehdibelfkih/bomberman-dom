@@ -17,6 +17,7 @@ export class SoloGameEngine {
         if (SoloGameEngine.#instance) {
             throw new Error('Use SoloGameEngine.getInstance()')
         }
+        this.isMultiplayer = false
         this.state = State.getInstance(this)
         this.scoreboard = Scoreboard.getInstance(this)
         this.map = Map.getInstance(this)
@@ -27,7 +28,6 @@ export class SoloGameEngine {
         this.nextLevelTimeoutId = null
         this.levelComplete = false
         this.Detect = false
-        this.isMultiplayer = false
     }
 
     async waitForLevel() {
@@ -209,6 +209,7 @@ export class SoloGameEngine {
     }
 
     static resetInstance() {
+        State.resetInstance()
         SoloGameEngine.#instance = null
     }
 }

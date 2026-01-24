@@ -20,6 +20,7 @@ export class MultiplayerGameEngine {
         if (MultiplayerGameEngine.#instance) {
             throw new Error('Use MultiplayerGameEngine.getInstance()');
         }
+        this.isMultiplayer = true;
         this.state = State.getInstance(this);
         this.map = Map.getInstance(this);
         this.ui = UI.getInstance(this);
@@ -29,13 +30,10 @@ export class MultiplayerGameEngine {
         this.bombManager = null;
         this.powerUpManager = null;
         this.IDRE = null;
-        this.isMultiplayer = true;
         this.gameStarted = false;
     }
 
-    init () {
-        
-    }
+
 
     setNetworkManager(networkManager) {
         this.networkManager = networkManager;
@@ -153,6 +151,7 @@ export class MultiplayerGameEngine {
     }
 
     static resetInstance() {
+        State.resetInstance();
         MultiplayerGameEngine.#instance = null;
     }
 }
