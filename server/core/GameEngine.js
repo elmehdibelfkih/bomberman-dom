@@ -77,6 +77,17 @@ export class GameEngine {
         return this.authoritativeState.validatePlayerMove(playerId, direction, sequenceNumber);
     }
 
+    processPlayerStop(playerId, sequenceNumber) {
+        const player = this.entities.players.get(playerId)
+        if (!player || !player.alive) return false
+
+        player.stopMove()
+
+        const message = MessageBuilder.playerStopped(playerId, sequenceNumber)
+
+        this.gameRoom.broadcast(message, playerId)
+    }
+
     processPlaceBomb(playerId) {
         return this.authoritativeState.validateBombPlacement(playerId);
     }

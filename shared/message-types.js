@@ -31,6 +31,7 @@ export const ClientMessages = {
   JOIN_GAME: 'JOIN_GAME',
   QUIT_GAME: 'QUIT_GAME',
   MOVE: 'MOVE',
+  STOP_MOVE: 'STOP_MOVE',
   PLACE_BOMB: 'PLACE_BOMB',
   CHAT_MESSAGE: 'CHAT_MESSAGE'
 }

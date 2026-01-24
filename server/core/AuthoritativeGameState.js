@@ -37,6 +37,8 @@ export class AuthoritativeGameState {
         player.y = newY;
         player.gridX = Math.floor(newX / GAME_CONFIG.BLOCK_SIZE);
         player.gridY = Math.floor(newY / GAME_CONFIG.BLOCK_SIZE);
+        player.direction = direction
+        player.isMoving = true
 
         this.lastProcessedSequenceNumber.set(playerId, sequenceNumber);
 

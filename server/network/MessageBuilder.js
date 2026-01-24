@@ -74,8 +74,18 @@ export const MessageBuilder = {
       gridX: gridX,
       gridY: gridY,
       direction,
+      isMoving: true,
       sequenceNumber,
     };
+  },
+
+  playerStopped(playerId, sequenceNumber) {
+    return {
+      type: 'PLAYER_STOPPED',
+      playerId,
+      isMoving: false,
+      sequenceNumber
+    }
   },
 
   bombPlaced(bombId, playerId, gridX, gridY, range) {

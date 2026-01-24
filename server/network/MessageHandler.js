@@ -20,6 +20,10 @@ export class MessageHandler {
                     this.handleMove(connection, message);
                     break
 
+                case ClientMessages.STOP_MOVE:
+                    this.handleStopMove(connection, message);
+                    break
+
                 case ClientMessages.PLACE_BOMB:
                     this.handlePlaceBomb(connection, message);
                     break
@@ -71,8 +75,11 @@ export class MessageHandler {
 
 
     handleMove(connection, message) {
-        console.log("Reachs: handleMove")
         this.roomManager.handlePlayerMove(connection.playerId, message.direction, message.sequenceNumber);
+    }
+
+    handleStopMove(connection, message) {
+        this.roomManager.handlePlayerStop(connection.playerId, message);
     }
 
     handlePlaceBomb(connection, message) {

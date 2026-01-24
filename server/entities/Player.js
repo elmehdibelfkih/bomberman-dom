@@ -15,6 +15,8 @@ export class Player extends Entity {
         this.activeBombs = 0;
         this.bombRange = 1;
         this.speed = INITIAL_SPEED;
+        this.isMoving = false;
+        this.direction = null
         this.bombPass = 0;
         this.blockPass = 0
         this.powerUpTimers = new Map();
@@ -24,6 +26,14 @@ export class Player extends Entity {
         this.lives--;
         if (this.lives <= 0) this.kill();
         return this.lives;
+    }
+
+    stopMove() {
+        this.isMoving = false
+    }
+
+    startMove() {
+        this.isMoving = true
     }
 
     canPlaceBomb() {
