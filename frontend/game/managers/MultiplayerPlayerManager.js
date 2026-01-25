@@ -1,7 +1,7 @@
 import { eventManager } from '../../framework/index.js';
 import * as consts from '../utils/consts.js';
-import { MultiplayerUI } from './MultiplayerUI.js';
-import { MultiplayerPlayer } from './MultiplayerPlayer.js';
+import { MultiplayerUI } from '../components/MultiplayerUI.js';
+import { MultiplayerPlayer } from '../components/MultiplayerPlayer.js';
 
 export class MultiplayerPlayerManager {
     constructor(game, networkManager, router) {
