@@ -270,26 +270,41 @@ export class Map {
     }
 
     initAudios() {
+        // Stop and remove old background music if it exists
+        if (this.backGroundMusic) {
+            this.backGroundMusic.pause();
+            this.backGroundMusic.currentTime = 0;
+            this.backGroundMusic.src = '';
+            if (this.backGroundMusic.parentNode) {
+                this.backGroundMusic.parentNode.removeChild(this.backGroundMusic);
+            }
+            this.backGroundMusic = null;
+        }
+        
         this.backGroundMusic = new Audio(this.level.back_ground_music);
-        this.grid.appendChild(this.backGroundMusic)
+        this.grid.appendChild(this.backGroundMusic);
         this.backGroundMusic.preload = 'auto';
         this.backGroundMusic.loop = true;
         const soundOn = this.game.state.isSoundOn();
         this.backGroundMusic.volume = soundOn ? 0.3 : 0.0;
 
-        // Use event manager with once option
-        const playMusic = () => {
+        // Play music immediately if sound is on
+        if (soundOn) {
             this.backGroundMusic.play().catch(err => {
                 console.error("Playback failed:", err);
             });
-        };
-
-        // Use once: true to automatically remove after first trigger
-        eventManager.addEventListener(document.body, 'click', playMusic, { once: true });
-        eventManager.addEventListener(document.body, 'keydown', playMusic, { once: true });
+        }
 
         this.game.state.updateSoundIcon();
     }
 
-    destructeur = () => document.body.removeChild(this.container)
+    destructeur = () => {
+        if (this.backGroundMusic) {
+            this.backGroundMusic.pause();
+            this.backGroundMusic.currentTime = 0;
+            this.backGroundMusic.src = '';
+            this.backGroundMusic = null;
+        }
+        document.body.removeChild(this.container);
+    }
 }

@@ -94,14 +94,16 @@ export class SoloGameEngine {
         if (this.map && this.map.destructeur) {
             this.map.destructeur()
         }
-        this.state.removeEventListeners()
-        this.state = State.getInstance(this)
-        this.state.initArrowState()
+        this.map = null
         this.map = Map.getInstance(this)
         this.player = Player.getInstance(this)
         await this.map.initMap()
         await this.player.initPlayer()
+        await this.waitForLevel()
         this.enemie = new Enemy(this)
+        this.state.resetTimer()
+        this.state.setTime(this.map.level.level_time)
+        this.state.startTimer()
         this.stateofrest = false
         this.run()
     }
@@ -127,8 +129,6 @@ export class SoloGameEngine {
         if (this.map && this.map.destructeur) {
             this.map.destructeur()
         }
-        this.state.removeEventListeners()
-        this.state.initArrowState()
         this.state.nextLevel()
         this.scoreboard.updateLevel()
         this.map = null
@@ -164,9 +164,6 @@ export class SoloGameEngine {
         this.map.Booms = []
         this.player.removeplayer()
         this.map.destructeur()
-        this.state.removeEventListeners()
-        this.state = State.getInstance(this)
-        this.state.initArrowState()
         this.state.resetLevel()
         this.scoreboard.updateLevel()
         this.map = null
