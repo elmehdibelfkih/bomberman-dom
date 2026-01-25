@@ -1,5 +1,6 @@
 import { dom } from '../../framework/index.js';
 import * as consts from '../utils/consts.js';
+import { PlayerState } from '../engine/PlayerState.js';
 
 export class MultiplayerPlayer {
     constructor(playerData, isLocal, playerImage) {
@@ -27,6 +28,9 @@ export class MultiplayerPlayer {
         this.animate = false;
         this.frame = null;
         
+        // Each player has its own state
+        this.state = new PlayerState(isLocal);
+        
         // Client-side prediction for local player
         if (this.isLocal) {
             this.sequenceNumber = 0;
@@ -37,6 +41,7 @@ export class MultiplayerPlayer {
     async init() {
         this.playerCoordinate = await fetch('/game/assets/playerCoordinate.json').then(res => res.json());
         this.createPlayerElement();
+        this.state.initListeners();
     }
 
     createPlayerElement() {
@@ -66,17 +71,17 @@ export class MultiplayerPlayer {
         }
     }
 
-    updateRender(timestamp, game, gameState) {
+    updateRender(timestamp, game) {
         if (this.isLocal) {
-            this.handleLocalPlayerUpdate(timestamp, game, gameState);
+            this.handleLocalPlayerUpdate(timestamp, game);
         } else {
             this.handleRemotePlayerAnimation(timestamp);
         }
         this.render();
     }
     
-    handleLocalPlayerUpdate(timestamp, game, gameState) {
-        this.movePlayer(timestamp, game, gameState);
+    handleLocalPlayerUpdate(timestamp, game) {
+        this.movePlayer(timestamp, game);
     }
     
     handleRemotePlayerAnimation(timestamp) {
@@ -95,14 +100,14 @@ export class MultiplayerPlayer {
         }
     }
     
-    movePlayer(timestamp, game, gameState) {
+    movePlayer(timestamp, game) {
         if (!this.alive || this.dying) return;
 
         this.movement = false;
-        this.up(game, gameState);
-        this.down(game, gameState);
-        this.right(game, gameState);
-        this.left(game, gameState);
+        this.up(game);
+        this.down(game);
+        this.right(game);
+        this.left(game);
 
         if (!this.movement && this.direction.includes("walking")) {
             this.direction = this.direction.replace("walking", '');
@@ -163,10 +168,17 @@ export class MultiplayerPlayer {
 
         if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) {
             this.movement = true;
+            // Update remote player state to simulate movement
+            if (!this.isLocal) {
+                this.state.setDirection(this.direction);
+            }
         } else {
             this.movement = false;
             if (this.direction.includes("walking")) {
                 this.direction = this.direction.replace("walking", '');
+            }
+            if (!this.isLocal) {
+                this.state.clearDirection();
             }
             this.animate = true;
         }
@@ -252,8 +264,8 @@ export class MultiplayerPlayer {
         return null;
     }
 
-    up(game, gameState) {
-        if (gameState.isArrowUp() || this.Up) {
+    up(game) {
+        if (this.state.isArrowUp() || this.Up) {
             this.Up = false;
             if (this.canPlayerMoveTo(game, this.x, this.y - this.speed)) {
                 this.direction = 'walkingUp';
@@ -265,15 +277,15 @@ export class MultiplayerPlayer {
                 const blockSize = game.map.level.block_size;
                 let xMap = Math.floor((this.x - 10) / blockSize);
                 let yMap = Math.floor(this.y / blockSize);
-                if (this.isFreeSpaceInGrid(game, xMap, yMap - 1) && !gameState.isArrowRight()) { this.Left = true; return; }
+                if (this.isFreeSpaceInGrid(game, xMap, yMap - 1) && !this.state.isArrowRight()) { this.Left = true; return; }
                 xMap = Math.floor((this.x + frameWidth + 10) / blockSize);
-                if (this.isFreeSpaceInGrid(game, xMap, yMap - 1) && !gameState.isArrowLeft()) { this.Right = true; return; }
+                if (this.isFreeSpaceInGrid(game, xMap, yMap - 1) && !this.state.isArrowLeft()) { this.Right = true; return; }
             }
         }
     }
 
-    down(game, gameState) {
-        if (gameState.isArrowDown() || this.Down) {
+    down(game) {
+        if (this.state.isArrowDown() || this.Down) {
             this.Down = false;
             if (this.canPlayerMoveTo(game, this.x, this.y + this.speed)) {
                 this.direction = 'walkingDown';
@@ -285,15 +297,15 @@ export class MultiplayerPlayer {
                 const blockSize = game.map.level.block_size;
                 let xMap = Math.floor((this.x - 10) / blockSize);
                 let yMap = Math.floor((this.y + height) / blockSize);
-                if (this.isFreeSpaceInGrid(game, xMap, yMap + 1) && !gameState.isArrowRight()) { this.Left = true; return; }
+                if (this.isFreeSpaceInGrid(game, xMap, yMap + 1) && !this.state.isArrowRight()) { this.Left = true; return; }
                 xMap = Math.floor((this.x + width + 10) / blockSize);
-                if (this.isFreeSpaceInGrid(game, xMap, yMap + 1) && !gameState.isArrowLeft()) { this.Right = true; return; }
+                if (this.isFreeSpaceInGrid(game, xMap, yMap + 1) && !this.state.isArrowLeft()) { this.Right = true; return; }
             }
         }
     }
 
-    left(game, gameState) {
-        if (gameState.isArrowLeft() || this.Left) {
+    left(game) {
+        if (this.state.isArrowLeft() || this.Left) {
             this.Left = false;
             if (this.canPlayerMoveTo(game, this.x - this.speed, this.y)) {
                 this.direction = 'walkingLeft';
@@ -304,15 +316,15 @@ export class MultiplayerPlayer {
                 const blockSize = game.map.level.block_size;
                 let xMap = Math.floor(this.x / blockSize);
                 let yMap = Math.floor(this.y / blockSize);
-                if (this.isFreeSpaceInGrid(game, xMap - 1, yMap) && !gameState.isArrowDown()) { this.Up = true; return; }
+                if (this.isFreeSpaceInGrid(game, xMap - 1, yMap) && !this.state.isArrowDown()) { this.Up = true; return; }
                 yMap = Math.floor((this.y + height) / blockSize);
-                if (this.isFreeSpaceInGrid(game, xMap - 1, yMap) && !gameState.isArrowUp()) { this.Down = true; return; }
+                if (this.isFreeSpaceInGrid(game, xMap - 1, yMap) && !this.state.isArrowUp()) { this.Down = true; return; }
             }
         }
     }
 
-    right(game, gameState) {
-        if (gameState.isArrowRight() || this.Right) {
+    right(game) {
+        if (this.state.isArrowRight() || this.Right) {
             this.Right = false;
             if (this.canPlayerMoveTo(game, this.x + this.speed, this.y)) {
                 this.direction = 'walkingRight';
@@ -323,9 +335,9 @@ export class MultiplayerPlayer {
                 const blockSize = game.map.level.block_size;
                 let xMap = Math.floor((this.x + width) / blockSize);
                 let yMap = Math.floor(this.y / blockSize);
-                if (this.isFreeSpaceInGrid(game, xMap + 1, yMap) && !gameState.isArrowDown()) { this.Up = true; return; }
+                if (this.isFreeSpaceInGrid(game, xMap + 1, yMap) && !this.state.isArrowDown()) { this.Up = true; return; }
                 yMap = Math.floor((this.y + height) / blockSize);
-                if (this.isFreeSpaceInGrid(game, xMap + 1, yMap) && !gameState.isArrowUp()) { this.Down = true; return; }
+                if (this.isFreeSpaceInGrid(game, xMap + 1, yMap) && !this.state.isArrowUp()) { this.Down = true; return; }
             }
         }
     }
@@ -362,6 +374,7 @@ export class MultiplayerPlayer {
     }
 
     remove() {
+        this.state.removeListeners();
         if (this.element && this.element.parentNode) {
             this.element.parentNode.removeChild(this.element);
         }

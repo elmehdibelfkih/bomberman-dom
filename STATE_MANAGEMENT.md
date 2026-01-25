@@ -1,115 +1,75 @@
-# State Management - Solo vs Multiplayer
+# State Management - Simplified Architecture
 
 ## Overview
-The state management has been split into two separate classes to handle the different requirements of solo and multiplayer modes.
+The state management has been simplified to just two state classes:
+- **SoloState** - For single-player mode
+- **PlayerState** - For multiplayer mode (per-player state)
 
 ## Architecture
 
 ```
-BaseState (Common functionality)
-    ├── SoloState (Solo mode features)
-    └── MultiplayerState (Multiplayer mode features)
+Solo Mode:
+  SoloGameEngine → SoloState (game-level state)
+
+Multiplayer Mode:
+  MultiplayerGameEngine → PlayerState (dummy, for compatibility)
+  Each MultiplayerPlayer → PlayerState (real player state)
 ```
 
-### BaseState
-Contains common functionality for both modes:
-- Arrow key state management (up, down, left, right)
-- Keyboard event listeners
-- Signal-based state updates
+## SoloState
+Complete game state for single-player mode:
+- ✅ Arrow key input
+- ✅ Timer management
+- ✅ Level progression (1-10)
+- ✅ Lives and score
+- ✅ Pause functionality
+- ✅ Bomb management
+- ✅ Sound controls
+- ✅ Game over handling
 
-### SoloState
-Extends BaseState with solo-specific features:
-- **Timer management** - startTimer(), stopTimer(), resetTimer()
-- **Level progression** - nextLevel(), getLevel(), maxLevel()
-- **Lives and score** - setLives(), getLives(), setScore(), getScore()
-- **Pause functionality** - pauseStart(), isPaused()
-- **Bomb management** - setBombCount(), getMaxAllowdBombCount()
-- **Sound controls** - switch(), isSoundOn()
-- **Game over handling** - GameOver(), isGameOver()
-- **Restart functionality** - Restar(), Isrestar()
-
-### MultiplayerState
-Extends BaseState with minimal multiplayer features:
-- **No timer** - Timer methods are no-ops
-- **No levels** - Always returns level 1
-- **No score** - Score methods are no-ops
-- **No pause** - Pause is always false (game runs continuously)
-- **No lives** - Lives managed by server
-- **No bomb count** - Managed by player stats from server
-- **No sound toggle** - Sound always on
-- **No game over** - Handled by game engine
-- **No restart** - Not applicable in multiplayer
+## PlayerState
+Minimal state for multiplayer players:
+- ✅ Arrow key input (per player)
+- ✅ Local player: Listens to keyboard
+- ✅ Remote player: Simulates from server
+- ❌ No timer, levels, score (server manages)
+- ❌ Stub methods for compatibility
 
 ## Usage
 
-### Automatic Mode Detection
-The State factory automatically creates the correct state type:
-
-```javascript
-// In SoloGameEngine
-this.isMultiplayer = false;
-this.state = State.getInstance(this); // Creates SoloState
-
-// In MultiplayerGameEngine
-this.isMultiplayer = true;
-this.state = State.getInstance(this); // Creates MultiplayerState
-```
-
-### Direct Usage
-You can also import and use states directly:
-
-```javascript
-import { SoloState, MultiplayerState } from './engine/state.js';
-
-const soloState = new SoloState(game);
-const multiState = new MultiplayerState(game);
-```
-
-## Key Differences
-
-| Feature | Solo Mode | Multiplayer Mode |
-|---------|-----------|------------------|
-| Timer | ✅ Yes | ❌ No |
-| Levels | ✅ Yes (1-10) | ❌ No (always 1) |
-| Pause | ✅ Yes (P key) | ❌ No |
-| Score | ✅ Yes | ❌ No |
-| Lives | ✅ Yes (managed locally) | ❌ No (server-managed) |
-| Bomb Count | ✅ Yes (local tracking) | ❌ No (player stats) |
-| Sound Toggle | ✅ Yes | ❌ No |
-| Restart | ✅ Yes (R key) | ❌ No |
-| Game Over | ✅ Yes (local) | ❌ No (server decides) |
-
-## Benefits
-
-1. **Separation of Concerns** - Each mode has only the features it needs
-2. **No Dead Code** - Multiplayer doesn't carry solo-specific logic
-3. **Type Safety** - Clear interface for each mode
-4. **Easy Maintenance** - Changes to one mode don't affect the other
-5. **Performance** - No unnecessary checks for unused features
-
-## State Lifecycle
-
 ### Solo Mode
-```
-SoloGameEngine created
-  → isMultiplayer = false
-  → State.getInstance() creates SoloState
-  → Timer starts, pause enabled, levels tracked
+```javascript
+const state = State.getInstance(game); // Returns SoloState
+state.startTimer();
+state.nextLevel();
+state.setScore(100);
 ```
 
 ### Multiplayer Mode
-```
-MultiplayerGameEngine created
-  → isMultiplayer = true
-  → State.getInstance() creates MultiplayerState
-  → No timer, no pause, server manages game state
+```javascript
+// Game engine gets dummy state
+const gameState = State.getInstance(game); // Returns PlayerState (dummy)
+
+// Each player has real state
+const player = new MultiplayerPlayer(data, isLocal, image);
+player.state.isArrowUp(); // Real player input
 ```
 
-### Cleanup
-```javascript
-// Reset state when switching modes
-State.resetInstance();
-SoloGameEngine.resetInstance();
-// or
-MultiplayerGameEngine.resetInstance();
-```
+## Files
+
+1. **state.js** - Factory that returns appropriate state
+2. **SoloState.js** - Full game state for solo mode
+3. **PlayerState.js** - Per-player state for multiplayer
+
+## Cleanup
+
+Removed files:
+- ❌ BaseState.js (merged into SoloState)
+- ❌ MultiplayerState.js (replaced by PlayerState)
+
+## Benefits
+
+1. **Simpler** - Only 2 state classes instead of 4
+2. **Clear Purpose** - SoloState for solo, PlayerState for multiplayer
+3. **No Inheritance** - No confusing base class
+4. **Self-Contained** - Each state has everything it needs

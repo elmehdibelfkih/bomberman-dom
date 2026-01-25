@@ -1,8 +1,7 @@
 import * as helpers from '../utils/helpers.js';
-import { eventManager } from '../../framework/index.js';
-import { BaseState } from './BaseState.js';
+import { eventManager, createSignal } from '../../framework/index.js';
 
-export class SoloState extends BaseState {
+export class SoloState {
     #CURRENT_LEVEL = 1
     #LIVES = 3
     #SCORE = 0
@@ -19,13 +18,32 @@ export class SoloState extends BaseState {
     #MAXLEVEL = 10
 
     constructor(game) {
-        super(game);
+        this.game = game;
         this.isStar = true;
+        
+        // Arrow key state
+        const [getArrowUp, setArrowUp] = createSignal(false, "arrowUp");
+        const [getArrowDown, setArrowDown] = createSignal(false, "arrowDown");
+        const [getArrowRight, setArrowRight] = createSignal(false, "arrowRight");
+        const [getArrowLeft, setArrowLeft] = createSignal(false, "arrowLeft");
+
+        this.arrowUp = { get: getArrowUp, set: setArrowUp };
+        this.arrowDown = { get: getArrowDown, set: setArrowDown };
+        this.arrowRight = { get: getArrowRight, set: setArrowRight };
+        this.arrowLeft = { get: getArrowLeft, set: setArrowLeft };
+        
         this._boundTransfer = this.pauseStart.bind(this);
         this._boundRestar = this.Restar.bind(this);
         this._boundSwitch = this.switch.bind(this);
+        this._boundKeyDown = this.setArrowStateKeyDown.bind(this);
+        this._boundKeyUp = this.setArrowStateKeyUp.bind(this);
         this._throttledRestar = helpers.throttle(this._boundRestar, 1000);
     }
+
+    isArrowUp = () => this.arrowUp.get()
+    isArrowDown = () => this.arrowDown.get()
+    isArrowRight = () => this.arrowRight.get()
+    isArrowLeft = () => this.arrowLeft.get()
 
     // Level management
     nextLevel = () => this.#CURRENT_LEVEL += 1
@@ -128,13 +146,26 @@ export class SoloState extends BaseState {
     }
 
     setArrowStateKeyDown(event) {
-        super.setArrowStateKeyDown(event);
         const key = event.nativeEvent ? event.nativeEvent.key : event.key;
+        if (key === 'ArrowUp') this.arrowUp.set(true);
+        if (key === 'ArrowDown') this.arrowDown.set(true);
+        if (key === 'ArrowRight') this.arrowRight.set(true);
+        if (key === 'ArrowLeft') this.arrowLeft.set(true);
         if (key.toLowerCase() === 'p') this.pauseStart();
     }
 
+    setArrowStateKeyUp(event) {
+        const key = event.nativeEvent ? event.nativeEvent.key : event.key;
+        if (key === 'ArrowUp') this.arrowUp.set(false);
+        if (key === 'ArrowDown') this.arrowDown.set(false);
+        if (key === 'ArrowRight') this.arrowRight.set(false);
+        if (key === 'ArrowLeft') this.arrowLeft.set(false);
+    }
+
     initArrowState() {
-        super.initArrowState();
+        eventManager.addEventListener(document.body, 'keydown', this._boundKeyDown);
+        eventManager.addEventListener(document.body, 'keyup', this._boundKeyUp);
+        
         const refBtn = document.getElementById('ref');
         const pauseBtn = document.getElementById('star_pause');
         const soundBtn = document.getElementById('sound');
@@ -178,7 +209,9 @@ export class SoloState extends BaseState {
     }
 
     removeEventListeners() {
-        super.removeEventListeners();
+        eventManager.removeEventListener(document.body, 'keydown', this._boundKeyDown);
+        eventManager.removeEventListener(document.body, 'keyup', this._boundKeyUp);
+        
         const refBtn = document.getElementById('ref');
         const pauseBtn = document.getElementById('star_pause');
         const soundBtn = document.getElementById('sound');

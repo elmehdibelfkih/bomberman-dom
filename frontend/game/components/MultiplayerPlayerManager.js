@@ -76,7 +76,7 @@ export class MultiplayerPlayerManager {
         }
 
         this.players.forEach(player => {
-            player.updateRender(timestamp, this.game, this.game.state);
+            player.updateRender(timestamp, this.game);
         });
 
         // Send local player movement to server
