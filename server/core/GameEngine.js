@@ -105,7 +105,7 @@ export class GameEngine {
         const player = this.entities.players.get(playerId);
         if (player) {
             player.alive = false;
-            this.checkWinCondition();
+            this.authoritativeState.checkWinCondition()
         }
     }
 }
