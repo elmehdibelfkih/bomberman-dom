@@ -15,6 +15,7 @@ export class SoloState extends BaseState {
     #TIME = 0
     #TIMER_ID = null
     #RESTART = false
+    #STATE = false
     #MAXLEVEL = 10
 
     constructor(game) {
@@ -60,10 +61,18 @@ export class SoloState extends BaseState {
     GameOver = () => this.#GAME_OVER = true
     Isrestar = () => this.#RESTART
     Restar = () => this.#RESTART = !this.#RESTART
+    updateStateof = (val) => this.#STATE = val
+    GetState = () => this.#STATE
 
     // Sound
     isSoundOn = () => this.#SOUND
     updatesound = (ff) => this.#SOUND = ff
+
+    updateSoundIcon = () => {
+        const ic = document.getElementById('Icon');
+        if (!ic) return;
+        ic.src = this.#SOUND ? './icon/volume-2.svg' : './icon/volume-x.svg';
+    }
 
     // Timer management
     getTime = () => this.#TIME

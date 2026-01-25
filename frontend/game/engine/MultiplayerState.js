@@ -50,6 +50,8 @@ export class MultiplayerState extends BaseState {
     // No restart
     Isrestar = () => false
     Restar = () => {}
+    updateStateof = () => {}
+    GetState = () => false
 
     // Sound (always on, no toggle)
     isSoundOn = () => true
