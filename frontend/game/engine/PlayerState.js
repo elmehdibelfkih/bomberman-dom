@@ -27,40 +27,40 @@ export class PlayerState {
     isArrowLeft = () => this.arrowLeft.get()
 
     // Stub methods for compatibility with game engine
-    SetPause = () => {}
-    isPaused = () => false
-    getTime = () => 0
-    startTimer = () => {}
-    stopTimer = () => {}
-    resetTimer = () => {}
-    nextLevel = () => {}
-    getcurentlevel = () => 1
-    maxlevel = () => 1
-    resetLevel = () => {}
-    setLevel = () => {}
-    getLevel = () => 1
-    getScore = () => 0
-    setScore = () => {}
-    setLives = () => {}
-    getLives = () => 0
-    getBombCount = () => 0
-    setBombCount = () => {}
-    getMaxAllowdBombCount = () => 0
-    setMaxAllowdBombCount = () => {}
-    setPlayerspped = () => {}
-    getPlayerSpeed = () => 3
-    isGameOver = () => false
-    GameOver = () => {}
-    Isrestar = () => false
-    Restar = () => {}
-    updateStateof = () => {}
-    GetState = () => false
-    isSoundOn = () => true
-    updatesound = () => {}
-    updateSoundIcon = () => {}
-    update = () => {}
-    initState = () => {}
-    initArrowState = () => {}
+    // SetPause = () => {}
+    // isPaused = () => false
+    // getTime = () => 0
+    // startTimer = () => {}
+    // stopTimer = () => {}
+    // resetTimer = () => {}
+    // nextLevel = () => {}
+    // getcurentlevel = () => 1
+    // maxlevel = () => 1
+    // resetLevel = () => {}
+    // setLevel = () => {}
+    // getLevel = () => 1
+    // getScore = () => 0
+    // setScore = () => {}
+    // setLives = () => {}
+    // getLives = () => 0
+    // getBombCount = () => 0
+    // setBombCount = () => {}
+    // getMaxAllowdBombCount = () => 0
+    // setMaxAllowdBombCount = () => {}
+    // setPlayerspped = () => {}
+    // getPlayerSpeed = () => 3
+    // isGameOver = () => false
+    // GameOver = () => {}
+    // Isrestar = () => false
+    // Restar = () => {}
+    // updateStateof = () => {}
+    // GetState = () => false
+    // isSoundOn = () => true
+    // updatesound = () => {}
+    // updateSoundIcon = () => {}
+    // update = () => {}
+    // initState = () => {}
+    // initArrowState = () => {}
 
     handleKeyDown(event) {
         const key = event.nativeEvent ? event.nativeEvent.key : event.key;

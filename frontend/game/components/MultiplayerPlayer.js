@@ -73,15 +73,11 @@ export class MultiplayerPlayer {
 
     updateRender(timestamp, game) {
         if (this.isLocal) {
-            this.handleLocalPlayerUpdate(timestamp, game);
+            this.movePlayer(timestamp, game);
         } else {
             this.handleRemotePlayerAnimation(timestamp);
         }
         this.render();
-    }
-    
-    handleLocalPlayerUpdate(timestamp, game) {
-        this.movePlayer(timestamp, game);
     }
     
     handleRemotePlayerAnimation(timestamp) {

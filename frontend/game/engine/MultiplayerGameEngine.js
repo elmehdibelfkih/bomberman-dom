@@ -21,7 +21,7 @@ export class MultiplayerGameEngine {
             throw new Error('Use MultiplayerGameEngine.getInstance()');
         }
         this.isMultiplayer = true;
-        this.state = State.getInstance(this);
+        // this.state = State.getInstance(this);
         this.map = Map.getInstance(this);
         this.ui = UI.getInstance(this);
         this.networkManager = null;
@@ -145,16 +145,16 @@ export class MultiplayerGameEngine {
             cancelAnimationFrame(this.IDRE);
             this.IDRE = null;
         }
-        if (this.state) {
-            this.state.stopTimer();
-        }
+        // if (this.state) {
+        //     this.state.stopTimer();
+        // }
         if (this.playerManager) {
             this.playerManager.cleanup();
         }
     }
 
     static resetInstance() {
-        State.resetInstance();
+        // State.resetInstance();
         MultiplayerGameEngine.#instance = null;
     }
 }

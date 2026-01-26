@@ -10,7 +10,7 @@ export class MultiplayerPlayerManager {
         this.router = router;
         this.players = new Map();
         this.localPlayerId = null;
-        this.ui = new MultiplayerUI(game, networkManager, this.router);
+        // this.ui = new MultiplayerUI(game, networkManager, this.router);
         this.lastServerUpdateTime = 0;
         this.serverUpdateInterval = 100; // ms
     }
@@ -21,6 +21,8 @@ export class MultiplayerPlayerManager {
         this.players.clear();
 
         const playerImage = gameData.mapData.player;
+        console.log(playerImage);
+        
 
         const playerPromises = gameData.players.map(async (playerData) => {
             const isLocal = playerData.playerId === this.localPlayerId;
@@ -32,17 +34,20 @@ export class MultiplayerPlayerManager {
         await Promise.all(playerPromises);
 
         this.setupControls();
-        this.updatePlayersUI();
-        this.ui.updateGameStatus('PLAYING', 'Game started!');
-        this.game.state.SetPause(false);
+        // this.updatePlayersUI();
+        // this.ui.updateGameStatus('PLAYING', 'Game started!');
+        // this.game.state.SetPause(false);
     }
 
+    // set up controle for bomb
+    // todo: the user must send bomb response and wait the server response
     setupControls() {
         const localPlayer = this.players.get(this.localPlayerId);
         if (!localPlayer) return;
 
         eventManager.addEventListener(document.body, 'keydown', (event) => {
-            if (localPlayer.dying || this.game.state.isPaused()) return;
+            // if (localPlayer.dying || this.game.state.isPaused()) return;
+            if (localPlayer.dying ) return;
 
             const key = event.nativeEvent.key;
             if (key === ' ' && localPlayer.canPlaceBomb) {
@@ -67,13 +72,13 @@ export class MultiplayerPlayerManager {
     }
 
     update(timestamp) {
-        if (this.game.state.isPaused()) {
-            this.players.forEach(p => {
-                p.movement = false;
-                p.render();
-            });
-            return;
-        }
+        // if (this.game.state.isPaused()) {
+        //     this.players.forEach(p => {
+        //         p.movement = false;
+        //         p.render();
+        //     });
+        //     return;
+        // }
 
         this.players.forEach(player => {
             player.updateRender(timestamp, this.game);
@@ -136,13 +141,13 @@ export class MultiplayerPlayerManager {
         if (!player) return;
 
         player.lives = livesRemaining;
-        this.ui.showPlayerDamaged(playerId);
+        // this.ui.showPlayerDamaged(playerId);
 
         if (player.lives <= 0) {
             this.killPlayer(playerId);
         }
 
-        this.updatePlayersUI();
+        // this.updatePlayersUI();
     }
 
     killPlayer(playerId) {
@@ -156,7 +161,7 @@ export class MultiplayerPlayerManager {
             player.element.style.filter = 'grayscale(100%)';
         }
 
-        this.ui.showPlayerDied(playerId);
+        // this.ui.showPlayerDied(playerId);
         this.checkWinCondition();
     }
 
@@ -170,7 +175,7 @@ export class MultiplayerPlayerManager {
     }
 
     handleGameOver(winner) {
-        this.ui.showGameOver(winner);
+        // this.ui.showGameOver(winner);
     }
 
     handlePowerUpCollection(playerId, powerUpType, newStats) {
@@ -179,23 +184,23 @@ export class MultiplayerPlayerManager {
 
         player.updateStateFromServer(newStats);
 
-        this.ui.showPowerUpCollected(playerId, powerUpType);
-        this.updatePlayersUI();
+        // this.ui.showPowerUpCollected(playerId, powerUpType);
+        // this.updatePlayersUI();
     }
 
-    updatePlayersUI() {
-        const playersArray = Array.from(this.players.values());
-        this.ui.updatePlayerList(playersArray);
+    // updatePlayersUI() {
+    //     const playersArray = Array.from(this.players.values());
+    //     // this.ui.updatePlayerList(playersArray);
 
-        const localPlayer = playersArray.find(p => p.isLocal);
-        if (localPlayer) {
-            this.ui.updateLocalPlayerStats(localPlayer);
-        }
-    }
+    //     const localPlayer = playersArray.find(p => p.isLocal);
+    //     if (localPlayer) {
+    //         // this.ui.updateLocalPlayerStats(localPlayer);
+    //     }
+    // }
 
     cleanup() {
         this.players.forEach(player => player.remove());
         this.players.clear();
-        this.ui.cleanup();
+        // this.ui.cleanup();
     }
 }
