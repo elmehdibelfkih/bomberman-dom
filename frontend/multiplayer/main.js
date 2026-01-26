@@ -1,5 +1,5 @@
 import { Router, dom, usePathname } from "../framework/index.js";
-import { MultiplayerGameEngine } from "../game/engine/MultiplayerGameEngine.js";
+import { MultiplayerGameEngine } from "../game/engine/onlineGameEngine.js";
 import { createEffect } from "../framework/state/signal.js";
 import { NetworkManager } from '../game/network/NetworkManager.js';
 import { setupMultiplayerSync } from '../game/network/MultiplayerSync.js';

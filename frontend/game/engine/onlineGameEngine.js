@@ -1,7 +1,7 @@
 import { Map } from '../components/map.js';
 import { State } from './state.js';
 import { UI } from '../components/ui.js';
-import { MultiplayerPlayerManager } from '../managers/MultiplayerPlayerManager.js';
+import { MultiplayerPlayerManager } from '../managers/onlinePlayersManager.js';
 import { BombManager } from '../managers/BombManager.js';
 import { PowerUpManager } from '../managers/PowerUpManager.js';
 import { setupMultiplayerSync } from '../network/MultiplayerSync.js';

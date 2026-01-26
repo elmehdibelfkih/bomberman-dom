@@ -1,7 +1,7 @@
 import { eventManager } from '../../framework/index.js';
 import * as consts from '../utils/consts.js';
 import { MultiplayerUI } from '../components/MultiplayerUI.js';
-import { MultiplayerPlayer } from '../components/MultiplayerPlayer.js';
+import { OnlinePlayer } from '../components/OnlinePlayer.js';
 
 export class MultiplayerPlayerManager {
     constructor(game, networkManager, router) {
@@ -26,7 +26,7 @@ export class MultiplayerPlayerManager {
 
         const playerPromises = gameData.players.map(async (playerData) => {
             const isLocal = playerData.playerId === this.localPlayerId;
-            const player = new MultiplayerPlayer(playerData, isLocal, playerImage);
+            const player = new OnlinePlayer(playerData, isLocal, playerImage);
             await player.init();
             this.players.set(playerData.playerId, player);
         });

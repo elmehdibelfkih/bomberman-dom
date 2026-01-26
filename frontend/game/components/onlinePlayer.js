@@ -2,7 +2,7 @@ import { dom } from '../../framework/index.js';
 import * as consts from '../utils/consts.js';
 import { PlayerState } from '../engine/PlayerState.js';
 
-export class MultiplayerPlayer {
+export class OnlinePlayer {
     constructor(playerData, isLocal, playerImage) {
         this.playerId = playerData.playerId;
         this.nickname = playerData.nickname;
