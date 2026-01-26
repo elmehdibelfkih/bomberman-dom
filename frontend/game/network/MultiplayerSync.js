@@ -24,6 +24,7 @@ export function setupMultiplayerSync(game, networkManager) {
         if (data.playerId === networkManager.getPlayerId()) {
             game.playerManager.reconcileLocalPlayer(data);
         } else {
+            console.log("Hello2")
             game.playerManager.updateRemotePlayer(data);
         }
     });

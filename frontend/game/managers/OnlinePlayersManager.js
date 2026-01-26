@@ -21,8 +21,7 @@ export class MultiplayerPlayerManager {
         this.players.clear();
 
         const playerImage = gameData.mapData.player;
-        console.log(playerImage);
-        
+
 
         const playerPromises = gameData.players.map(async (playerData) => {
             const isLocal = playerData.playerId === this.localPlayerId;
@@ -47,7 +46,7 @@ export class MultiplayerPlayerManager {
 
         eventManager.addEventListener(document.body, 'keydown', (event) => {
             // if (localPlayer.dying || this.game.state.isPaused()) return;
-            if (localPlayer.dying ) return;
+            if (localPlayer.dying) return;
 
             const key = event.nativeEvent.key;
             if (key === ' ' && localPlayer.canPlaceBomb) {
@@ -62,13 +61,6 @@ export class MultiplayerPlayerManager {
                 localPlayer.canPlaceBomb = true;
             }
         });
-    }
-
-    reconcileLocalPlayer(data) {
-        const localPlayer = this.players.get(this.localPlayerId);
-        if (!localPlayer) return;
-        
-        localPlayer.reconcileWithServer(data, this.networkManager);
     }
 
     update(timestamp) {
@@ -86,14 +78,17 @@ export class MultiplayerPlayerManager {
 
         // Send local player movement to server
         const localPlayer = this.players.get(this.localPlayerId);
-        if (localPlayer && localPlayer.alive && localPlayer.movement && (timestamp - this.lastServerUpdateTime > this.serverUpdateInterval)) {
+        // && (timestamp - this.lastServerUpdateTime > this.serverUpdateInterval) // deleted from the if check below
+        if (localPlayer && localPlayer.alive) {
             let direction = 'STOP';
-            if (localPlayer.direction.includes('Up')) direction = 'UP';
-            else if (localPlayer.direction.includes('Down')) direction = 'DOWN';
-            else if (localPlayer.direction.includes('Left')) direction = 'LEFT';
-            else if (localPlayer.direction.includes('Right')) direction = 'RIGHT';
+            if (localPlayer.state.isArrowUp()) direction = 'UP';
+            else if (localPlayer.state.isArrowDown()) direction = 'DOWN';
+            else if (localPlayer.state.isArrowLeft()) direction = 'LEFT';
+            else if (localPlayer.state.isArrowRight()) direction = 'RIGHT';
 
-            if (direction !== 'STOP' && localPlayer.sequenceNumber) {
+            if (direction !== 'STOP') {
+                console.log("STOP", direction)
+                localPlayer.sequenceNumber = (localPlayer.sequenceNumber || 0) + 1
                 this.networkManager.sendPlayerMove(direction, localPlayer.sequenceNumber);
             }
             this.lastServerUpdateTime = timestamp;
@@ -133,7 +128,16 @@ export class MultiplayerPlayerManager {
         const player = this.players.get(data.playerId);
         if (!player || player.isLocal) return;
 
+        console.log("2", data);
         player.updateStateFromServer(data);
+    }
+
+    reconcileLocalPlayer(data) {
+        const localPlayer = this.players.get(this.localPlayerId);
+        if (!localPlayer) return;
+
+        console.log("1", data)
+        localPlayer.reconcileWithServer(data, this.networkManager);
     }
 
     damagePlayer(playerId, livesRemaining) {

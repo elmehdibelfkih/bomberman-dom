@@ -11,6 +11,8 @@ export class MessageHandler {
         try {
             const message = JSON.parse(rawMessage)
 
+            console.log("MESSAGE: ", message.type)
+
             switch (message.type) {
                 case ClientMessages.JOIN_GAME:
                     this.handleJoinGame(connection, message);

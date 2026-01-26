@@ -27,10 +27,10 @@ export class OnlinePlayer {
         this.playerCoordinate = null;
         this.animate = false;
         this.frame = null;
-        
+
         // Each player has its own state
         this.state = new PlayerState(isLocal);
-        
+
         // Client-side prediction for local player
         if (this.isLocal) {
             this.sequenceNumber = 0;
@@ -79,7 +79,7 @@ export class OnlinePlayer {
         }
         this.render();
     }
-    
+
     handleRemotePlayerAnimation(timestamp) {
         if (this.movement) {
             const delta = timestamp - this.lastTime;
@@ -95,7 +95,7 @@ export class OnlinePlayer {
             this.animate = true;
         }
     }
-    
+
     movePlayer(timestamp, game) {
         if (!this.alive || this.dying) return;
 
@@ -140,7 +140,7 @@ export class OnlinePlayer {
     updateStateFromServer(serverData) {
         const oldX = this.x;
         const oldY = this.y;
-    
+
         this.x = serverData.x;
         this.y = serverData.y;
         this.gridX = serverData.gridX;
@@ -150,7 +150,7 @@ export class OnlinePlayer {
         this.bombCount = serverData.bombCount;
         this.bombRange = serverData.bombRange;
         this.alive = serverData.alive;
-        
+
         const dx = this.x - oldX;
         const dy = this.y - oldY;
 
@@ -179,18 +179,18 @@ export class OnlinePlayer {
             this.animate = true;
         }
     }
-    
+
     reconcileWithServer(serverData, networkManager) {
         if (!this.isLocal) return;
-        
+
         // Remove acknowledged moves
         this.pendingMoves = this.pendingMoves.filter(m => m.sequenceNumber > serverData.sequenceNumber);
-        
+
         // Server sends pixel coordinates directly
         const serverX = serverData.x;
         const serverY = serverData.y;
         const error = Math.sqrt(Math.pow(this.x - serverX, 2) + Math.pow(this.y - serverY, 2));
-        
+
         // If error is significant, correct position
         if (error > 5) {
             this.x = serverX;
@@ -198,7 +198,7 @@ export class OnlinePlayer {
             this.gridX = serverData.gridX;
             this.gridY = serverData.gridY;
         }
-        
+
         // Update stats from server
         this.lives = serverData.lives || this.lives;
         this.speed = serverData.speed || this.speed;
@@ -206,15 +206,15 @@ export class OnlinePlayer {
         this.bombRange = serverData.bombRange || this.bombRange;
         this.alive = serverData.alive !== undefined ? serverData.alive : this.alive;
     }
-    
+
     predictMove(direction, game) {
         if (!this.isLocal) return null;
-        
+
         const oldX = this.x;
         const oldY = this.y;
-        
+
         // Apply movement prediction
-        switch(direction) {
+        switch (direction) {
             case 'UP':
                 if (this.canPlayerMoveTo(game, this.x, this.y - this.speed)) {
                     this.y -= this.speed;
@@ -244,7 +244,7 @@ export class OnlinePlayer {
                 }
                 break;
         }
-        
+
         // If movement occurred, track it
         if (oldX !== this.x || oldY !== this.y) {
             const move = {
@@ -256,7 +256,7 @@ export class OnlinePlayer {
             this.pendingMoves.push(move);
             return move;
         }
-        
+
         return null;
     }
 
@@ -273,7 +273,7 @@ export class OnlinePlayer {
                 const blockSize = game.map.level.block_size;
                 let xMap = Math.floor((this.x - 10) / blockSize);
                 let yMap = Math.floor(this.y / blockSize);
-                if (this.isFreeSpaceInGrid(game, xMap, yMap - 1) && !this.state.isArrowRight()) { this.Left = true; return; }
+                if (this.isFreeSpaceInGrid(game, xMap, yMap - 1) && !this.state.isArrowRight()) {this.Left = true; return; }
                 xMap = Math.floor((this.x + frameWidth + 10) / blockSize);
                 if (this.isFreeSpaceInGrid(game, xMap, yMap - 1) && !this.state.isArrowLeft()) { this.Right = true; return; }
             }
@@ -289,7 +289,7 @@ export class OnlinePlayer {
                 this.y += this.speed;
                 this.movement = true;
             } else {
-                const {width, height} = this.getPlayerDimensions();
+                const { width, height } = this.getPlayerDimensions();
                 const blockSize = game.map.level.block_size;
                 let xMap = Math.floor((this.x - 10) / blockSize);
                 let yMap = Math.floor((this.y + height) / blockSize);
@@ -308,7 +308,7 @@ export class OnlinePlayer {
                 this.x -= this.speed;
                 this.movement = true;
             } else {
-                const {height} = this.getPlayerDimensions();
+                const { height } = this.getPlayerDimensions();
                 const blockSize = game.map.level.block_size;
                 let xMap = Math.floor(this.x / blockSize);
                 let yMap = Math.floor(this.y / blockSize);
@@ -327,7 +327,7 @@ export class OnlinePlayer {
                 this.x += this.speed;
                 this.movement = true;
             } else {
-                const {width, height} = this.getPlayerDimensions();
+                const { width, height } = this.getPlayerDimensions();
                 const blockSize = game.map.level.block_size;
                 let xMap = Math.floor((this.x + width) / blockSize);
                 let yMap = Math.floor(this.y / blockSize);
@@ -363,7 +363,7 @@ export class OnlinePlayer {
         const cell = grid[y][x];
         return cell !== consts.WALL && cell !== consts.BLOCK;
     }
-    
+
     getPlayerDimensions() {
         if (!this.playerCoordinate || !this.frame) return { width: 30, height: 40 }; // fallback
         return { width: this.frame.width ?? 30, height: this.frame.height ?? 40 };

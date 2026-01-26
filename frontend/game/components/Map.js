@@ -1,7 +1,7 @@
 import * as consts from '../utils/consts.js';
-import { Bomb } from "./bomb.js"
-import { Enemy } from "./enemy.js"
-import { Bonus } from './bonus.js';
+import { Bomb } from "./Bomb.js"
+import { Enemy } from "./Enemy.js"
+import { Bonus } from './Bonus.js';
 import { dom, eventManager } from '../../framework/index.js';
 
 export class Map {

@@ -1,5 +1,3 @@
-import { valideHtmlNode } from "../libs/validate_html_node.js";
-import { validateDomNode, tagsMapAttributesSet } from "./tags.js";
 import { createEffect } from "../state/signal.js";
 import { eventManager } from "../event/event.js";
 

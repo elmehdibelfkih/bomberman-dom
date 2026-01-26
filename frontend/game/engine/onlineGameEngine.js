@@ -1,7 +1,7 @@
-import { Map } from '../components/map.js';
-import { State } from './state.js';
-import { UI } from '../components/ui.js';
-import { MultiplayerPlayerManager } from '../managers/onlinePlayersManager.js';
+import { Map } from '../components/Map.js';
+import { State } from './State.js';
+import { UI } from '../components/Ui.js';
+import { MultiplayerPlayerManager } from '../managers/OnlinePlayersManager.js';
 import { BombManager } from '../managers/BombManager.js';
 import { PowerUpManager } from '../managers/PowerUpManager.js';
 import { setupMultiplayerSync } from '../network/MultiplayerSync.js';
@@ -46,13 +46,13 @@ export class MultiplayerGameEngine {
     async initGame(gameData) {
         if (gameData.mapData && gameData.players) {
             await this.initializeWithMap(gameData.mapData);
-            
+
             this.playerManager = new MultiplayerPlayerManager(this, this.networkManager, this.router);
             this.bombManager = new BombManager(this);
             this.powerUpManager = new PowerUpManager(this);
 
             await this.playerManager.initializePlayers(gameData);
-            
+
             setupMultiplayerSync(this, this.networkManager);
 
             this.startGame();
@@ -75,7 +75,7 @@ export class MultiplayerGameEngine {
         }
     }
 
-        startGame() {
+    startGame() {
         this.gameStarted = true;
         this.run();
     }
@@ -87,15 +87,16 @@ export class MultiplayerGameEngine {
 
     async loop(timestamp) {
         if (!this.gameStarted) return;
-        
+
         // if (!this.state.isPaused()) {
-            // }
+        // }
         this.updateRender(timestamp);
         this.IDRE = requestAnimationFrame(this.loop.bind(this));
     }
 
     async updateRender(timestamp) {
         if (this.playerManager) {
+
             this.playerManager.update(timestamp);
         }
         // if (this.bombManager) {
@@ -107,7 +108,7 @@ export class MultiplayerGameEngine {
     handleServerState(gameState) {
         // makayban walo
         console.log(gameState);
-        
+
         if (gameState.players && this.playerManager) {
             gameState.players.forEach(serverPlayer => {
                 if (serverPlayer.playerId !== this.networkManager.getPlayerId()) {

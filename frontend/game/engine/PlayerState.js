@@ -98,6 +98,18 @@ export class PlayerState {
         this.arrowRight.set(false);
     }
 
+    // Set direction temporarily for collision assistance
+    setTemporaryDirection(direction) {
+        this.clearDirection();
+        if (direction === 'UP') this.arrowUp.set(true);
+        else if (direction === 'DOWN') this.arrowDown.set(true);
+        else if (direction === 'LEFT') this.arrowLeft.set(true);
+        else if (direction === 'RIGHT') this.arrowRight.set(true);
+        
+        // Clear after next frame
+        setTimeout(() => this.clearDirection(), 0);
+    }
+
     initListeners() {
         if (this.isLocal) {
             eventManager.addEventListener(document.body, 'keydown', this._boundKeyDown);
