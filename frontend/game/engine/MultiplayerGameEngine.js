@@ -60,19 +60,24 @@ export class MultiplayerGameEngine {
     }
 
     async initializeWithMap(mapData) {
-        await this.intiElements(mapData);
+        // await this.intiElements(mapData);
+        await this.map.initMap(mapData);
         await this.waitForLevel();
     }
 
-    async intiElements(mapData = null) {
-        this.state.initArrowState();
-        await this.map.initMap(mapData);
-    }
+    // async intiElements(mapData = null) {
+    //     // this.state.initArrowState();
+    // }
 
     async waitForLevel() {
         while (!this.map || !this.map.level) {
             await new Promise(r => setTimeout(r, 50));
         }
+    }
+
+        startGame() {
+        this.gameStarted = true;
+        this.run();
     }
 
     run = () => {
@@ -83,9 +88,9 @@ export class MultiplayerGameEngine {
     async loop(timestamp) {
         if (!this.gameStarted) return;
         
-        if (!this.state.isPaused()) {
-            this.updateRender(timestamp);
-        }
+        // if (!this.state.isPaused()) {
+            // }
+        this.updateRender(timestamp);
         this.IDRE = requestAnimationFrame(this.loop.bind(this));
     }
 
@@ -96,10 +101,13 @@ export class MultiplayerGameEngine {
         // if (this.bombManager) {
         //     this.bombManager.update(timestamp);
         // }
-        this.state.update();
+        // this.state.update();
     }
 
     handleServerState(gameState) {
+        // makayban walo
+        console.log(gameState);
+        
         if (gameState.players && this.playerManager) {
             gameState.players.forEach(serverPlayer => {
                 if (serverPlayer.playerId !== this.networkManager.getPlayerId()) {
@@ -129,11 +137,6 @@ export class MultiplayerGameEngine {
         if (this.playerManager) {
             this.playerManager.handleGameOver(winner);
         }
-    }
-
-    startGame() {
-        this.gameStarted = true;
-        this.run();
     }
 
     stop() {

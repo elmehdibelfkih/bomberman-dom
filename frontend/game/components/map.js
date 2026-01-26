@@ -48,7 +48,8 @@ export class Map {
         this.fixAssetPaths();
 
         this.initGrid()
-        this.initAudios()
+        // todo
+        // this.initAudios()
     }
 
     fixAssetPaths() {
@@ -100,6 +101,7 @@ export class Map {
     isBlock = (x, y) => this.gridArray[y][x] === consts.BLOCK
     isFreeSpaceInGrid = (x, y) => this.gridArray[y][x] !== consts.BLOCK && this.gridArray[y][x] !== consts.WALL
 
+    // todo: change the timestamp to performence.now
     addBomb(x, y, timestamp) {
         if (this.game.state.getBombCount() < this.game.state.getMaxAllowdBombCount())
             this.bombs.push(new Bomb(this.game, x, y, timestamp))
