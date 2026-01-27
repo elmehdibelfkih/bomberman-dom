@@ -17,7 +17,7 @@ The Bomberman game has been split into two distinct game modes with separate log
   - Score tracking
 
 ### Multiplayer Mode
-- **Engine**: `MultiplayerGameEngine.js`
+- **Engine**: `OnlineGmeEngine.js`
 - **Entry Point**:
   - `/frontend/multiplayer/main.js` (standalone)
 - **Features**:
@@ -42,7 +42,7 @@ The Bomberman game has been split into two distinct game modes with separate log
 - No network dependencies
 ```
 
-#### Multiplayer Game Engine (`MultiplayerGameEngine.js`)
+#### Multiplayer Game Engine (`OnlineGmeEngine.js`)
 ```javascript
 - Network-aware game engine
 - Receives state updates from server
@@ -83,7 +83,7 @@ frontend/
 ├── game/
 │   ├── engine/
 │   │   ├── SoloGameEngine.js      # Solo game logic
-│   │   └── MultiplayerGameEngine.js # Multiplayer game logic
+│   │   └── OnlineGmeEngine.js # Multiplayer game logic
 server/
 ├── core/                         # Multiplayer-only server logic
 ├── handlers/
@@ -118,5 +118,5 @@ shared/
 
 - Old `Game` class in `core.js` is deprecated
 - Use `SoloGameEngine.getInstance()` for solo games
-- Use `MultiplayerGameEngine.getInstance()` for multiplayer games
+- Use `OnlineGmeEngine.getInstance()` for multiplayer games
 - Server only handles multiplayer - no solo server logic needed

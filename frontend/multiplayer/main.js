@@ -1,5 +1,5 @@
 import { Router, dom, usePathname } from "../framework/index.js";
-import { MultiplayerGameEngine } from "../game/engine/onlineGameEngine.js";
+import { OnlineGmeEngine } from "../game/engine/onlineGameEngine.js";
 import { createEffect } from "../framework/state/signal.js";
 import { NetworkManager } from '../game/network/NetworkManager.js';
 import { setupMultiplayerSync } from '../game/network/MultiplayerSync.js';
@@ -374,7 +374,7 @@ class MultiplayerApp {
 
         // the multi player game engine
         // handle the game loop
-        this.game = MultiplayerGameEngine.getInstance();
+        this.game = OnlineGmeEngine.getInstance();
         this.game.setNetworkManager(this.networkManager);
         this.game.setRouter(this.router);
         await this.game.initGame(this.gameData);
@@ -489,7 +489,7 @@ class MultiplayerApp {
         document.body.innerHTML = '';
 
         // Reset singleton instance
-        MultiplayerGameEngine.resetInstance();
+        OnlineGmeEngine.resetInstance();
 
         // Clear game reference
         this.game = null;

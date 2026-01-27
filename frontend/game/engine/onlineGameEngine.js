@@ -6,19 +6,19 @@ import { BombManager } from '../managers/BombManager.js';
 import { PowerUpManager } from '../managers/PowerUpManager.js';
 import { setupMultiplayerSync } from '../network/MultiplayerSync.js';
 
-export class MultiplayerGameEngine {
+export class OnlineGmeEngine {
     static #instance = null;
 
     static getInstance() {
-        if (!MultiplayerGameEngine.#instance) {
-            MultiplayerGameEngine.#instance = new MultiplayerGameEngine();
+        if (!OnlineGmeEngine.#instance) {
+            OnlineGmeEngine.#instance = new OnlineGmeEngine();
         }
-        return MultiplayerGameEngine.#instance;
+        return OnlineGmeEngine.#instance;
     }
 
     constructor() {
-        if (MultiplayerGameEngine.#instance) {
-            throw new Error('Use MultiplayerGameEngine.getInstance()');
+        if (OnlineGmeEngine.#instance) {
+            throw new Error('Use OnlineGmeEngine.getInstance()');
         }
         this.isMultiplayer = true;
         // this.state = State.getInstance(this);
@@ -156,6 +156,6 @@ export class MultiplayerGameEngine {
 
     static resetInstance() {
         // State.resetInstance();
-        MultiplayerGameEngine.#instance = null;
+        OnlineGmeEngine.#instance = null;
     }
 }

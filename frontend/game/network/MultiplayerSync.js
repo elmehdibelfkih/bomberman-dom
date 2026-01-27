@@ -3,7 +3,7 @@ import { NetworkStateSynchronizer } from './NetworkStateSynchronizer.js';
 
 // Setup multiplayer synchronization
 export function setupMultiplayerSync(game, networkManager) {
-    // Managers are now initialized in MultiplayerGameEngine
+    // Managers are now initialized in OnlineGmeEngine
 
     // Initialize network state synchronizer if not already present
     if (!game.stateSynchronizer) {

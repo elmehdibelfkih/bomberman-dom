@@ -1,6 +1,6 @@
 import { dom } from '../../framework/index.js';
 
-export class MultiplayerUI {
+export class OnlineUi {
     constructor(game, networkManager, router) {
         this.game = game;
         this.networkManager = networkManager;

@@ -1,6 +1,6 @@
 import { eventManager } from '../../framework/index.js';
 import * as consts from '../utils/consts.js';
-import { MultiplayerUI } from '../components/MultiplayerUI.js';
+import { OnlineUi } from '../components/OnlineUI.js';
 import { OnlinePlayer } from '../components/OnlinePlayer.js';
 
 export class MultiplayerPlayerManager {
@@ -10,7 +10,7 @@ export class MultiplayerPlayerManager {
         this.router = router;
         this.players = new Map();
         this.localPlayerId = null;
-        // this.ui = new MultiplayerUI(game, networkManager, this.router);
+        // this.ui = new OnlineUi(game, networkManager, this.router);
         this.lastServerUpdateTime = 0;
         this.serverUpdateInterval = 100; // ms
     }
