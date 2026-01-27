@@ -107,8 +107,6 @@ export class OnlineGmeEngine {
 
     handleServerState(gameState) {
         // makayban walo
-        console.log(gameState);
-
         if (gameState.players && this.playerManager) {
             gameState.players.forEach(serverPlayer => {
                 if (serverPlayer.playerId !== this.networkManager.getPlayerId()) {

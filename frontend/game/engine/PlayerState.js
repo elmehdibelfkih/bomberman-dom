@@ -3,7 +3,7 @@ import { eventManager, createSignal } from '../../framework/index.js';
 export class PlayerState {
     constructor(isLocal) {
         this.isLocal = isLocal;
-        
+
         // Arrow key state signals
         const [getArrowUp, setArrowUp] = createSignal(false, `arrowUp_${Date.now()}`);
         const [getArrowDown, setArrowDown] = createSignal(false, `arrowDown_${Date.now()}`);
@@ -14,7 +14,7 @@ export class PlayerState {
         this.arrowDown = { get: getArrowDown, set: setArrowDown };
         this.arrowRight = { get: getArrowRight, set: setArrowRight };
         this.arrowLeft = { get: getArrowLeft, set: setArrowLeft };
-        
+
         if (this.isLocal) {
             this._boundKeyDown = this.handleKeyDown.bind(this);
             this._boundKeyUp = this.handleKeyUp.bind(this);
@@ -76,6 +76,11 @@ export class PlayerState {
         if (key === 'ArrowDown') this.arrowDown.set(false);
         if (key === 'ArrowRight') this.arrowRight.set(false);
         if (key === 'ArrowLeft') this.arrowLeft.set(false);
+
+        if (!this.arrowUp.get() && !this.arrowDown.get() &&
+            !this.arrowLeft.get() && !this.arrowRight.get()) {
+            this.onMovementStopped?.();
+        }
     }
 
     // For remote players - set direction from server
@@ -105,7 +110,7 @@ export class PlayerState {
         else if (direction === 'DOWN') this.arrowDown.set(true);
         else if (direction === 'LEFT') this.arrowLeft.set(true);
         else if (direction === 'RIGHT') this.arrowRight.set(true);
-        
+
         // Clear after next frame
         setTimeout(() => this.clearDirection(), 0);
     }
