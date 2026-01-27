@@ -1,6 +1,7 @@
 import { dom } from '../../framework/index.js';
 import * as consts from '../utils/consts.js';
 import { PlayerState } from '../engine/PlayerState.js';
+import { NetworkManager } from '../network/NetworkManager.js';
 
 export class OnlinePlayer {
     constructor(playerData, isLocal, playerImage) {
@@ -27,6 +28,7 @@ export class OnlinePlayer {
         this.playerCoordinate = null;
         this.animate = false;
         this.frame = null;
+        this.networkManager = NetworkManager.getInstance();
 
         // Each player has its own state
         this.state = new PlayerState(isLocal);
@@ -268,12 +270,17 @@ export class OnlinePlayer {
                 if (!this.canPlayerMoveTo(game, this.x, this.y) || !this.canPlayerMoveTo(game, this.x, this.y - this.speed)) this.x -= 7;
                 this.y -= this.speed;
                 this.movement = true;
+                if (this.isLocal) {
+                    this.sequenceNumber++
+                    this.networkManager.sendPlayerMove("UP", this.sequenceNumber);
+                }
             } else {
+
                 const frameWidth = this.getPlayerDimensions().width;
                 const blockSize = game.map.level.block_size;
                 let xMap = Math.floor((this.x - 10) / blockSize);
                 let yMap = Math.floor(this.y / blockSize);
-                if (this.isFreeSpaceInGrid(game, xMap, yMap - 1) && !this.state.isArrowRight()) {this.Left = true; return; }
+                if (this.isFreeSpaceInGrid(game, xMap, yMap - 1) && !this.state.isArrowRight()) { this.Left = true; return; }
                 xMap = Math.floor((this.x + frameWidth + 10) / blockSize);
                 if (this.isFreeSpaceInGrid(game, xMap, yMap - 1) && !this.state.isArrowLeft()) { this.Right = true; return; }
             }
@@ -288,6 +295,10 @@ export class OnlinePlayer {
                 if (!this.canPlayerMoveTo(game, this.x, this.y) || !this.canPlayerMoveTo(game, this.x, this.y + this.speed)) this.x -= 7;
                 this.y += this.speed;
                 this.movement = true;
+                if (this.isLocal) {
+                    this.sequenceNumber++
+                    this.networkManager.sendPlayerMove("DOWN", this.sequenceNumber);
+                }
             } else {
                 const { width, height } = this.getPlayerDimensions();
                 const blockSize = game.map.level.block_size;
@@ -307,6 +318,10 @@ export class OnlinePlayer {
                 this.direction = 'walkingLeft';
                 this.x -= this.speed;
                 this.movement = true;
+                if (this.isLocal) {
+                    this.sequenceNumber++
+                    this.networkManager.sendPlayerMove("LEFT", this.sequenceNumber);
+                }
             } else {
                 const { height } = this.getPlayerDimensions();
                 const blockSize = game.map.level.block_size;
@@ -326,6 +341,10 @@ export class OnlinePlayer {
                 this.direction = 'walkingRight';
                 this.x += this.speed;
                 this.movement = true;
+                if (this.isLocal) {
+                    this.sequenceNumber++
+                    this.networkManager.sendPlayerMove("RIGHT", this.sequenceNumber);
+                }
             } else {
                 const { width, height } = this.getPlayerDimensions();
                 const blockSize = game.map.level.block_size;

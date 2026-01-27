@@ -87,9 +87,9 @@ export class MultiplayerPlayerManager {
             else if (localPlayer.state.isArrowRight()) direction = 'RIGHT';
 
             if (direction !== 'STOP') {
-                console.log("STOP", direction)
-                localPlayer.sequenceNumber = (localPlayer.sequenceNumber || 0) + 1
-                this.networkManager.sendPlayerMove(direction, localPlayer.sequenceNumber);
+                // console.log("STOP", direction)
+                // localPlayer.sequenceNumber = (localPlayer.sequenceNumber || 0) + 1
+                // this.networkManager.sendPlayerMove(direction, localPlayer.sequenceNumber);
             }
             this.lastServerUpdateTime = timestamp;
         }
