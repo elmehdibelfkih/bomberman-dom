@@ -1,7 +1,7 @@
 import { Map } from '../components/Map.js';
 import { State } from './State.js';
 import { UI } from '../components/Ui.js';
-import { MultiplayerPlayerManager } from '../managers/OnlinePlayersManager.js';
+import { OnlinePlayersManager } from '../managers/OnlinePlayersManager.js';
 import { BombManager } from '../managers/BombManager.js';
 import { PowerUpManager } from '../managers/PowerUpManager.js';
 import { setupMultiplayerSync } from '../network/MultiplayerSync.js';
@@ -47,7 +47,7 @@ export class OnlineGmeEngine {
         if (gameData.mapData && gameData.players) {
             await this.initializeWithMap(gameData.mapData);
 
-            this.playerManager = new MultiplayerPlayerManager(this, this.networkManager, this.router);
+            this.playerManager = new OnlinePlayersManager(this, this.networkManager, this.router);
             this.bombManager = new BombManager(this);
             this.powerUpManager = new PowerUpManager(this);
 

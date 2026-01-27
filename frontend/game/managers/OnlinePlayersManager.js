@@ -3,7 +3,7 @@ import * as consts from '../utils/consts.js';
 import { OnlineUi } from '../components/OnlineUI.js';
 import { OnlinePlayer } from '../components/OnlinePlayer.js';
 
-export class MultiplayerPlayerManager {
+export class OnlinePlayersManager {
     constructor(game, networkManager, router) {
         this.game = game;
         this.networkManager = networkManager;
