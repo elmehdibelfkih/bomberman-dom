@@ -23,27 +23,59 @@ export class AuthoritativeGameState {
         const moveSpeed = player.speed;
         let newX = player.x;
         let newY = player.y;
+        let newDirection = direction;
+
+        let intendedX = newX;
+        let intendedY = newY;
 
         switch (direction) {
-            case 'UP': newY -= moveSpeed; break;
-            case 'DOWN': newY += moveSpeed; break;
-            case 'LEFT': newX -= moveSpeed; break;
-            case 'RIGHT': newX += moveSpeed; break;
+            case 'UP': intendedY -= moveSpeed; break;
+            case 'DOWN': intendedY += moveSpeed; break;
+            case 'LEFT': intendedX -= moveSpeed; break;
+            case 'RIGHT': intendedX += moveSpeed; break;
         }
 
-        if (!this.isValidPosition(newX, newY, direction, playerId)) return false;
-
+        if (this.isValidPosition(intendedX, intendedY, direction, playerId)) {
+            newX = intendedX;
+            newY = intendedY;
+        } else {
+            // Cornering logic
+            if (direction === 'UP' || direction === 'DOWN') {
+                let horizontalCheck = player.x;
+                if (this.isValidPosition(horizontalCheck + moveSpeed, player.y, 'RIGHT', playerId)) {
+                    newDirection = 'RIGHT';
+                    newX = player.x + moveSpeed;
+                } else if (this.isValidPosition(horizontalCheck - moveSpeed, player.y, 'LEFT', playerId)) {
+                    newDirection = 'LEFT';
+                    newX = player.x - moveSpeed;
+                } else {
+                    return false;
+                }
+            } else if (direction === 'LEFT' || direction === 'RIGHT') {
+                let verticalCheck = player.y;
+                if (this.isValidPosition(player.x, verticalCheck + moveSpeed, 'DOWN', playerId)) {
+                    newDirection = 'DOWN';
+                    newY = player.y + moveSpeed;
+                } else if (this.isValidPosition(player.x, verticalCheck - moveSpeed, 'UP', playerId)) {
+                    newDirection = 'UP';
+                    newY = player.y - moveSpeed;
+                } else {
+                    return false;
+                }
+            }
+        }
+        
         player.x = newX;
         player.y = newY;
         player.gridX = Math.floor(newX / GAME_CONFIG.BLOCK_SIZE);
         player.gridY = Math.floor(newY / GAME_CONFIG.BLOCK_SIZE);
-        player.direction = direction
-        player.isMoving = true
+        player.direction = newDirection;
+        player.isMoving = true;
 
         this.lastProcessedSequenceNumber.set(playerId, sequenceNumber);
 
         this.gameRoom.broadcast(
-            MessageBuilder.playerMoved(playerId, newX, newY, player.gridX, player.gridY, direction, sequenceNumber)
+            MessageBuilder.playerMoved(playerId, newX, newY, player.gridX, player.gridY, newDirection, sequenceNumber)
         );
 
         this.checkPowerUpCollection(playerId, player.gridX, player.gridY);
@@ -359,5 +391,16 @@ export class AuthoritativeGameState {
             const winner = alivePlayers[0] || null;
             this.gameRoom.endGame('LAST_PLAYER_STANDING', winner);
         }
+    }
+
+    isFreeSpaceInGrid(gridX, gridY) {
+        const gridHeight = this.gameEngine.mapData.initial_grid.length;
+        const gridWidth = this.gameEngine.mapData.initial_grid[0].length;
+    
+        if (gridX < 0 || gridX >= gridWidth || gridY < 0 || gridY >= gridHeight) {
+            return false;
+        }
+        const cellValue = this.gameEngine.mapData.initial_grid[gridY][gridX];
+        return cellValue !== WALL && cellValue !== BLOCK;
     }
 }
