@@ -1,5 +1,5 @@
-import { dom } from '../framework/index.js';
-import { SoloGameEngine } from '../game/engine/SoloGameEngine.js';
+import { dom } from '/framework/index.js';
+import { SoloGameEngine } from '/game/engine/SoloGameEngine.js';
 
 class SoloApp {
     constructor() {

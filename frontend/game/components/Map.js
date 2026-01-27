@@ -171,9 +171,14 @@ export class Map {
             }
         });
 
-        // Handle enemy spawning
+        // Handle player and enemy spawning
         this.level.initial_grid.forEach((row, colIndex) => {
             row.forEach((cell, rowIndex) => {
+                // Handle player position marker
+                if (cell === consts.PLAYER) {
+                    this.gridArray[colIndex][rowIndex] = 0
+                }
+                // Handle enemy spawning
                 if (cell === consts.ENEMY) {
                     this.gridArray[colIndex][rowIndex] = 0
                     const x = this.level.block_size * rowIndex + 12

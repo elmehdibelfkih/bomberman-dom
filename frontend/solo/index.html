@@ -7,9 +7,17 @@
     <link rel="stylesheet" href="../game/style.css">
     <link rel="icon" href="../game/icon/favicon.png" type="image/svg+xml" />
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script type="importmap">
+    {
+        "imports": {
+            "/game/": "../game/",
+            "/framework/": "../framework/"
+        }
+    }
+    </script>
 </head>
 <body>
     <!-- Solo game will be initialized by main.js -->
-    <script type="module" src="main.js"></script>
+    <script type="module" src="./main.js"></script>
 </body>
 </html>

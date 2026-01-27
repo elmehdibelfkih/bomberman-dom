@@ -1,9 +1,9 @@
-import { Scoreboard } from '../components/scoreboard.js'
-import { Player } from '../components/player.js'
-import { Map } from '../components/map.js'
-import { State } from './state.js'
-import { Enemy } from '../components/enemy.js'
-import { UI } from '../components/ui.js'
+import { Scoreboard } from '/game/components/Scoreboard.js'
+import { Player } from '/game/components/Player.js'
+import { Map } from '/game/components/Map.js'
+import { State } from '/game/engine/State.js'
+import { Enemy } from '/game/components/Enemy.js'
+import { UI } from '/game/components/Ui.js'
 
 export class SoloGameEngine {
     static #instance = null
