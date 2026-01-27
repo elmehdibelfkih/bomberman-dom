@@ -157,7 +157,14 @@ export class Player {
             this.Down = false
             if (this.game.map.canPlayerMoveTo(this.x, this.y + this.game.state.getPlayerSpeed())) {
                 this.direction = 'walkingDown'
-                if (!this.game.map.canPlayerMoveTo(this.x, this.y) || !this.game.map.canPlayerMoveTo(this.x, this.y + this.game.state.getPlayerSpeed())) this.x -= 7
+                console.log(this.game.map.canPlayerMoveTo(this.x, this.y));
+                console.log(this.game.map.canPlayerMoveTo(this.x, this.y + this.game.state.getPlayerSpeed()));
+                
+                if (!this.game.map.canPlayerMoveTo(this.x, this.y) || !this.game.map.canPlayerMoveTo(this.x, this.y + this.game.state.getPlayerSpeed())) {
+                    console.log("hani dkhat l hna");
+                    
+                    this.x -= 7
+                }
                 this.y += this.game.state.getPlayerSpeed()
                 this.movement = true
             } else {

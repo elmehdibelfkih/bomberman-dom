@@ -265,9 +265,13 @@ export class OnlinePlayer {
     up(game) {
         if (this.state.isArrowUp() || this.Up) {
             this.Up = false;
-            const { width, height } = this.getPlayerDimensions();
+            let width = this.getPlayerWidth();
+            let height = this.getPlayerHeight();
+
             if (game.map.canPlayerMoveTo(this.x, this.y - this.speed, width, height)) {
                 this.direction = 'walkingUp';
+                width = this.getPlayerWidth();
+                height = this.getPlayerHeight();
                 if (!game.map.canPlayerMoveTo(this.x, this.y, width, height) || !game.map.canPlayerMoveTo(this.x, this.y - this.speed, width, height)) this.x -= 7;
                 this.y -= this.speed;
                 this.movement = true;
@@ -276,7 +280,7 @@ export class OnlinePlayer {
                     this.networkManager.sendPlayerMove("UP", this.sequenceNumber);
                 }
             } else {
-                const frameWidth = this.getPlayerDimensions().width;
+                const frameWidth = this.getPlayerWidth();
                 const blockSize = game.map.level.block_size;
                 let xMap = Math.floor((this.x - 10) / blockSize);
                 let yMap = Math.floor(this.y / blockSize);
@@ -290,12 +294,15 @@ export class OnlinePlayer {
     down(game) {
         if (this.state.isArrowDown() || this.Down) {
             this.Down = false;
-            const { width, height } = this.getPlayerDimensions();
+            let width = this.getPlayerWidth();
+            let height = this.getPlayerHeight();
+
             if (game.map.canPlayerMoveTo(this.x, this.y + this.speed, width, height)) {
                 this.direction = 'walkingDown';
+                width = this.getPlayerWidth();
+                height = this.getPlayerHeight();
                 if (!game.map.canPlayerMoveTo(this.x, this.y, width, height) || !game.map.canPlayerMoveTo(this.x, this.y + this.speed, width, height)) {
-                    
-                    this.x -= 7;
+                    this.x -= 7
                 }
                 this.y += this.speed;
                 this.movement = true;
@@ -304,7 +311,8 @@ export class OnlinePlayer {
                     this.networkManager.sendPlayerMove("DOWN", this.sequenceNumber);
                 }
             } else {
-                const { width, height } = this.getPlayerDimensions();
+                const width = this.getPlayerWidth();
+                const height = this.getPlayerHeight();
                 const blockSize = game.map.level.block_size;
                 let xMap = Math.floor((this.x - 10) / blockSize);
                 let yMap = Math.floor((this.y + height) / blockSize);
@@ -318,7 +326,8 @@ export class OnlinePlayer {
     left(game) {
         if (this.state.isArrowLeft() || this.Left) {
             this.Left = false;
-            const { width, height } = this.getPlayerDimensions();
+            const width = this.getPlayerWidth();
+            const height = this.getPlayerHeight();
             if (game.map.canPlayerMoveTo(this.x - this.speed, this.y, width, height)) {
                 this.direction = 'walkingLeft';
                 this.x -= this.speed;
@@ -328,7 +337,7 @@ export class OnlinePlayer {
                     this.networkManager.sendPlayerMove("LEFT", this.sequenceNumber);
                 }
             } else {
-                const { height } = this.getPlayerDimensions();
+                const height = this.getPlayerHeight();
                 const blockSize = game.map.level.block_size;
                 let xMap = Math.floor(this.x / blockSize);
                 let yMap = Math.floor(this.y / blockSize);
@@ -342,7 +351,8 @@ export class OnlinePlayer {
     right(game) {
         if (this.state.isArrowRight() || this.Right) {
             this.Right = false;
-            const { width, height } = this.getPlayerDimensions();
+            const width = this.getPlayerWidth();
+            const height = this.getPlayerHeight();
             if (game.map.canPlayerMoveTo(this.x + this.speed, this.y, width, height)) {
                 this.direction = 'walkingRight';
                 this.x += this.speed;
@@ -352,7 +362,8 @@ export class OnlinePlayer {
                     this.networkManager.sendPlayerMove("RIGHT", this.sequenceNumber);
                 }
             } else {
-                const { width, height } = this.getPlayerDimensions();
+                const width = this.getPlayerWidth();
+                const height = this.getPlayerHeight();
                 const blockSize = game.map.level.block_size;
                 let xMap = Math.floor((this.x + width) / blockSize);
                 let yMap = Math.floor(this.y / blockSize);
@@ -363,10 +374,8 @@ export class OnlinePlayer {
         }
     }
 
-    getPlayerDimensions() {
-        if (!this.playerCoordinate || !this.frame) return { width: 30, height: 40 }; // fallback
-        return { width: this.frame.width ?? 30, height: this.frame.height ?? 40 };
-    }
+    getPlayerHeight = () => this.playerCoordinate[this.direction][this.frameIndex]?.height ?? 40
+    getPlayerWidth = () => this.playerCoordinate[this.direction][this.frameIndex]?.width ?? 30
 
     remove() {
         this.state.removeListeners();
