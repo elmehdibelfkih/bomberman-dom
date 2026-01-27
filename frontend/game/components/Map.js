@@ -79,15 +79,16 @@ export class Map {
         this.bonusArray[randomIndex](x, y, container[0])
     }
 
-    canPlayerMoveTo(x, y) {
+    canPlayerMoveTo(x, y, width = null, height = null) {
         const blockSize = this.level.block_size;
-        const width = this.game.player.getPlayerWidth();
-        const height = this.game.player.getPlayerHeight();
+        // Use provided width/height or get from player (for solo mode)
+        const w = width !== null ? width : this.game.player.getPlayerWidth();
+        const h = height !== null ? height : this.game.player.getPlayerHeight();
         const corners = [
             [x, y],
-            [x + width, y],
-            [x, y + height],
-            [x + width, y + height]
+            [x + w, y],
+            [x, y + h],
+            [x + w, y + h]
         ];
         for (const [cx, cy] of corners) {
             const gridX = Math.floor(cx / blockSize);

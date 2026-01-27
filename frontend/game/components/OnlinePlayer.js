@@ -265,9 +265,10 @@ export class OnlinePlayer {
     up(game) {
         if (this.state.isArrowUp() || this.Up) {
             this.Up = false;
-            if (this.canPlayerMoveTo(game, this.x, this.y - this.speed)) {
+            const { width, height } = this.getPlayerDimensions();
+            if (game.map.canPlayerMoveTo(this.x, this.y - this.speed, width, height)) {
                 this.direction = 'walkingUp';
-                if (!this.canPlayerMoveTo(game, this.x, this.y) || !this.canPlayerMoveTo(game, this.x, this.y - this.speed)) this.x -= 7;
+                if (!game.map.canPlayerMoveTo(this.x, this.y, width, height) || !game.map.canPlayerMoveTo(this.x, this.y - this.speed, width, height)) this.x -= 7;
                 this.y -= this.speed;
                 this.movement = true;
                 if (this.isLocal) {
@@ -275,28 +276,24 @@ export class OnlinePlayer {
                     this.networkManager.sendPlayerMove("UP", this.sequenceNumber);
                 }
             } else {
-
                 const frameWidth = this.getPlayerDimensions().width;
                 const blockSize = game.map.level.block_size;
                 let xMap = Math.floor((this.x - 10) / blockSize);
                 let yMap = Math.floor(this.y / blockSize);
-                if (this.isFreeSpaceInGrid(game, xMap, yMap - 1) && !this.state.isArrowRight()) { this.Left = true; return; }
+                if (game.map.isFreeSpaceInGrid(xMap, yMap - 1) && !this.state.isArrowRight()) { this.Left = true; return; }
                 xMap = Math.floor((this.x + frameWidth + 10) / blockSize);
-                if (this.isFreeSpaceInGrid(game, xMap, yMap - 1) && !this.state.isArrowLeft()) { this.Right = true; return; }
+                if (game.map.isFreeSpaceInGrid(xMap, yMap - 1) && !this.state.isArrowLeft()) { this.Right = true; return; }
             }
         }
     }
 
     down(game) {
-        
         if (this.state.isArrowDown() || this.Down) {
             this.Down = false;
-            console.log("hani dkhalt l down");
-            if (this.canPlayerMoveTo(game, this.x, this.y + this.speed)) {
-                console.log("can9ad nt7arak l blasa")
+            const { width, height } = this.getPlayerDimensions();
+            if (game.map.canPlayerMoveTo(this.x, this.y + this.speed, width, height)) {
                 this.direction = 'walkingDown';
-                if (!this.canPlayerMoveTo(game, this.x, this.y) || !this.canPlayerMoveTo(game, this.x, this.y + this.speed)) {
-                    console.log("hani hna");
+                if (!game.map.canPlayerMoveTo(this.x, this.y, width, height) || !game.map.canPlayerMoveTo(this.x, this.y + this.speed, width, height)) {
                     
                     this.x -= 7;
                 }
@@ -311,9 +308,9 @@ export class OnlinePlayer {
                 const blockSize = game.map.level.block_size;
                 let xMap = Math.floor((this.x - 10) / blockSize);
                 let yMap = Math.floor((this.y + height) / blockSize);
-                if (this.isFreeSpaceInGrid(game, xMap, yMap + 1) && !this.state.isArrowRight()) { this.Left = true; return; }
+                if (game.map.isFreeSpaceInGrid(xMap, yMap + 1) && !this.state.isArrowRight()) { this.Left = true; return; }
                 xMap = Math.floor((this.x + width + 10) / blockSize);
-                if (this.isFreeSpaceInGrid(game, xMap, yMap + 1) && !this.state.isArrowLeft()) { this.Right = true; return; }
+                if (game.map.isFreeSpaceInGrid(xMap, yMap + 1) && !this.state.isArrowLeft()) { this.Right = true; return; }
             }
         }
     }
@@ -321,7 +318,8 @@ export class OnlinePlayer {
     left(game) {
         if (this.state.isArrowLeft() || this.Left) {
             this.Left = false;
-            if (this.canPlayerMoveTo(game, this.x - this.speed, this.y)) {
+            const { width, height } = this.getPlayerDimensions();
+            if (game.map.canPlayerMoveTo(this.x - this.speed, this.y, width, height)) {
                 this.direction = 'walkingLeft';
                 this.x -= this.speed;
                 this.movement = true;
@@ -334,9 +332,9 @@ export class OnlinePlayer {
                 const blockSize = game.map.level.block_size;
                 let xMap = Math.floor(this.x / blockSize);
                 let yMap = Math.floor(this.y / blockSize);
-                if (this.isFreeSpaceInGrid(game, xMap - 1, yMap) && !this.state.isArrowDown()) { this.Up = true; return; }
+                if (game.map.isFreeSpaceInGrid(xMap - 1, yMap) && !this.state.isArrowDown()) { this.Up = true; return; }
                 yMap = Math.floor((this.y + height) / blockSize);
-                if (this.isFreeSpaceInGrid(game, xMap - 1, yMap) && !this.state.isArrowUp()) { this.Down = true; return; }
+                if (game.map.isFreeSpaceInGrid(xMap - 1, yMap) && !this.state.isArrowUp()) { this.Down = true; return; }
             }
         }
     }
@@ -344,7 +342,8 @@ export class OnlinePlayer {
     right(game) {
         if (this.state.isArrowRight() || this.Right) {
             this.Right = false;
-            if (this.canPlayerMoveTo(game, this.x + this.speed, this.y)) {
+            const { width, height } = this.getPlayerDimensions();
+            if (game.map.canPlayerMoveTo(this.x + this.speed, this.y, width, height)) {
                 this.direction = 'walkingRight';
                 this.x += this.speed;
                 this.movement = true;
@@ -357,37 +356,11 @@ export class OnlinePlayer {
                 const blockSize = game.map.level.block_size;
                 let xMap = Math.floor((this.x + width) / blockSize);
                 let yMap = Math.floor(this.y / blockSize);
-                if (this.isFreeSpaceInGrid(game, xMap + 1, yMap) && !this.state.isArrowDown()) { this.Up = true; return; }
+                if (game.map.isFreeSpaceInGrid(xMap + 1, yMap) && !this.state.isArrowDown()) { this.Up = true; return; }
                 yMap = Math.floor((this.y + height) / blockSize);
-                if (this.isFreeSpaceInGrid(game, xMap + 1, yMap) && !this.state.isArrowUp()) { this.Down = true; return; }
+                if (game.map.isFreeSpaceInGrid(xMap + 1, yMap) && !this.state.isArrowUp()) { this.Down = true; return; }
             }
         }
-    }
-
-    canPlayerMoveTo(game, x, y) {
-        const blockSize = game.map.level.block_size;
-        const { width, height } = this.getPlayerDimensions();
-        const corners = [
-            [x, y],
-            [x + width, y],
-            [x, y + height],
-            [x + width, y + height]
-        ];
-        for (const [cx, cy] of corners) {
-            const gridX = Math.floor(cx / blockSize);
-            const gridY = Math.floor(cy / blockSize);
-            if (!this.isFreeSpaceInGrid(game, gridX, gridY)) return false
-        }
-        return true;
-    }
-
-    isFreeSpaceInGrid(game, x, y) {
-        const grid = game.map.level.initial_grid;
-        if (!grid || !grid[y] || grid[y][x] === undefined) {
-            return false;
-        }
-        const cell = grid[y][x];
-        return cell !== consts.WALL && cell !== consts.BLOCK;
     }
 
     getPlayerDimensions() {
