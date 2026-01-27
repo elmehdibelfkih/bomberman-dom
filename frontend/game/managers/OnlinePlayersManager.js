@@ -128,7 +128,6 @@ export class MultiplayerPlayerManager {
         const player = this.players.get(data.playerId);
         if (!player || player.isLocal) return;
 
-        console.log("2", data);
         player.updateStateFromServer(data);
     }
 
@@ -136,7 +135,6 @@ export class MultiplayerPlayerManager {
         const localPlayer = this.players.get(this.localPlayerId);
         if (!localPlayer) return;
 
-        console.log("1", data)
         localPlayer.reconcileWithServer(data, this.networkManager);
     }
 

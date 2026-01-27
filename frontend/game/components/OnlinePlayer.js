@@ -35,7 +35,10 @@ export class OnlinePlayer {
 
         // Client-side prediction for local player
         if (this.isLocal) {
-            this.sequenceNumber = 0;
+            this.state.onMovementStopped = () => {
+                this.sequenceNumber = (this.sequenceNumber || 0) + 1;
+                this.networkManager.sendPlayerStop(this.sequenceNumber)
+            }
             this.pendingMoves = [];
         }
     }
@@ -83,6 +86,7 @@ export class OnlinePlayer {
     }
 
     handleRemotePlayerAnimation(timestamp) {
+        console.log('REMOTE - direction:', this.direction, 'frameIndex:', this.frameIndex);
         if (this.movement) {
             const delta = timestamp - this.lastTime;
             if (delta >= this.MS_PER_FRAME) {
@@ -99,6 +103,7 @@ export class OnlinePlayer {
     }
 
     movePlayer(timestamp, game) {
+        console.log('LOCAL - direction:', this.direction, 'frameIndex:', this.frameIndex);
         if (!this.alive || this.dying) return;
 
         this.movement = false;
@@ -122,6 +127,7 @@ export class OnlinePlayer {
             this.frameIndex = (this.frameIndex + 1) % this.playerCoordinate[this.direction].length;
             this.animate = true;
         }
+
     }
 
     render() {
@@ -156,15 +162,9 @@ export class OnlinePlayer {
         const dx = this.x - oldX;
         const dy = this.y - oldY;
 
-        if (Math.abs(dx) > Math.abs(dy)) {
-            if (dx > 0.01) this.direction = 'walkingRight';
-            else if (dx < -0.01) this.direction = 'walkingLeft';
-        } else if (Math.abs(dy) > 0.01) {
-            if (dy > 0.01) this.direction = 'walkingDown';
-            else if (dy < -0.01) this.direction = 'walkingUp';
-        }
+        this.direction = "walking" + serverData.direction.charAt(0) + serverData.direction.slice(1).toLowerCase();
 
-        if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) {
+        if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
             this.movement = true;
             // Update remote player state to simulate movement
             if (!this.isLocal) {

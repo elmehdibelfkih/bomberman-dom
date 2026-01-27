@@ -85,7 +85,9 @@ export class GameEngine {
 
         const message = MessageBuilder.playerStopped(playerId, sequenceNumber)
 
-        this.gameRoom.broadcast(message, playerId)
+        this.gameRoom.broadcast(message)
+
+        return true;
     }
 
     processPlaceBomb(playerId) {

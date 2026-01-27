@@ -9,11 +9,11 @@ export function setupMultiplayerSync(game, networkManager) {
     if (!game.stateSynchronizer) {
         game.stateSynchronizer = new NetworkStateSynchronizer(game, networkManager);
     }
-    
+
     // Initialize chat notifications
     const chatNotification = ChatNotification.getInstance();
     chatNotification.showChatHelp();
-    
+
     // Handle full game state - use synchronizer
     networkManager.on('FULL_STATE', (data) => {
         game.stateSynchronizer.handleFullState(data);
@@ -24,10 +24,20 @@ export function setupMultiplayerSync(game, networkManager) {
         if (data.playerId === networkManager.getPlayerId()) {
             game.playerManager.reconcileLocalPlayer(data);
         } else {
-            console.log("Hello2")
             game.playerManager.updateRemotePlayer(data);
         }
     });
+
+    networkManager.on('PLAYER_STOPPED', (data) => {
+        const player = game.playerManager.players.get(data.playerId);
+        if (player) {
+            player.movement = false;
+            if (player.direction.includes("walking")) {
+                player.direction = player.direction.replace("walking", '');
+            }
+        }
+    });
+
 
     // Handle bomb placement
     networkManager.on('BOMB_PLACED', (data) => {
