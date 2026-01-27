@@ -288,11 +288,18 @@ export class OnlinePlayer {
     }
 
     down(game) {
+        
         if (this.state.isArrowDown() || this.Down) {
             this.Down = false;
+            console.log("hani dkhalt l down");
             if (this.canPlayerMoveTo(game, this.x, this.y + this.speed)) {
+                console.log("can9ad nt7arak l blasa")
                 this.direction = 'walkingDown';
-                if (!this.canPlayerMoveTo(game, this.x, this.y) || !this.canPlayerMoveTo(game, this.x, this.y + this.speed)) this.x -= 7;
+                if (!this.canPlayerMoveTo(game, this.x, this.y) || !this.canPlayerMoveTo(game, this.x, this.y + this.speed)) {
+                    console.log("hani hna");
+                    
+                    this.x -= 7;
+                }
                 this.y += this.speed;
                 this.movement = true;
                 if (this.isLocal) {
