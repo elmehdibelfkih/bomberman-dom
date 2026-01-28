@@ -86,7 +86,6 @@ export class OnlinePlayer {
     }
 
     handleRemotePlayerAnimation(timestamp) {
-        console.log('REMOTE - direction:', this.direction, 'frameIndex:', this.frameIndex);
         if (this.movement) {
             const delta = timestamp - this.lastTime;
             if (delta >= this.MS_PER_FRAME) {
@@ -103,7 +102,6 @@ export class OnlinePlayer {
     }
 
     movePlayer(timestamp, game) {
-        console.log('LOCAL - direction:', this.direction, 'frameIndex:', this.frameIndex);
         if (!this.alive || this.dying) return;
 
         this.movement = false;
@@ -263,30 +261,15 @@ export class OnlinePlayer {
     }
 
     up(game) {
-        if (this.state.isArrowUp() || this.Up) {
-            this.Up = false;
-            let width = this.getPlayerWidth();
-            let height = this.getPlayerHeight();
+        if (this.state.isArrowUp()) {
+            if (this.isLocal) {
+                // Let server handle all movement validation and correction
+                this.sequenceNumber = (this.sequenceNumber || 0) + 1;
+                this.networkManager.sendPlayerMove("UP", this.sequenceNumber);
 
-            if (game.map.canPlayerMoveTo(this.x, this.y - this.speed, width, height)) {
+                // Optimistic prediction: assume move succeeds
                 this.direction = 'walkingUp';
-                width = this.getPlayerWidth();
-                height = this.getPlayerHeight();
-                if (!game.map.canPlayerMoveTo(this.x, this.y, width, height) || !game.map.canPlayerMoveTo(this.x, this.y - this.speed, width, height)) this.x -= 7;
-                this.y -= this.speed;
                 this.movement = true;
-                if (this.isLocal) {
-                    this.sequenceNumber++
-                    this.networkManager.sendPlayerMove("UP", this.sequenceNumber);
-                }
-            } else {
-                const frameWidth = this.getPlayerWidth();
-                const blockSize = game.map.level.block_size;
-                let xMap = Math.floor((this.x - 10) / blockSize);
-                let yMap = Math.floor(this.y / blockSize);
-                if (game.map.isFreeSpaceInGrid(xMap, yMap - 1) && !this.state.isArrowRight()) { this.Left = true; return; }
-                xMap = Math.floor((this.x + frameWidth + 10) / blockSize);
-                if (game.map.isFreeSpaceInGrid(xMap, yMap - 1) && !this.state.isArrowLeft()) { this.Right = true; return; }
             }
         }
     }
@@ -299,6 +282,10 @@ export class OnlinePlayer {
 
             if (game.map.canPlayerMoveTo(this.x, this.y + this.speed, width, height)) {
                 this.direction = 'walkingDown';
+                if (this.isLocal) {
+                    this.sequenceNumber++
+                    this.networkManager.sendPlayerMove("DOWN", this.sequenceNumber);
+                }
                 width = this.getPlayerWidth();
                 height = this.getPlayerHeight();
                 if (!game.map.canPlayerMoveTo(this.x, this.y, width, height) || !game.map.canPlayerMoveTo(this.x, this.y + this.speed, width, height)) {
@@ -306,10 +293,6 @@ export class OnlinePlayer {
                 }
                 this.y += this.speed;
                 this.movement = true;
-                if (this.isLocal) {
-                    this.sequenceNumber++
-                    this.networkManager.sendPlayerMove("DOWN", this.sequenceNumber);
-                }
             } else {
                 const width = this.getPlayerWidth();
                 const height = this.getPlayerHeight();
