@@ -1,5 +1,6 @@
 import * as consts from '../utils/consts.js';
 import * as helpers from '../utils/helpers.js';
+import { dom } from '../../framework/framwork/index.js';
 
 
 export class Player {
@@ -13,10 +14,14 @@ export class Player {
     async initPlayer() {
         this.playerCoordinate = await fetch(`../assets/playerCoordinate.json`).then(res => res.json())
         if (this.player) this.game.grid.removeChild(this.player)
-        this.player = document.createElement("div")
-        this.player.className = 'player';
         this.dyingSound = new Audio(this.game.map.level.dying_sound);
-        this.player.appendChild(this.dyingSound)
+        this.player = dom({
+            tag: 'div',
+            attributes: {
+                class: 'player'
+            }
+        });
+        this.player.appendChild(this.dyingSound);
         this.game.map.grid.appendChild(this.player)
         await this.initClassData()
         this.canPutBomb = true
@@ -66,13 +71,19 @@ export class Player {
                 console.error("Playback failed:", err);
             });
             this.lastTimeDying = timestamp
-            this.exp = document.createElement("img")
-            this.game.map.grid.appendChild(this.exp)
-            this.exp.style.position = "absolute";
-            this.exp.style.transform = `translate(${(this.x - 20)}px, ${this.y}px)`;
             const expSize = 64;
-            this.exp.style.width = `${expSize}px`;
-            this.exp.style.height = `${expSize}px`;
+            this.exp = dom({
+                tag: 'img',
+                attributes: {
+                    style: `
+                        position: absolute;
+                        transform: translate(${(this.x - 20)}px, ${this.y}px);
+                        width: ${expSize}px;
+                        height: ${expSize}px;
+                    `
+                }
+            })
+            this.game.map.grid.appendChild(this.exp)
             this.explosionFrameIndex = 0
             this.explosionImg = this.game.map.level.player_explosion_img
             this.renderExp = true

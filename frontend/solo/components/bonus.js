@@ -1,3 +1,5 @@
+import { dom } from '../../framework/framwork/index.js'
+
 export class Bonus {
     constructor(game, x, y, level, id, name) {
         this.game = game
@@ -26,7 +28,6 @@ export class Bonus {
                 break;
             case 'heart':
                 this.addLive()
-                this.showTimeEffect()
                 this.showLiveEffect()
                 break;
             default:
@@ -51,10 +52,13 @@ export class Bonus {
     }
 
     showSpeedEffect() {
-        const effect = document.createElement("div");
-        effect.className = "speed-effect";
-        effect.style.left = `${this.x}px`;
-        effect.style.top = `${this.y}px`;
+        const effect = dom({
+            tag: 'div',
+            attributes: {
+                class: 'speed-effect',
+                style: `left: ${this.x}px; top: ${this.y}px;`
+            }
+        });
         this.game.map.grid.appendChild(effect);
         const id = setTimeout(() => effect.remove(), 500);
         this.activeTiming.push(id);
@@ -62,10 +66,13 @@ export class Bonus {
     }
 
     showTimeEffect() {
-        const effect = document.createElement("div");
-        effect.className = "time-effect";
-        effect.style.left = `${this.x}px`;
-        effect.style.top = `${this.y}px`;
+        const effect = dom({
+            tag: 'div',
+            attributes: {
+                class: 'time-effect',
+                style: `left: ${this.x}px; top: ${this.y}px;`
+            }
+        });
         this.game.map.grid.appendChild(effect);
         const id = setTimeout(() => effect.remove(), 500);
         this.activeTiming.push(id);
@@ -73,10 +80,13 @@ export class Bonus {
     }
 
     showLiveEffect() {
-        const effect = document.createElement("div");
-        effect.className = "heart-effect";
-        effect.style.left = `${this.x}px`;
-        effect.style.top = `${this.y}px`;
+        const effect = dom({
+            tag: 'div',
+            attributes: {
+                class: 'heart-effect',
+                style: `left: ${this.x}px; top: ${this.y}px;`
+            }
+        });
         this.game.map.grid.appendChild(effect);
         const id = setTimeout(() => effect.remove(), 500);
         this.activeTiming.push(id);

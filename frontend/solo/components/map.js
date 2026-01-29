@@ -1,5 +1,5 @@
 import * as consts from '../utils/consts.js';
-import { dom } from '../../framework/framwork/index.js';
+import { dom, eventManager } from '../../framework/framwork/index.js';
 import { Bomb } from "./bomb.js";
 import { Enemy } from "./enemy.js";
 import { Bonus } from './bonus.js';
@@ -312,11 +312,11 @@ export class Map {
             this.backGroundMusic.play().catch(err => {
                 console.error("Playback failed:", err);
             });
-            document.body.removeEventListener('click', playMusic);
-            document.body.removeEventListener('keydown', playMusic);
+            eventManager.linkNodeToHandlers(document.body, 'click', null);
+            eventManager.linkNodeToHandlers(document.body, 'keydown', null);
         };
-        document.body.addEventListener('click', playMusic);
-        document.body.addEventListener('keydown', playMusic);
+        eventManager.linkNodeToHandlers(document.body, 'click', playMusic);
+        eventManager.linkNodeToHandlers(document.body, 'keydown', playMusic);
         this.game.state.updateSoundIcon();
     }
 

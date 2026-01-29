@@ -1,22 +1,40 @@
+import { dom } from "../../framework/framwork/index.js";
+
 export class Scoreboard {
 
     constructor(game) {
         this.game = game
-        let ScoreBoard = document.createElement("div")
-        ScoreBoard.id = "ScoreBoard"
-        document.body.appendChild(ScoreBoard)
-        this.lives = document.createElement("span")
-        this.lives.innerText = "lives: " + "❤️".repeat(game.state.getLives())
-        ScoreBoard.appendChild(this.lives)
-        this.score = document.createElement("span")
-        this.score.innerText = `score: ${game.state.getScore()}`
-        ScoreBoard.appendChild(this.score)
-        this.level = document.createElement("span")
-        this.level.innerText = `level: ${game.state.getLevel()}`
-        ScoreBoard.appendChild(this.level)
-        this.timer = document.createElement("span")
-        this.timer.innerText = "timer: "
-        ScoreBoard.appendChild(this.timer)
+        const ScoreBoard = dom({
+            tag: 'div',
+            attributes: {
+                id: "ScoreBoard"
+            }
+        });
+        document.body.appendChild(ScoreBoard);
+
+        this.lives = dom({
+            tag: 'span'
+        });
+        this.lives.innerText = "lives: " + "❤️".repeat(game.state.getLives());
+        ScoreBoard.appendChild(this.lives);
+
+        this.score = dom({
+            tag: 'span'
+        });
+        this.score.innerText = `score: ${game.state.getScore()}`;
+        ScoreBoard.appendChild(this.score);
+
+        this.level = dom({
+            tag: 'span'
+        });
+        this.level.innerText = `level: ${game.state.getLevel()}`;
+        ScoreBoard.appendChild(this.level);
+
+        this.timer = dom({
+            tag: 'span'
+        });
+        this.timer.innerText = "timer: ";
+        ScoreBoard.appendChild(this.timer);
     }
 
     initScoreBaord() {
