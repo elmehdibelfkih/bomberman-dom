@@ -1,4 +1,5 @@
 import * as helpers from '../utils/helpers.js';
+import { eventManager } from '../../framework/framwork/index.js';
 export class State {
 
     #CURRENT_LEVEL = 1
@@ -116,9 +117,9 @@ export class State {
     }
 
     initArrowState() {
-        document.getElementById('ref').addEventListener('click', this._throttledRestar);
-        document.getElementById('star_pause').addEventListener('click', this._boundTransfer)
-        document.getElementById('sound').addEventListener('click', this._boundSwitch)
+        eventManager.linkNodeToHandlers(document.getElementById('ref'), 'click', this._throttledRestar);
+        eventManager.linkNodeToHandlers(document.getElementById('star_pause'), 'click', this._boundTransfer);
+        eventManager.linkNodeToHandlers(document.getElementById('sound'), 'click', this._boundSwitch);
         document.addEventListener('keydown', this._boundKeyDown)
         document.addEventListener('keyup', this._boundKeyUp)
     }
@@ -187,9 +188,9 @@ export class State {
     }
 
     removeEventListeners() {
-        document.getElementById('ref')?.removeEventListener('click', this._throttledRestar);
-        document.getElementById('star_pause')?.removeEventListener('click', this._boundTransfer);
-        document.getElementById('sound')?.removeEventListener('click', this._boundSwitch);
+        eventManager.linkNodeToHandlers(document.getElementById('ref'), 'click', null);
+        eventManager.linkNodeToHandlers(document.getElementById('star_pause'), 'click', null);
+        eventManager.linkNodeToHandlers(document.getElementById('sound'), 'click', null);
         document.removeEventListener('keydown', this._boundKeyDown);
         document.removeEventListener('keyup', this._boundKeyUp);
     }

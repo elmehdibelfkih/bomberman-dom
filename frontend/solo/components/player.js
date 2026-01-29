@@ -27,7 +27,6 @@ export class Player {
         this.canPutBomb = true
         document.addEventListener('keydown', (event) => event.key === ' ' ? this.putBomb = true : 0)
         document.addEventListener('keyup', (event) => event.key === ' ' ? this.canPutBomb = true : 0)
-
     }
 
     async initClassData() {
