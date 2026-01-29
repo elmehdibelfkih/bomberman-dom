@@ -79,12 +79,13 @@ export class Game {
         this.scoreboard.updateLives()
         this.scoreboard.updateScore()
         this.map.enemys = []
-        this.map.Booms = []
+        this.map.bombs = []
         this.player.removeplayer()
-        this.map.destructeur()
+        this.map.destructor()
         this.state.removeEventListeners();
         this.state = State.getInstance(this)
         this.state.initArrowState();
+        Map.instance = null
         this.map = Map.getInstance(this)
         this.player = Player.getInstance(this)
         await this.map.initMap()
@@ -107,14 +108,14 @@ export class Game {
         this.scoreboard.updateLives();
         this.scoreboard.updateScore();
         this.map.enemys = [];
-        this.map.Booms = [];
+        this.map.bombs = [];
         this.player.removeplayer();
-        this.map.destructeur();
+        this.map.destructor();
         this.state.removeEventListeners();
         this.state.initArrowState();
         this.state.nextLevel();
         this.scoreboard.updateLevel();
-        this.map = null
+        Map.instance = null
         this.map = Map.getInstance(this);
         this.player = Player.getInstance(this);
         await this.map.initMap();
@@ -143,15 +144,15 @@ export class Game {
         this.scoreboard.updateLives();
         this.scoreboard.updateScore();
         this.map.enemys = [];
-        this.map.Booms = [];
+        this.map.bombs = [];
         this.player.removeplayer();
-        this.map.destructeur();
+        this.map.destructor();
         this.state.removeEventListeners();
         this.state = State.getInstance(this);
         this.state.initArrowState();
         this.state.resetLevel();
         this.scoreboard.updateLevel();
-        this.map = null
+        Map.instance = null
         this.map = Map.getInstance(this);
         this.player = Player.getInstance(this);
         await this.map.initMap();
@@ -159,7 +160,7 @@ export class Game {
         await this.waitForLevel();
         this.state.stopTimer();
         this.state.resetTimer();
-        this.state.setTime(map.level.level_time);
+        this.state.setTime(this.map.level.level_time);
         this.state.startTimer();
         this.stateofrest = false;
         this.levelComplete = false;
