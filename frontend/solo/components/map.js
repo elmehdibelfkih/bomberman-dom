@@ -33,8 +33,8 @@ export class Map {
     static getInstance = (game) => Map.instance ? Map.instance : new Map(game)
 
     async initMap() {
-        this.level = await fetch(`assets/maps/level${this.game.state.getLevel()}.json`).then(res => res.json());
-        this.enemyCordination = await fetch(`assets/enemycordinate.json`).then(res => res.json())
+        this.level = await fetch(`../assets/maps/level${this.game.state.getLevel()}.json`).then(res => res.json());
+        this.enemyCordination = await fetch(`../assets/enemycordinate.json`).then(res => res.json());
         this.initGrid()
         this.initAudios()
     }

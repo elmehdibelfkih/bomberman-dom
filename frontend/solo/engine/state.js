@@ -95,7 +95,7 @@ export class State {
     }
 
     updateSoundIcon = () => {
-        const ic = document.getElementById('Icon');
+        const ic = document.getElementById('volume-icon');
         if (!ic) return;
         ic.src = this.#SOUND ? './icon/volume-2.svg' : './icon/volume-x.svg';
     };
@@ -135,7 +135,7 @@ export class State {
         }
     }
     updatePauseIcon = () => {
-        const icon = document.getElementById('icon');
+        const icon = document.getElementById('play-icon');
         if (!icon) return;
         if (!this.#PAUSE) {
             icon.src = './icon/pause.svg';
@@ -173,7 +173,7 @@ export class State {
     };
 
     switch() {
-        const ic = document.getElementById('Icon')
+        const ic = document.getElementById('volume-icon')
         if (!this.game.map.backGroundMusic) return;
         if (this.#SOUND) {
             ic.src = './icon/volume-x.svg'
