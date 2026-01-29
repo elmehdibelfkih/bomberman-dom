@@ -1,7 +1,7 @@
 export const GAME_CONFIG = {
-    GRID_WIDTH: 15,
-    GRID_HEIGHT: 11,
-    BLOCK_SIZE: 68,
+    GRID_WIDTH: 32,
+    GRID_HEIGHT: 20,
+    BLOCK_SIZE: 32,
     BOMB_TIMER: 3000,
     EXPLOSION_DURATION: 1000,
     POWERUP_SPAWN_CHANCE: 0.5,
@@ -10,8 +10,8 @@ export const GAME_CONFIG = {
     COUNTDOWN_TIMER: 1000,
     SPAWN_POSITIONS: [
         { x: 1, y: 1, corner: 'top-left' },
-        { x: 13, y: 1, corner: 'top-right' },
-        { x: 1, y: 9, corner: 'bottom-left' },
-        { x: 13, y: 9, corner: 'bottom-right' }
+        { x: 30, y: 1, corner: 'top-right' },
+        { x: 1, y: 18, corner: 'bottom-left' },
+        { x: 30, y: 18, corner: 'bottom-right' }
     ]
 };

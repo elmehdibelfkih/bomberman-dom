@@ -35,40 +35,36 @@ export class OnlinePlayer {
 
         // Client-side prediction for local player
         if (this.isLocal) {
-            this.state.onMovementStopped = () => {
-                this.sequenceNumber = (this.sequenceNumber || 0) + 1;
-                this.networkManager.sendPlayerStop(this.sequenceNumber)
-            }
             this.pendingMoves = [];
+            this.sequenceNumber = 0;
         }
     }
 
     async init() {
-        this.playerCoordinate = await fetch('/game/assets/playerCoordinate.json').then(res => res.json());
         this.createPlayerElement();
         this.state.initListeners();
+        if (this.isLocal) {
+            this._boundBombKey = this.handleBombKey.bind(this);
+            document.body.addEventListener('keydown', this._boundBombKey);
+        }
     }
 
     createPlayerElement() {
-        this.frame = this.playerCoordinate[this.direction][this.frameIndex];
-        const playerClass = this.isLocal ? 'local-player' : 'remote-player';
-
+        const blockSize = 32;
         this.element = dom({
             tag: 'div',
             attributes: {
-                class: playerClass,
+                class: this.isLocal ? 'local-player' : 'remote-player',
                 id: `player-${this.playerId}`,
                 style: `position: absolute; 
-                        width: ${this.frame.width}px;
-                        height: ${this.frame.height}px;
-                        background: url('${this.playerImage}') no-repeat;
-                        image-rendering: pixelated;
+                        width: ${blockSize}px;
+                        height: ${blockSize}px;
+                        background-color: ${this.isLocal ? '#00ff00' : '#ff0000'};
                         transform: translate(${this.x}px, ${this.y}px);
                         z-index: 10;`
             },
             children: []
         });
-        this.element.style.backgroundPosition = `${this.frame.x} ${this.frame.y}`;
 
         const gridElement = document.getElementById('grid');
         if (gridElement) {
@@ -131,18 +127,8 @@ export class OnlinePlayer {
     }
 
     render() {
-        if (!this.element || !this.frame) return;
-
+        if (!this.element) return;
         this.element.style.transform = `translate(${this.x}px, ${this.y}px)`;
-
-        if (this.animate) {
-            const fx = parseFloat(this.frame.x);
-            const fy = parseFloat(this.frame.y);
-            this.element.style.width = `${this.frame.width}px`;
-            this.element.style.height = `${this.frame.height}px`;
-            this.element.style.backgroundPosition = `${fx}px ${fy}px`;
-            this.animate = false;
-        }
     }
 
     updateStateFromServer(serverData) {
@@ -334,11 +320,22 @@ export class OnlinePlayer {
         }
     }
 
+    handleBombKey(event) {
+        if (event.key === ' ' && this.canPlaceBomb) {
+            this.canPlaceBomb = false;
+            this.networkManager.sendPlaceBomb();
+            setTimeout(() => { this.canPlaceBomb = true; }, 200);
+        }
+    }
+
     getPlayerHeight = () => this.playerCoordinate[this.direction][this.frameIndex]?.height ?? 40
     getPlayerWidth = () => this.playerCoordinate[this.direction][this.frameIndex]?.width ?? 30
 
     remove() {
         this.state.removeListeners();
+        if (this.isLocal && this._boundBombKey) {
+            document.body.removeEventListener('keydown', this._boundBombKey);
+        }
         if (this.element && this.element.parentNode) {
             this.element.parentNode.removeChild(this.element);
         }

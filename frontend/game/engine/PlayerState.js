@@ -66,13 +66,22 @@ export class PlayerState {
     handleKeyDown(event) {
         const key = event.nativeEvent ? event.nativeEvent.key : event.key;
         
-        if (this.pressedKeys.has(key)) return;
-        this.pressedKeys.add(key);
-        
-        if (key === 'ArrowUp') this.arrowUp.set(true);
-        if (key === 'ArrowDown') this.arrowDown.set(true);
-        if (key === 'ArrowRight') this.arrowRight.set(true);
-        if (key === 'ArrowLeft') this.arrowLeft.set(true);
+        if (key === 'ArrowUp' && !this.pressedKeys.has(key)) {
+            this.pressedKeys.add(key);
+            this.arrowUp.set(true);
+        }
+        if (key === 'ArrowDown' && !this.pressedKeys.has(key)) {
+            this.pressedKeys.add(key);
+            this.arrowDown.set(true);
+        }
+        if (key === 'ArrowRight' && !this.pressedKeys.has(key)) {
+            this.pressedKeys.add(key);
+            this.arrowRight.set(true);
+        }
+        if (key === 'ArrowLeft' && !this.pressedKeys.has(key)) {
+            this.pressedKeys.add(key);
+            this.arrowLeft.set(true);
+        }
     }
 
     handleKeyUp(event) {
@@ -84,11 +93,6 @@ export class PlayerState {
         if (key === 'ArrowDown') this.arrowDown.set(false);
         if (key === 'ArrowRight') this.arrowRight.set(false);
         if (key === 'ArrowLeft') this.arrowLeft.set(false);
-
-        if (!this.arrowUp.get() && !this.arrowDown.get() &&
-            !this.arrowLeft.get() && !this.arrowRight.get()) {
-            this.onMovementStopped?.();
-        }
     }
 
     // For remote players - set direction from server
