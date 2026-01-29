@@ -265,112 +265,72 @@ export class OnlinePlayer {
     up(game) {
         if (this.state.isArrowUp() || this.Up) {
             this.Up = false;
-            let width = this.getPlayerWidth();
-            let height = this.getPlayerHeight();
-
-            if (game.map.canPlayerMoveTo(this.x, this.y - this.speed, width, height)) {
+            const newGridY = this.gridY - 1;
+            if (game.map.isValidGridPosition(this.gridX, newGridY)) {
                 this.direction = 'walkingUp';
-                width = this.getPlayerWidth();
-                height = this.getPlayerHeight();
-                if (!game.map.canPlayerMoveTo(this.x, this.y, width, height) || !game.map.canPlayerMoveTo(this.x, this.y - this.speed, width, height)) this.x -= 7;
-                this.y -= this.speed;
-                this.movement = true;
                 if (this.isLocal) {
-                    this.sequenceNumber++
+                    this.sequenceNumber++;
                     this.networkManager.sendPlayerMove("UP", this.sequenceNumber);
                 }
-            } else {
-                const frameWidth = this.getPlayerWidth();
-                const blockSize = game.map.level.block_size;
-                let xMap = Math.floor((this.x - 10) / blockSize);
-                let yMap = Math.floor(this.y / blockSize);
-                if (game.map.isFreeSpaceInGrid(xMap, yMap - 1) && !this.state.isArrowRight()) { this.Left = true; return; }
-                xMap = Math.floor((this.x + frameWidth + 10) / blockSize);
-                if (game.map.isFreeSpaceInGrid(xMap, yMap - 1) && !this.state.isArrowLeft()) { this.Right = true; return; }
+                this.gridY = newGridY;
+                this.y = newGridY * game.map.level.block_size;
+                this.movement = true;
             }
+            this.state.arrowUp.set(false);
         }
     }
 
     down(game) {
         if (this.state.isArrowDown() || this.Down) {
             this.Down = false;
-            let width = this.getPlayerWidth();
-            let height = this.getPlayerHeight();
-
-            if (game.map.canPlayerMoveTo(this.x, this.y + this.speed, width, height)) {
+            const newGridY = this.gridY + 1;
+            if (game.map.isValidGridPosition(this.gridX, newGridY)) {
                 this.direction = 'walkingDown';
-                width = this.getPlayerWidth();
-                height = this.getPlayerHeight();
-                if (!game.map.canPlayerMoveTo(this.x, this.y, width, height) || !game.map.canPlayerMoveTo(this.x, this.y + this.speed, width, height)) {
-                    this.x -= 7
-                }
-                this.y += this.speed;
-                this.movement = true;
                 if (this.isLocal) {
-                    this.sequenceNumber++
+                    this.sequenceNumber++;
                     this.networkManager.sendPlayerMove("DOWN", this.sequenceNumber);
                 }
-            } else {
-                const width = this.getPlayerWidth();
-                const height = this.getPlayerHeight();
-                const blockSize = game.map.level.block_size;
-                let xMap = Math.floor((this.x - 10) / blockSize);
-                let yMap = Math.floor((this.y + height) / blockSize);
-                if (game.map.isFreeSpaceInGrid(xMap, yMap + 1) && !this.state.isArrowRight()) { this.Left = true; return; }
-                xMap = Math.floor((this.x + width + 10) / blockSize);
-                if (game.map.isFreeSpaceInGrid(xMap, yMap + 1) && !this.state.isArrowLeft()) { this.Right = true; return; }
+                this.gridY = newGridY;
+                this.y = newGridY * game.map.level.block_size;
+                this.movement = true;
             }
+            this.state.arrowDown.set(false);
         }
     }
 
     left(game) {
         if (this.state.isArrowLeft() || this.Left) {
             this.Left = false;
-            const width = this.getPlayerWidth();
-            const height = this.getPlayerHeight();
-            if (game.map.canPlayerMoveTo(this.x - this.speed, this.y, width, height)) {
+            const newGridX = this.gridX - 1;
+            if (game.map.isValidGridPosition(newGridX, this.gridY)) {
                 this.direction = 'walkingLeft';
-                this.x -= this.speed;
-                this.movement = true;
                 if (this.isLocal) {
-                    this.sequenceNumber++
+                    this.sequenceNumber++;
                     this.networkManager.sendPlayerMove("LEFT", this.sequenceNumber);
                 }
-            } else {
-                const height = this.getPlayerHeight();
-                const blockSize = game.map.level.block_size;
-                let xMap = Math.floor(this.x / blockSize);
-                let yMap = Math.floor(this.y / blockSize);
-                if (game.map.isFreeSpaceInGrid(xMap - 1, yMap) && !this.state.isArrowDown()) { this.Up = true; return; }
-                yMap = Math.floor((this.y + height) / blockSize);
-                if (game.map.isFreeSpaceInGrid(xMap - 1, yMap) && !this.state.isArrowUp()) { this.Down = true; return; }
+                this.gridX = newGridX;
+                this.x = newGridX * game.map.level.block_size;
+                this.movement = true;
             }
+            this.state.arrowLeft.set(false);
         }
     }
 
     right(game) {
         if (this.state.isArrowRight() || this.Right) {
             this.Right = false;
-            const width = this.getPlayerWidth();
-            const height = this.getPlayerHeight();
-            if (game.map.canPlayerMoveTo(this.x + this.speed, this.y, width, height)) {
+            const newGridX = this.gridX + 1;
+            if (game.map.isValidGridPosition(newGridX, this.gridY)) {
                 this.direction = 'walkingRight';
-                this.x += this.speed;
-                this.movement = true;
                 if (this.isLocal) {
-                    this.sequenceNumber++
+                    this.sequenceNumber++;
                     this.networkManager.sendPlayerMove("RIGHT", this.sequenceNumber);
                 }
-            } else {
-                const width = this.getPlayerWidth();
-                const height = this.getPlayerHeight();
-                const blockSize = game.map.level.block_size;
-                let xMap = Math.floor((this.x + width) / blockSize);
-                let yMap = Math.floor(this.y / blockSize);
-                if (game.map.isFreeSpaceInGrid(xMap + 1, yMap) && !this.state.isArrowDown()) { this.Up = true; return; }
-                yMap = Math.floor((this.y + height) / blockSize);
-                if (game.map.isFreeSpaceInGrid(xMap + 1, yMap) && !this.state.isArrowUp()) { this.Down = true; return; }
+                this.gridX = newGridX;
+                this.x = newGridX * game.map.level.block_size;
+                this.movement = true;
             }
+            this.state.arrowRight.set(false);
         }
     }
 

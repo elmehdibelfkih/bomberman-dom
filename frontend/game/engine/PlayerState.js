@@ -3,6 +3,7 @@ import { eventManager, createSignal } from '../../framework/index.js';
 export class PlayerState {
     constructor(isLocal) {
         this.isLocal = isLocal;
+        this.pressedKeys = new Set();
 
         // Arrow key state signals
         const [getArrowUp, setArrowUp] = createSignal(false, `arrowUp_${Date.now()}`);
@@ -64,6 +65,10 @@ export class PlayerState {
 
     handleKeyDown(event) {
         const key = event.nativeEvent ? event.nativeEvent.key : event.key;
+        
+        if (this.pressedKeys.has(key)) return;
+        this.pressedKeys.add(key);
+        
         if (key === 'ArrowUp') this.arrowUp.set(true);
         if (key === 'ArrowDown') this.arrowDown.set(true);
         if (key === 'ArrowRight') this.arrowRight.set(true);
@@ -72,6 +77,9 @@ export class PlayerState {
 
     handleKeyUp(event) {
         const key = event.nativeEvent ? event.nativeEvent.key : event.key;
+        
+        this.pressedKeys.delete(key);
+        
         if (key === 'ArrowUp') this.arrowUp.set(false);
         if (key === 'ArrowDown') this.arrowDown.set(false);
         if (key === 'ArrowRight') this.arrowRight.set(false);

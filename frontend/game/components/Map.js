@@ -102,6 +102,13 @@ export class Map {
     isBlock = (x, y) => this.gridArray[y][x] === consts.BLOCK
     isFreeSpaceInGrid = (x, y) => this.gridArray[y][x] !== consts.BLOCK && this.gridArray[y][x] !== consts.WALL
 
+    isValidGridPosition(gridX, gridY) {
+        if (gridY < 0 || gridY >= this.gridArray.length || gridX < 0 || gridX >= this.gridArray[0].length) {
+            return false;
+        }
+        return this.gridArray[gridY][gridX] !== consts.BLOCK && this.gridArray[gridY][gridX] !== consts.WALL;
+    }
+
     // todo: change the timestamp to performence.now
     addBomb(x, y, timestamp) {
         if (this.game.state.getBombCount() < this.game.state.getMaxAllowdBombCount())

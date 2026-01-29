@@ -20,65 +20,34 @@ export class AuthoritativeGameState {
         const player = this.gameEngine.entities.players.get(playerId);
         if (!player || !player.alive) return false;
 
-        const moveSpeed = player.speed;
-        let newX = player.x;
-        let newY = player.y;
-        let newDirection = direction;
-
-        let intendedX = newX;
-        let intendedY = newY;
+        let newGridX = player.gridX;
+        let newGridY = player.gridY;
 
         switch (direction) {
-            case 'UP': intendedY -= moveSpeed; break;
-            case 'DOWN': intendedY += moveSpeed; break;
-            case 'LEFT': intendedX -= moveSpeed; break;
-            case 'RIGHT': intendedX += moveSpeed; break;
+            case 'UP': newGridY--; break;
+            case 'DOWN': newGridY++; break;
+            case 'LEFT': newGridX--; break;
+            case 'RIGHT': newGridX++; break;
         }
 
-        if (this.isValidPosition(intendedX, intendedY, direction, playerId)) {
-            newX = intendedX;
-            newY = intendedY;
-        } else {
-            // Cornering logic
-            if (direction === 'UP' || direction === 'DOWN') {
-                let horizontalCheck = player.x;
-                if (this.isValidPosition(horizontalCheck + moveSpeed, player.y, 'RIGHT', playerId)) {
-                    newDirection = 'RIGHT';
-                    newX = player.x + moveSpeed;
-                } else if (this.isValidPosition(horizontalCheck - moveSpeed, player.y, 'LEFT', playerId)) {
-                    newDirection = 'LEFT';
-                    newX = player.x - moveSpeed;
-                } else {
-                    return false;
-                }
-            } else if (direction === 'LEFT' || direction === 'RIGHT') {
-                let verticalCheck = player.y;
-                if (this.isValidPosition(player.x, verticalCheck + moveSpeed, 'DOWN', playerId)) {
-                    newDirection = 'DOWN';
-                    newY = player.y + moveSpeed;
-                } else if (this.isValidPosition(player.x, verticalCheck - moveSpeed, 'UP', playerId)) {
-                    newDirection = 'UP';
-                    newY = player.y - moveSpeed;
-                } else {
-                    return false;
-                }
-            }
+        if (!this.isValidGridPosition(newGridX, newGridY, playerId)) {
+            return false;
         }
         
-        player.x = newX;
-        player.y = newY;
-        player.gridX = Math.floor(newX / GAME_CONFIG.BLOCK_SIZE);
-        player.gridY = Math.floor(newY / GAME_CONFIG.BLOCK_SIZE);
-        player.direction = newDirection;
+        player.gridX = newGridX;
+        player.gridY = newGridY;
+        player.x = newGridX * GAME_CONFIG.BLOCK_SIZE;
+        player.y = newGridY * GAME_CONFIG.BLOCK_SIZE;
+        player.direction = direction;
         player.isMoving = true;
 
         this.lastProcessedSequenceNumber.set(playerId, sequenceNumber);
 
         this.gameRoom.broadcast(
-            MessageBuilder.playerMoved(playerId, newX, newY, player.gridX, player.gridY, newDirection, sequenceNumber)
+            MessageBuilder.playerMoved(playerId, player.x, player.y, newGridX, newGridY, direction, sequenceNumber)
         );
 
-        this.checkPowerUpCollection(playerId, player.gridX, player.gridY);
+        this.checkPowerUpCollection(playerId, newGridX, newGridY);
         return true;
     }
 
@@ -116,50 +85,32 @@ export class AuthoritativeGameState {
         return true;
     }
 
-    isValidPosition(newX, newY, direction, playerId) {
+    isValidGridPosition(gridX, gridY, playerId) {
         const gridHeight = this.gameEngine.mapData.initial_grid.length;
         const gridWidth = this.gameEngine.mapData.initial_grid[0].length;
 
-        const playerDimensions = this.getPlayerDimensions(direction);
-        const width = playerDimensions.width;
-        const height = playerDimensions.height;
+        if (gridX < 0 || gridX >= gridWidth || gridY < 0 || gridY >= gridHeight) {
+            return false;
+        }
 
-        // future player's position, but by his corners
-        const corners = [
-            { x: newX, y: newY },
-            { x: newX + width - 1, y: newY },
-            { x: newX, y: newY + height - 1 },
-            { x: newX + width - 1, y: newY + height - 1 }
-        ];
-
-        // check if those positions aren't filled with a block or wall
-        for (const corner of corners) {
-            const gridX = Math.floor(corner.x / GAME_CONFIG.BLOCK_SIZE);
-            const gridY = Math.floor(corner.y / GAME_CONFIG.BLOCK_SIZE);
-
-            if (gridX < 0 || gridX >= gridWidth || gridY < 0 || gridY >= gridHeight) {
+        for (const bomb of this.gameEngine.entities.bombs.values()) {
+            if (bomb.gridX === gridX && bomb.gridY === gridY) {
                 return false;
             }
+        }
 
-            for (const bomb of this.gameEngine.entities.bombs.values()) {
-                if (bomb.gridX === gridX && bomb.gridY === gridY) {
-                    return false;
-                }
-            }
+        const cellValue = this.gameEngine.mapData.initial_grid[gridY][gridX];
+        if (cellValue === WALL) {
+            return false;
+        }
 
-            const cellValue = this.gameEngine.mapData.initial_grid[gridY][gridX];
-            if (cellValue === WALL) {
-                return false;
-            }
+        const player = this.gameEngine.entities.players.get(playerId);
+        if (cellValue === BOMB && !player.bombPass) {
+            return false;
+        }
 
-            const player = this.gameEngine.entities.players.get(playerId)
-            if (cellValue === BOMB && !player.bombPass) {
-                return false
-            }
-
-            if (cellValue === BLOCK && !player.blockPass) {
-                return false
-            }
+        if (cellValue === BLOCK && !player.blockPass) {
+            return false;
         }
 
         return true;
