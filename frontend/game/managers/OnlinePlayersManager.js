@@ -19,7 +19,6 @@ export class OnlinePlayersManager {
         console.log('Initializing players:', gameData.players)
         this.localPlayerId = this.networkManager.getPlayerId();
         this.players.clear();
-
         const playerImage = gameData.mapData.player;
 
 
@@ -39,7 +38,6 @@ export class OnlinePlayersManager {
     }
 
     // set up controle for bomb
-    // todo: the user must send bomb response and wait the server response
     setupControls() {
         const localPlayer = this.players.get(this.localPlayerId);
         if (!localPlayer) return;
@@ -64,14 +62,6 @@ export class OnlinePlayersManager {
     }
 
     update(timestamp) {
-        // if (this.game.state.isPaused()) {
-        //     this.players.forEach(p => {
-        //         p.movement = false;
-        //         p.render();
-        //     });
-        //     return;
-        // }
-
         this.players.forEach(player => {
             player.updateRender(timestamp, this.game);
         });

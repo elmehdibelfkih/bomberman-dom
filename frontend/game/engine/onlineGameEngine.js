@@ -1,5 +1,4 @@
 import { Map } from '../components/Map.js';
-import { State } from './State.js';
 import { UI } from '../components/Ui.js';
 import { OnlinePlayersManager } from '../managers/OnlinePlayersManager.js';
 import { BombManager } from '../managers/BombManager.js';
@@ -21,7 +20,6 @@ export class OnlineGmeEngine {
             throw new Error('Use OnlineGmeEngine.getInstance()');
         }
         this.isMultiplayer = true;
-        // this.state = State.getInstance(this);
         this.map = Map.getInstance(this);
         this.ui = UI.getInstance(this);
         this.networkManager = null;
@@ -60,14 +58,10 @@ export class OnlineGmeEngine {
     }
 
     async initializeWithMap(mapData) {
-        // await this.intiElements(mapData);
-        await this.map.initMap(mapData);
+        await this.map.initMap(mapData)
         await this.waitForLevel();
     }
 
-    // async intiElements(mapData = null) {
-    //     // this.state.initArrowState();
-    // }
 
     async waitForLevel() {
         while (!this.map || !this.map.level) {
@@ -87,26 +81,21 @@ export class OnlineGmeEngine {
 
     async loop(timestamp) {
         if (!this.gameStarted) return;
-
-        // if (!this.state.isPaused()) {
-        // }
         this.updateRender(timestamp);
         this.IDRE = requestAnimationFrame(this.loop.bind(this));
     }
 
     async updateRender(timestamp) {
         if (this.playerManager) {
-
             this.playerManager.update(timestamp);
         }
+
         // if (this.bombManager) {
         //     this.bombManager.update(timestamp);
         // }
-        // this.state.update();
     }
 
     handleServerState(gameState) {
-        // makayban walo
         if (gameState.players && this.playerManager) {
             gameState.players.forEach(serverPlayer => {
                 if (serverPlayer.playerId !== this.networkManager.getPlayerId()) {
@@ -144,9 +133,7 @@ export class OnlineGmeEngine {
             cancelAnimationFrame(this.IDRE);
             this.IDRE = null;
         }
-        // if (this.state) {
-        //     this.state.stopTimer();
-        // }
+        
         if (this.playerManager) {
             this.playerManager.cleanup();
         }
