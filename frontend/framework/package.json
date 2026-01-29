@@ -1,16 +1,20 @@
 {
-  "name": "@arbim/my-framework",
-  "devMode": true,
-  "version": "0.1.0",
-  "description": "A fine-grained reactive UI framework",
-  "type": "module",
-  "main": "./src/index.js",
-  "module": "./src/index.js",
+  "name": "@mlarbi/reactive",
+  "version": "1.0.0",
+  "description": "A lightweight JavaScript framework for building reactive web applications.",
+  "main": "framework/index.js",
   "exports": {
-    ".": "./src/index.js"
+    ".": "./framework/index.js"
   },
   "files": [
-    "src"
+    "framwork"
+  ],
+  "author": "mlarbi",
+  "keywords": [
+    "framework",
+    "router",
+    "state",
+    "dom"
   ],
   "license": "MIT"
 }
