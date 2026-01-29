@@ -9,30 +9,28 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export function getMultiplayerMap() {
-    const randomIndex = Math.floor(Math.random() * 10) + 1;
-    const mapFileName = `level${1}.json`;
-    const mapPath = join(__dirname, '../maps', mapFileName);
-
+    const mapPath = join(__dirname, '../maps/level5.json');
     const mapData = readFileSync(mapPath, 'utf-8');
     const mapJson = JSON.parse(mapData);
 
-    const toAvoid = []
+    const toAvoid = [];
     GAME_CONFIG.SPAWN_POSITIONS.forEach(position => {
         toAvoid.push({
-            x: position.x == 1 ? position.x + 1 : position.x,
-            y: position.y == 1 ? position.y + 1 : position.y
-        })
-    })
+            x: position.x,
+            y: position.y
+        });
+    });
 
-    for (let i = 0; i < mapJson.initial_grid.length; i++) {
-        for (let j = 0; j < mapJson.initial_grid[0].length; j++) {
-            if (mapJson.initial_grid[i][j] == 0 && Math.random() > 0.7
-                && !toAvoid.find(p => p.x == i && p.y == j)) {
-                mapJson.initial_grid[i][j] = BLOCK
+    // Randomize blocks on floor tiles
+    for (let y = 0; y < mapJson.initial_grid.length; y++) {
+        for (let x = 0; x < mapJson.initial_grid[0].length; x++) {
+            if (mapJson.initial_grid[y][x] === 0 && Math.random() > 0.6
+                && !toAvoid.find(p => p.x === x && p.y === y)) {
+                mapJson.initial_grid[y][x] = BLOCK;
             }
         }
     }
 
-    Logger.info(`Loaded multiplayer map: ${mapFileName} (ID: ${randomIndex})`);
-    return { mapId: randomIndex, mapData: mapJson };
+    Logger.info('Loaded map: level5.json with randomized blocks');
+    return { mapId: 5, mapData: mapJson };
 }

@@ -1,7 +1,0 @@
-{
-    "Right": { "x": -0, "y": -0, "width": 39, "height": 39 },
-    "Left":  { "x": -0, "y": -40, "width": 39, "height": 39 },
-    "Down":  { "x": -40, "y": -40, "width": 39, "height": 39 },
-    "Up":    { "x": -40, "y": -0, "width": 39, "height": 39 }
-  }
-  

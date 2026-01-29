@@ -1,0 +1,19 @@
+export class Logger {
+    static info(message, ...args) {
+        console.log(`[INFO] ${message}`, ...args);
+    }
+
+    static warn(message, ...args) {
+        console.warn(`[WARN] ${message}`, ...args);
+    }
+
+    static error(message, ...args) {
+        console.error(`[ERROR] ${message}`, ...args);
+    }
+
+    static debug(message, ...args) {
+        if (process.env.NODE_ENV === 'development') {
+            console.debug(`[DEBUG] ${message}`, ...args);
+        }
+    }
+}

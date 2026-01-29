@@ -73,19 +73,26 @@ export class RoomManager {
     }
 
     startWaitTimer(lobby) {
-        this.broadcastToLobby(lobby, {
-            type: 'WAIT_TIMER_STARTED',
-            message: '20-second timer started. Game will begin when 4 players join or timer expires.'
-        });
+        const waitSeconds = GAME_CONFIG.WAIT_TIMER / 1000;
 
-        lobby.waitTimer = setTimeout(() => {
-            if (lobby.players.size >= 2 && lobby.status === 'WAITING') {
-                Logger.info(`Wait timer expired for lobby ${lobby.id}, starting countdown with ${lobby.players.size} players`);
-                this.startCountDown(lobby);
+        this.broadcastToLobby(lobby, MessageBuilder.countdownStart(waitSeconds));
+
+        let remaining = waitSeconds;
+        lobby.waitTimer = setInterval(() => {
+            remaining--;
+
+            if (remaining > 0) {
+                this.broadcastToLobby(lobby, MessageBuilder.countdownTick(remaining));
             } else {
-                Logger.info(`Wait timer expired for lobby ${lobby.id}, but only ${lobby.players.size} players - not starting game`);
+                clearInterval(lobby.waitTimer);
+                lobby.waitTimer = null;
+
+                if (lobby.players.size >= 2 && lobby.status === 'WAITING') {
+                    Logger.info(`Wait timer expired, starting 10s countdown`);
+                    this.startCountDown(lobby);
+                }
             }
-        }, GAME_CONFIG.WAIT_TIMER);
+        }, 1000);
     }
 
     startCountDown(lobby) {
@@ -96,8 +103,6 @@ export class RoomManager {
 
         lobby.status = 'COUNTDOWN';
         let remaining = GAME_CONFIG.COUNTDOWN_TIMER / 1000;
-
-        this.broadcastToLobby(lobby, MessageBuilder.countdownStart(remaining));
 
         lobby.countdownTimer = setInterval(() => {
             remaining--;
