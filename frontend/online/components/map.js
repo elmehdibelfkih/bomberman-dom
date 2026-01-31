@@ -7,13 +7,13 @@ export class Map {
 
     constructor(game, mapData) {
         console.log("hadi l map data",mapData);
+        this.mapData = mapData;
         
         this.bonusArray = [];
         this.bonusArray.push(this.addTimeBonus.bind(this));
         this.bonusArray.push(this.addSpeedBonus.bind(this));
         this.bonusArray.push(this.addHeartBonus.bind(this));
         this.game = game;
-        this.level = null;
         this.grid = null;
         this.gridArray = null;
         this.backGroundMusic = null;
@@ -27,10 +27,14 @@ export class Map {
         this.container = null;
     }
 
-    static getInstance = (game) => Map.instance ? Map.instance : (Map.instance = new Map(game));
+    static getInstance = (game, mapData) => {
+        if (!Map.instance || mapData) {
+            Map.instance = new Map(game, mapData);
+        }
+        return Map.instance;
+    }
 
     async initMap() {
-        this.level = await fetch(`../assets/maps/level${this.game.state.getLevel()}.json`).then(res => res.json());
         this.initGrid();
         this.initAudios();
     }
@@ -42,7 +46,7 @@ export class Map {
         }
 
         // Initialize grid array BEFORE creating DOM (needed for reactive children)
-        this.gridArray = this.level.initial_grid.map(row => [...row]);
+        this.gridArray = this.mapData.initial_grid.map(row => [...row]);
 
         // Create grid container using framework DOM
         this.grid = dom({
@@ -51,8 +55,8 @@ export class Map {
                 id: 'grid',
                 style: `
           position: relative;
-          width: ${this.level.initial_grid[0].length * this.level.block_size}px;
-          height: ${this.level.initial_grid.length * this.level.block_size}px;
+          width: ${this.mapData.initial_grid[0].length * this.mapData.block_size}px;
+          height: ${this.mapData.initial_grid.length * this.mapData.block_size}px;
           border: 3px solid var(--accent-color);
           border-radius: var(--border-radius-sm);
           box-shadow: 0 0 20px rgba(255, 71, 87, 0.3), inset 0 0 10px var(--shadow-dark);
@@ -92,10 +96,10 @@ export class Map {
     createGridTiles() {
         this.tiles = [];
         this.blockElements = [];
-        const tileSize = this.level.block_size;
+        const tileSize = this.mapData.block_size;
         const gridTileConfigs = [];
 
-        this.level.initial_grid.forEach((row, colIndex) => {
+        this.mapData.initial_grid.forEach((row, colIndex) => {
             row.forEach((cell, rowIndex) => {
                 const tileConfig = {
                     tag: 'div',
@@ -107,7 +111,7 @@ export class Map {
                             width: ${tileSize}px;
                             height: ${tileSize}px;
                             background-size: cover;
-                            background-image: url('${cell === consts.WALL ? this.level.wall : this.level.floor}');
+                            background-image: url('${cell === consts.WALL ? this.mapData.wall : this.mapData.floor}');
                             transform: translate(${tileSize * rowIndex}px, ${tileSize * colIndex}px);
                         `
                     },
@@ -128,7 +132,7 @@ export class Map {
             const blockImgConfig = {
                 tag: 'img',
                 attributes: {
-                    src: this.level.block,
+                    src: this.mapData.block,
                     id: rowIndex.toString() + colIndex.toString(),
                     style: `
                         width: 100%;
@@ -159,7 +163,7 @@ export class Map {
     }
 
     canPlayerMoveTo(x, y) {
-        const blockSize = this.level.block_size;
+        const blockSize = this.mapData.block_size;
         const width = this.game.player.getPlayerWidth();
         const height = this.game.player.getPlayerHeight();
         const corners = [
@@ -187,12 +191,12 @@ export class Map {
 
     addSpeedBonus(xMap, yMap, node) {
         if (!node) return;
-        const x = xMap * this.level.block_size;
-        const y = yMap * this.level.block_size;
+        const x = xMap * this.mapData.block_size;
+        const y = yMap * this.mapData.block_size;
         const bonus = dom({
             tag: 'img',
             attributes: {
-                src: this.level.speed_img,
+                src: this.mapData.speed_img,
                 class: 'speed-bonus',
                 id: xMap.toString() + yMap.toString() + "T",
                 style: `
@@ -204,7 +208,7 @@ export class Map {
             }
         });
 
-        const speedBonus = new Bonus(this.game, x, y, this.level, bonus.id, 'speed');
+        const speedBonus = new Bonus(this.game, x, y, this.mapData, bonus.id, 'speed');
         speedBonus.originalWidth = 30;
         speedBonus.originalHeight = 40;
         this.loot.push(speedBonus);
@@ -213,12 +217,12 @@ export class Map {
 
     addTimeBonus(xMap, yMap, node) {
         if (!node) return;
-        const x = xMap * this.level.block_size;
-        const y = yMap * this.level.block_size;
+        const x = xMap * this.mapData.block_size;
+        const y = yMap * this.mapData.block_size;
         const bonus = dom({
             tag: 'img',
             attributes: {
-                src: this.level.time_img,
+                src: this.mapData.time_img,
                 class: 'time-bonus',
                 id: xMap.toString() + yMap.toString() + "T",
                 style: `
@@ -230,7 +234,7 @@ export class Map {
             }
         });
 
-        const timeBonus = new Bonus(this.game, x, y, this.level, bonus.id, 'time');
+        const timeBonus = new Bonus(this.game, x, y, this.mapData, bonus.id, 'time');
         timeBonus.originalWidth = 35;
         timeBonus.originalHeight = 50;
         this.loot.push(timeBonus);
@@ -239,12 +243,12 @@ export class Map {
 
     addHeartBonus(xMap, yMap, node) {
         if (!node) return;
-        const x = xMap * this.level.block_size;
-        const y = yMap * this.level.block_size;
+        const x = xMap * this.mapData.block_size;
+        const y = yMap * this.mapData.block_size;
         const bonus = dom({
             tag: 'img',
             attributes: {
-                src: this.level.heart_img,
+                src: this.mapData.heart_img,
                 class: 'heart-bonus',
                 id: xMap.toString() + yMap.toString() + "T",
                 style: `
@@ -256,7 +260,7 @@ export class Map {
             }
         });
 
-        const heartBonus = new Bonus(this.game, x, y, this.level, bonus.id, 'heart');
+        const heartBonus = new Bonus(this.game, x, y, this.mapData, bonus.id, 'heart');
         heartBonus.originalWidth = 30;
         heartBonus.originalHeight = 40;
         this.loot.push(heartBonus);
@@ -265,7 +269,7 @@ export class Map {
 
     initAudios() {
         if (!this.grid) return;
-        this.backGroundMusic = new Audio(this.level.back_ground_music);
+        this.backGroundMusic = new Audio(this.mapData.back_ground_music);
         this.grid.appendChild(this.backGroundMusic)
         this.backGroundMusic.preload = 'auto';
         this.backGroundMusic.loop = true;

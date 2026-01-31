@@ -11,11 +11,14 @@ export class Game {
     static getInstance(gameData) {
         console.log("ha data =>", gameData);
         
-        if (!Game.#instance) Game.#instance = new Game();
+        if (!Game.#instance || gameData) {
+            Game.#instance = new Game(gameData);
+        }
         return Game.#instance;
     }
 
     constructor(gameData) {
+        this.gameData = gameData;
         this.state = State.getInstance(this);
         // this.scoreboard = Scoreboard.getInstance(this)
         this.map = Map.getInstance(this, gameData.mapData)
@@ -67,12 +70,11 @@ export class Game {
     }
 
     async gameOver() {
-        this.state.stopTimer();
+        // this.state.stopTimer();
         if (this.IDRE) {
             cancelAnimationFrame(this.IDRE);
             this.IDRE = null;
         }
-        this.levelComplete = false;
         this.ui.GameOver()
         this.state.setScore(0)
         this.state.initState()
@@ -86,7 +88,7 @@ export class Game {
         this.state = State.getInstance(this)
         this.state.initArrowState();
         Map.instance = null
-        this.map = Map.getInstance(this)
+        this.map = Map.getInstance(this, this.gameData.mapData)
         this.player = new Player(this)
         await this.map.initMap()
         await this.player.initPlayer()
@@ -113,7 +115,7 @@ export class Game {
         this.state.nextLevel();
         // this.scoreboard.updateLevel();
         Map.instance = null
-        this.map = Map.getInstance(this);
+        this.map = Map.getInstance(this, this.gameData.mapData);
         this.player = new Player(this);
         await this.map.initMap();
         await this.player.initPlayer();
@@ -146,7 +148,7 @@ export class Game {
         this.state.resetLevel();
         // this.scoreboard.updateLevel();
         Map.instance = null
-        this.map = Map.getInstance(this);
+        this.map = Map.getInstance(this, this.gameData.mapData);
         this.player = new Player(this);
         await this.map.initMap();
         await this.player.initPlayer();
