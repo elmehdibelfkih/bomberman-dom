@@ -9,7 +9,6 @@ export class State {
     #PLAYER_SPEED = 3
     #BOMB_COUNT = 0
     #MAX_ALLOWD_BOMBS = 1
-    #GAME_OVER = false
     #SOUND = true
     #ARROW_UP = false
     #ARROW_DOWN = false
@@ -34,17 +33,19 @@ export class State {
     }
 
     static getInstance = (game) => State.instance ? State.instance : new State(game)
+
+    static resetInstance() {
+        State.instance = null;
+    }
     isSoundOn = () => this.#SOUND;
     isArrowUp = () => this.#ARROW_UP
     isArrowDown = () => this.#ARROW_DOWN
     isArrowRight = () => this.#ARROW_RIGHT
     isArrowLeft = () => this.#ARROW_LEFT
     updatesound = (ff) => this.#SOUND = ff
-    nextLevel = () => this.#CURRENT_LEVEL = this.#CURRENT_LEVEL += 1
     getcurentlevel = () => this.#CURRENT_LEVEL
     maxlevel = () => this.#MAXLEVEL
-    resetLevel = () => this.#CURRENT_LEVEL = 1;
-    update = () => !this.#LIVES ? this.GameOver() : 0
+    update = () => {}
     Isrestar = () => this.#RESTAR
     SetPause = (env) => this.#PAUSE = env
     Restar = () => this.#RESTAR = !this.#RESTAR
@@ -61,8 +62,6 @@ export class State {
     getMaxAllowdBombCount = () => this.#MAX_ALLOWD_BOMBS
     setMaxAllowdBombCount = (val = 1) => this.#MAX_ALLOWD_BOMBS += val
     isPaused = () => this.#PAUSE
-    isGameOver = () => this.#GAME_OVER
-    GameOver = () => this.#GAME_OVER = true
     getPlayerSpeed = () => this.#PLAYER_SPEED
     addtime = (val) => this.#TIME += val;
     updateStateof = (val) => this.#STATE = val
@@ -89,7 +88,6 @@ export class State {
         this.#PLAYER_SPEED = 4;
         this.#BOMB_COUNT = 0;
         this.#MAX_ALLOWD_BOMBS = 3;
-        this.#GAME_OVER = false;
         this.#SOUND = true;
         this.#TIME = 0;
         this.#TIMER_ID = null;
@@ -167,7 +165,6 @@ export class State {
 
                 } else {
                     clearInterval(this.#TIMER_ID);
-                    this.#GAME_OVER = true
                 }
             }
         }, 1000);

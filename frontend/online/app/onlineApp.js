@@ -2,7 +2,7 @@ import { Router, dom, usePathname } from "../../framework/framework/index.js";
 import { Game  } from "../engine/core.js";
 import { createEffect } from "../../framework/framework/state/signal.js";
 import { NetworkManager } from '../network/networkManager.js';
-import { getGameContainer, getLobbyContainer, getControlsContainer } from "../utils/helpers.js";
+import { getGameContainer, getLobbyContainer, getControlsContainer, showModal } from "../utils/helpers.js";
 // import { NetworkStateSynchronizer } from '../game/network/NetworkStateSynchronizer.js';
 
 export class OnlineApp {
@@ -207,8 +207,17 @@ export class OnlineApp {
         };
 
         const leaveClickHandler = () => {
-            this.cleanup();
-            window.location.href = '../index.html';
+            showModal(
+                'LEAVE LOBBY',
+                'Are you sure you want to leave the lobby?',
+                () => {
+                    this.cleanup();
+                    window.location.href = '../index.html';
+                },
+                () => {
+                    // Do nothing, modal closed
+                }
+            );
         };
 
         sendBtn.addEventListener('click', sendClickHandler);
@@ -304,14 +313,14 @@ export class OnlineApp {
         document.body.appendChild(getGameContainer());
         document.body.appendChild(getControlsContainer());
 
-        const game = Game.getInstance(this.gameData);
-        await game.intiElements();
+        this.game = Game.getInstance(this.gameData);
+        await this.game.intiElements();
 
-        while (!game.player || !game.player.playerCoordinate) {
+        while (!this.game.player || !this.game.player.playerCoordinate) {
             await new Promise(r => setTimeout(r, 0));
         }
 
-        game.run();
+        this.game.run();
 
         // the multi player game engine
         // handle the game loop
@@ -430,12 +439,8 @@ export class OnlineApp {
         // Clear DOM
         document.body.innerHTML = '';
 
-        // Reset singleton instance
-        OnlineGameEngineresetInstance();
-
         // Clear game reference
         this.game = null;
-        window.game = null;
     }
 }
 

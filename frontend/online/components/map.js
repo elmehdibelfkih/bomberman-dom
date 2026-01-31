@@ -34,6 +34,10 @@ export class Map {
         return Map.instance;
     }
 
+    static resetInstance() {
+        Map.instance = null;
+    }
+
     initMap() {
         this.initGrid();
         this.initAudios();
