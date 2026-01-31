@@ -6,10 +6,37 @@ import { dom, eventManager } from '../../framework/framwork/index.js';
 export class Player {
 
     constructor(game) {
-        this.game = game
+        this.game = game;
+        this.is_local = false;
+        this.state = {
+            id: null,
+            nickname: null,
+            x: 0,
+            y: 0,
+            direction: 'Down',
+            speed: 4,
+            movement: false,
+            dying: false,
+            isDead: false,
+            bombCount: 0,
+            maxBombs: 3,
+            bombRange: 1
+        };
     }
 
-    async initPlayer() {
+    async initPlayer(playerData, isLocal) {
+        this.is_local = isLocal;
+
+        this.state.id = playerData.playerId;
+        this.state.nickname = playerData.nickname;
+        this.state.x = playerData.x;
+        this.state.y = playerData.y;
+        this.state.speed = playerData.speed;
+        this.state.bombCount = playerData.bombCount;
+        this.state.bombRange = playerData.bombRange;
+        this.state.isDead = !playerData.alive;
+        this.state.dying = !playerData.alive;
+
         this.playerCoordinate = await fetch(`../assets/playerCoordinate.json`).then(res => res.json())
         if (this.player) this.game.grid.removeChild(this.player)
         this.dyingSound = new Audio(this.game.map.level.dying_sound);
@@ -19,36 +46,38 @@ export class Player {
                 class: 'player'
             }
         });
+        if (this.is_local) {
+            this.player.classList.add('local-player');
+        }
         this.player.appendChild(this.dyingSound);
         this.game.map.grid.appendChild(this.player)
         await this.initClassData()
-        this.canPutBomb = true
-        // register on document.documentElement so GlobalEventManager will reach these handlers
-        eventManager.linkNodeToHandlers(document.documentElement, 'keydown', (e) => e.nativeEvent.key === ' ' ? this.putBomb = true : 0)
-        eventManager.linkNodeToHandlers(document.documentElement, 'keyup', (e) => e.nativeEvent.key === ' ' ? this.canPutBomb = true : 0)
+
+        if (this.is_local) {
+            this.canPutBomb = true
+            // register on document.documentElement so GlobalEventManager will reach these handlers
+            eventManager.linkNodeToHandlers(document.documentElement, 'keydown', (e) => e.nativeEvent.key === ' ' ? this.putBomb = true : 0)
+            eventManager.linkNodeToHandlers(document.documentElement, 'keyup', (e) => e.nativeEvent.key === ' ' ? this.canPutBomb = true : 0)
+        }
     }
 
     async initClassData() {
-        this.movement = false
-        this.dying = false
+        this.state.movement = false
         this.reRender = false
         this.renderExp = false
         this.exp = null
         this.frameIndex = 0
         this.explosionFrameIndex = 0
-        this.direction = 'Down'
+        this.state.direction = 'Down'
         this.lastTime = performance.now()
         this.MS_PER_FRAME = 100
-        const tmp = helpers.getCoordinates(this.game.map.level.initial_grid, consts.PLAYER)
-        this.y = tmp[0] * this.game.map.level.block_size
-        this.x = tmp[1] * this.game.map.level.block_size + 15
-        this.game.map.gridArray[tmp[0]][tmp[1]] = consts.FLOOR
+        
         this.player.style.backgroundImage = `url(${this.game.map.level.player})`;
         this.player.style.backgroundRepeat = 'no-repeat';
         this.player.style.imageRendering = 'pixelated';
         this.player.style.position = 'absolute';
-        this.player.style.transform = `translate(${this.x}px, ${this.y}px)`;
-        this.frame = this.playerCoordinate[this.direction][this.frameIndex];
+        this.player.style.transform = `translate(${this.state.x}px, ${this.state.y}px)`;
+        this.frame = this.playerCoordinate[this.state.direction][this.frameIndex];
         this.player.style.width = `${this.frame.width}px`;
         this.player.style.height = `${this.frame.height}px`;
         this.player.style.backgroundPosition = `${this.frame.x} ${this.frame.y}`;
