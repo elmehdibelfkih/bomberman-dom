@@ -1,7 +1,6 @@
 import * as consts from '../utils/consts.js';
 import { dom, eventManager } from '../../framework/framwork/index.js';
 import { Bomb } from "./bomb.js";
-import { Enemy } from "./enemy.js";
 import { Bonus } from './bonus.js';
 
 export class Map {
@@ -19,10 +18,8 @@ export class Map {
         this.mustrender = false;
         this.updateLevel = false;
         this.bombs = [];
-        this.enemys = [];
         this.loot = [];
         this.blocksToBlowing = [];
-        this.enemyCordination = null;
         this.tiles = [];
         this.blockElements = [];
         this.container = null;
@@ -32,7 +29,6 @@ export class Map {
 
     async initMap() {
         this.level = await fetch(`../assets/maps/level${this.game.state.getLevel()}.json`).then(res => res.json());
-        this.enemyCordination = await fetch(`../assets/enemycordinate.json`).then(res => res.json());
         this.initGrid();
         this.initAudios();
     }
@@ -64,8 +60,6 @@ export class Map {
             children: () => this.createGridTiles()
         });
 
-        this.enemys.forEach((e) => this.grid.appendChild(e.Div));
-
         // Create container if not exists
         if (!this.container) {
             this.container = dom({
@@ -96,7 +90,6 @@ export class Map {
     createGridTiles() {
         this.tiles = [];
         this.blockElements = [];
-        this.enemys = [];
         const tileSize = this.level.block_size;
         const gridTileConfigs = [];
 
@@ -145,38 +138,6 @@ export class Map {
             childrenConfigs.push(blockImgConfig);
         }
 
-        // Add enemies
-        if (cell === consts.ENEMY) {
-            this.gridArray[colIndex][rowIndex] = 0;
-            const x = this.level.block_size * rowIndex + 12;
-            const y = this.level.block_size * colIndex + 15;
-
-            const enemyDiv = dom({
-                tag: 'div',
-                attributes: {
-                    class: 'enemy',
-                    style: `
-                        background-image: url('${this.level.enemy}');
-                        background-repeat: no-repeat;
-                        image-rendering: pixelated;
-                        z-index: 1;
-                        position: absolute;
-                        width: ${this.enemyCordination["Left"].width}px;
-                        height: ${this.enemyCordination["Left"].height}px;
-                        background-position: ${this.enemyCordination["Left"].x}px ${this.enemyCordination["Left"].y}px;
-                        transform: translate(${x}px, ${y}px);
-                    `
-                }
-            });
-
-            const enemy = new Enemy(this.game, this.level, x, y, this.enemyCordination);
-            enemy.Div = enemyDiv;
-            enemy.originalX = x;
-            enemy.originalY = y;
-            enemy.originalWidth = parseInt(this.enemyCordination["Left"].width);
-            enemy.originalHeight = parseInt(this.enemyCordination["Left"].height);
-            this.enemys.push(enemy);
-        }
 
         return childrenConfigs;
     }

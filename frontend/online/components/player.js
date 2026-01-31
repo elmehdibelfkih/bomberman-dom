@@ -213,6 +213,7 @@ export class Player {
         }
         if (!this.movement && !this.animate) return
         this.player.style.transform = `translate(${this.x}px, ${this.y}px)`;
+        
         if (this.animate) {
             const fx = parseFloat(this.frame.x);
             const fy = parseFloat(this.frame.y);

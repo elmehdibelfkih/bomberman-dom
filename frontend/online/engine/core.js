@@ -2,7 +2,6 @@ import { Scoreboard } from '../components/scoreboard.js';
 import { Player } from '../components/player.js';
 import { Map } from '../components/map.js';
 import { State } from './state.js';
-import { Enemy } from '../components/enemy.js';
 import { UI } from '../components/ui.js';
 
 export class Game {
@@ -59,14 +58,8 @@ export class Game {
     }
 
     async updateRender(timestamp) {
-        console.log("hani hna");
-
         this.player.updateRender(timestamp);
         this.map.bombs = this.map.bombs?.filter(b => b.updateRender(timestamp) && !b.done);
-        this.map.enemys = this.map.enemys?.filter(b => {
-            b.updateRender(timestamp)
-            return !b.dead
-        });
         this.state.update()
         this.checkState()
     }
@@ -84,7 +77,6 @@ export class Game {
         this.scoreboard.initScoreBaord()
         this.scoreboard.updateLives()
         this.scoreboard.updateScore()
-        this.map.enemys = []
         this.map.bombs = []
         this.player.removeplayer()
         this.map.destructor()
@@ -96,7 +88,6 @@ export class Game {
         this.player = new Player(this)
         await this.map.initMap()
         await this.player.initPlayer()
-        this.enemie = new Enemy(this);
     }
 
     async nextLevel() {
@@ -112,7 +103,6 @@ export class Game {
         this.scoreboard.initScoreBaord();
         this.scoreboard.updateLives();
         this.scoreboard.updateScore();
-        this.map.enemys = [];
         this.map.bombs = [];
         this.player.removeplayer();
         this.map.destructor();
@@ -139,14 +129,12 @@ export class Game {
             cancelAnimationFrame(this.IDRE);
             this.IDRE = null;
         }
-        // this.ui.win()
         await new Promise(resolve => setTimeout(resolve, 1500));
         this.state.setScore(0);
         this.state.initState();
         this.scoreboard.initScoreBaord();
         this.scoreboard.updateLives();
         this.scoreboard.updateScore();
-        this.map.enemys = [];
         this.map.bombs = [];
         this.player.removeplayer();
         this.map.destructor();
@@ -169,19 +157,5 @@ export class Game {
     }
 
     async checkState() {
-        if (this.map.enemys.length === 0 && !this.levelComplete) {
-            this.levelComplete = true;
-            if (this.state.getcurentlevel() >= this.state.maxlevel()) {
-                const Id = setTimeout(() => {
-                    this.handleWin();
-                    clearTimeout(Id)
-                }, 1600)
-            } else {
-                const id = setTimeout(() => {
-                    this.nextLevel();
-                    clearTimeout(id)
-                }, 1600);
-            }
-        }
     }
 }
