@@ -21,6 +21,18 @@ export class InputManager {
 
     handleKeyDown(e) {
         const key = e.key;
+        // if typing into an input/textarea, ignore game controls
+        const activeTag = document.activeElement && document.activeElement.tagName && document.activeElement.tagName.toLowerCase();
+        if (activeTag === 'input' || activeTag === 'textarea') return;
+
+        // Place bomb on Space (don't treat as a held key)
+        if (e.code === 'Space' || key === ' ' || key === 'Spacebar') {
+            e.preventDefault();
+            const seq = this.nextSequence();
+            this.network.send({ type: ClientMessages.PLACE_BOMB, sequenceNumber: seq });
+            return;
+        }
+
         if (this.keys.get(key)) return; // already pressed
         this.keys.set(key, true);
 

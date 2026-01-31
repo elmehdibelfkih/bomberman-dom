@@ -88,7 +88,7 @@ export const MessageBuilder = {
     }
   },
 
-  bombPlaced(bombId, playerId, gridX, gridY, range) {
+  bombPlaced(bombId, playerId, gridX, gridY, range, timer) {
     return {
       type: 'BOMB_PLACED',
       bombId,
@@ -96,6 +96,7 @@ export const MessageBuilder = {
       gridX,
       gridY,
       range,
+      timer
     };
   },
 

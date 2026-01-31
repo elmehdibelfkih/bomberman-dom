@@ -2,7 +2,7 @@ import { dom } from '../../../framework/index.js';
 import { CLIENT_CONFIG } from '../../config/client-config.js';
 import { Board } from '../components/Board.js';
 
-export const GamePage = ({ mapData, players, yourPlayerId, onSendChat = () => {} }) => {
+export const GamePage = ({ mapData, players, yourPlayerId, onSendChat = () => {}, onPlaceBomb = () => {} }) => {
     // Use Board component to render map and players
     const board = Board({ mapData, players, yourPlayerId });
     const page = dom({ tag: 'div', attributes: { class: 'game-page' } });
@@ -40,6 +40,14 @@ export const GamePage = ({ mapData, players, yourPlayerId, onSendChat = () => {}
         chatInput.value = '';
     });
 
+    // Place Bomb button (also accessible by Space key handled in InputManager)
+    const placeBombBtn = dom({ tag: 'button', attributes: { class: 'btn', style: 'display:block; margin-top:8px;' }, children: ['Place Bomb'] });
+    placeBombBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        onPlaceBomb();
+    });
+    chatContainer.appendChild(placeBombBtn);
+
     function updateChatMessage(msg) {
         addChatMessage(msg);
     }
@@ -48,7 +56,15 @@ export const GamePage = ({ mapData, players, yourPlayerId, onSendChat = () => {}
         if (board && board.updatePlayers) board.updatePlayers(newPlayers);
     }
 
-    return { element: page, addChatMessage, updateChatMessage, chatInput, updatePlayers };
+    function updateBombs(bombs) {
+        if (board && board.updateBombs) board.updateBombs(bombs);
+    }
+
+    function updateBlocks(destroyedBlocks = [], explosions = []) {
+        if (board && board.updateBlocks) board.updateBlocks(destroyedBlocks, explosions);
+    }
+
+    return { element: page, addChatMessage, updateChatMessage, chatInput, updatePlayers, updateBombs, updateBlocks };
 };
 
 function createCell(x, y, type, cellSize) {

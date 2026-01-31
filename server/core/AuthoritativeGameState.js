@@ -131,6 +131,8 @@ export class AuthoritativeGameState {
         for (const bomb of this.gameEngine.entities.bombs.values()) {
             if (!bomb) continue;
             if (bomb.gridX >= left && bomb.gridX <= right && bomb.gridY >= top && bomb.gridY <= bottom) {
+                // Allow the owner to walk over their own bomb so they can step off after placing it.
+                if (bomb.playerId === player.playerId) continue;
                 if (!player.bombPass) return false;
             }
         }
@@ -180,12 +182,22 @@ export class AuthoritativeGameState {
 
         if (activeBombs.length >= player.maxBombs) return false;
 
+        // compute grid cell from player's current pixel position to avoid
+        // placing bombs in the wrong cell if client's gridX/gridY are stale
+        const gx = Math.floor(player.x / GAME_CONFIG.BLOCK_SIZE);
+        const gy = Math.floor(player.y / GAME_CONFIG.BLOCK_SIZE);
+
+        // prevent multiple bombs in same cell unless player has bombPass
+        for (const b of this.gameEngine.entities.bombs.values()) {
+            if (b.gridX === gx && b.gridY === gy && !player.bombPass) return false;
+        }
+
         const bombId = `bomb_${Date.now()}_${playerId}`;
         const bomb = {
             bombId,
             playerId,
-            gridX: player.gridX,
-            gridY: player.gridY,
+            gridX: gx,
+            gridY: gy,
             range: player.bombRange,
             timer: GAME_CONFIG.BOMB_TIMER,
             createdAt: Date.now()
@@ -194,7 +206,7 @@ export class AuthoritativeGameState {
         this.gameEngine.entities.bombs.set(bombId, bomb);
 
         this.gameRoom.broadcast(
-            MessageBuilder.bombPlaced(bombId, playerId, player.gridX, player.gridY, player.bombRange)
+            MessageBuilder.bombPlaced(bombId, playerId, bomb.gridX, bomb.gridY, player.bombRange, bomb.timer)
         );
 
         setTimeout(() => {

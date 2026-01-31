@@ -135,10 +135,34 @@ export class App {
 
         this.messageHandler.register(ServerMessages.BOMB_PLACED, (msg) => {
             this.gameState.bombs.set(msg.bombId, msg);
+            if (this._gamePage && this._gamePage.updateBombs) {
+                this._gamePage.updateBombs(Array.from(this.gameState.bombs.values()));
+            }
         });
 
         this.messageHandler.register(ServerMessages.BOMB_EXPLODED, (msg) => {
+            // Apply destroyed blocks to local map copy (so tiles change to floor)
+            try {
+                if (Array.isArray(msg.destroyedBlocks) && this.gameState.mapData && this.gameState.mapData.initial_grid) {
+                    msg.destroyedBlocks.forEach(b => {
+                        if (this.gameState.mapData.initial_grid[b.gridY] && typeof this.gameState.mapData.initial_grid[b.gridY][b.gridX] !== 'undefined') {
+                            this.gameState.mapData.initial_grid[b.gridY][b.gridX] = 0; // set to floor
+                        }
+                    });
+                }
+            } catch (err) {
+                console.warn('Error applying destroyed blocks locally:', err);
+            }
+
+            // Trigger board update: show destroyed blocks and play explosions
+            if (this._gamePage && this._gamePage.updateBlocks) {
+                this._gamePage.updateBlocks(msg.destroyedBlocks || [], msg.explosions || []);
+            }
+
             this.gameState.bombs.delete(msg.bombId);
+            if (this._gamePage && this._gamePage.updateBombs) {
+                this._gamePage.updateBombs(Array.from(this.gameState.bombs.values()));
+            }
         });
 
         this.messageHandler.register(ServerMessages.PLAYER_DIED, (msg) => {
@@ -201,6 +225,9 @@ export class App {
                 yourPlayerId: data.yourPlayerId,
                 onSendChat: (text) => {
                     this.networkManager.send({ type: ClientMessages.CHAT_MESSAGE, text });
+                },
+                onPlaceBomb: () => {
+                    this.networkManager.send({ type: ClientMessages.PLACE_BOMB });
                 }
             });
             this._gamePage = gamePage;
