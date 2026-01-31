@@ -26,7 +26,7 @@ When the URL changes (link click, back/forward, programmatic navigation), these 
 ### Initialize
 
 ```javascript
-import { Router } from './framwork/router/router.js'
+import { Router } from './framework/router/router.js'
 
 Router.instance.initRouter();
 ```
@@ -41,7 +41,7 @@ Router.instance.navigate('/login', true); // Replace history
 ### Reactive Hooks
 
 ```javascript
-import { usePathname, useSearchParams, useHash, useSearchParam, useNavigate } from './framwork/index.js'
+import { usePathname, useSearchParams, useHash, useSearchParam, useNavigate } from './framework/index.js'
 
 const pathname = usePathname();           // Get pathname reactively
 const searchParams = useSearchParams();   // Get search params reactively
@@ -55,7 +55,7 @@ const navigate = useNavigate();           // Get navigate function
 ### Example 1: Hash-Based Filtering (TodoMVC)
 
 ```javascript
-import { createMemo, useHash } from './framwork/index.js'
+import { createMemo, useHash } from './framework/index.js'
 
 // Initialize router
 Router.instance.initRouter();
@@ -114,7 +114,7 @@ const filters = dom({
 ### Example 2: Reactive Navigation Menu
 
 ```javascript
-import { dom, usePathname, createEffect } from './framwork/index.js'
+import { dom, usePathname, createEffect } from './framework/index.js'
 
 const pathname = usePathname();
 
@@ -159,7 +159,7 @@ createEffect(() => {
 ### Example 3: Query Parameters
 
 ```javascript
-import { useSearchParam, createEffect } from './framwork/index.js'
+import { useSearchParam, createEffect } from './framework/index.js'
 
 const page = useSearchParam('page');
 const search = useSearchParam('search');
@@ -177,7 +177,7 @@ createEffect(() => {
 ### Example 4: Programmatic Navigation
 
 ```javascript
-import { useNavigate } from './framwork/index.js'
+import { useNavigate } from './framework/index.js'
 
 const navigate = useNavigate();
 
@@ -194,7 +194,7 @@ loginButton.onclick = () => {
 ### Example 5: Conditional Rendering
 
 ```javascript
-import { dom, usePathname } from './framwork/index.js'
+import { dom, usePathname } from './framework/index.js'
 
 const pathname = usePathname();
 
@@ -316,7 +316,7 @@ const content = dom({
 ## Complete Example
 
 ```javascript
-import { Router, dom, createEffect, usePathname, useHash, useNavigate } from './framwork/index.js'
+import { Router, dom, createEffect, usePathname, useHash, useNavigate } from './framework/index.js'
 
 // Initialize router
 Router.instance.initRouter();

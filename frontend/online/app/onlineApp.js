@@ -1,12 +1,12 @@
-import { Router, dom, usePathname } from "../framework/index.js";
-import { OnlineGmeEngine } from "../game/engine/onlineGameEngine.js";
-import { createEffect } from "../framework/state/signal.js";
-import { NetworkManager } from '../game/network/NetworkManager.js';
-import { getGameContainer } from "../game/utils/helpers.js";
+import { Router, dom, usePathname } from "../../framework/framework/index.js";
+import { Game  } from "../engine/core.";
+import { createEffect } from "../../framework/framework/state/signal.js";
+import { NetworkManager } from '../network/networkManager.js';
+import { getGameContainer } from "../utils/helpers.js";
 import { getLobbyContainer } from "../utils/helpers.js";
 // import { NetworkStateSynchronizer } from '../game/network/NetworkStateSynchronizer.js';
 
-class OnlineApp {
+export class OnlineApp {
     constructor() {
         this.router = Router.instance;
         this.router.initRouter();
@@ -15,6 +15,7 @@ class OnlineApp {
         this.game = null;
         this.eventListeners = [];
         this.networkManager = NetworkManager.getInstance();
+        this.lobbyContainer = null; // Add this
         this.init();
     }
 
@@ -30,6 +31,9 @@ class OnlineApp {
         if (this.currentPage && this.currentPage.parentNode === document.body) {
             document.body.removeChild(this.currentPage);
             this.currentPage = null;
+            if (path !== '/lobby') {
+                this.lobbyContainer = null;
+            }
         }
 
         if (path === '/' || path === '') {
@@ -130,21 +134,19 @@ class OnlineApp {
     }
 
     createLobbyPage() {
-        setTimeout(() => {
-            this.setupLobby();
-        }, 0);
-
-        return getLobbyContainer();
+        this.lobbyContainer = getLobbyContainer();
+        this.setupLobby();
+        return this.lobbyContainer;
     }
 
     setupLobby() {
-        const playerList = document.getElementById('player-list');
-        const playerCount = document.getElementById('player-count');
-        const chatMessages = document.getElementById('chat-messages');
-        const chatInput = document.getElementById('chat-input');
-        const sendBtn = document.getElementById('send-chat-btn');
-        const leaveBtn = document.getElementById('leave-lobby-btn');
-        const countdownDisplay = document.getElementById('countdown-display');
+        const playerList = this.lobbyContainer.querySelector('#player-list');
+        const playerCount = this.lobbyContainer.querySelector('#player-count');
+        const chatMessages = this.lobbyContainer.querySelector('#chat-messages');
+        const chatInput = this.lobbyContainer.querySelector('#chat-input');
+        const sendBtn = this.lobbyContainer.querySelector('#send-chat-btn');
+        const leaveBtn = this.lobbyContainer.querySelector('#leave-lobby-btn');
+        const countdownDisplay = this.lobbyContainer.querySelector('#countdown-display');
 
         // Network event handlers
         const lobbyJoinedHandler = (data) => {
@@ -175,8 +177,6 @@ class OnlineApp {
 
         const gameStartedHandler = (data) => {
             this.gameData = data;
-            console.log(data);
-            
             this.router.navigate('/game', true);
         };
 
@@ -225,8 +225,9 @@ class OnlineApp {
 
     updatePlayerList(players) {
         console.log('Updating player list:', players);
-        const playerCount = document.getElementById('player-count');
-        const playerList = document.getElementById('player-list');
+        if (!this.lobbyContainer) return;
+        const playerCount = this.lobbyContainer.querySelector('#player-count');
+        const playerList = this.lobbyContainer.querySelector('#player-list');
 
         if (!playerCount || !playerList) return;
 
@@ -275,7 +276,8 @@ class OnlineApp {
     }
 
     addChatMessage(nickname, text) {
-        const chatMessages = document.getElementById('chat-messages');
+        if (!this.lobbyContainer) return;
+        const chatMessages = this.lobbyContainer.querySelector('#chat-messages');
         if (!chatMessages) return;
 
         const messageEl = dom({
@@ -300,16 +302,30 @@ class OnlineApp {
 
     async startMultiplayerGame() {
         document.body.innerHTML = '';
+        // document.body.appendChild(getGameContainer());
+
+        const game = Game.getInstance(this.gameData);
+        await game.intiElements();
+
+        while (!game.player || !game.player.playerCoordinate) {
+            await new Promise(r => setTimeout(r, 0));
+        }
+
+        await game.waitForLevel();
+        game.state.stopTimer();
+        game.state.resetTimer();
+        game.state.setTime(game.map.level.level_time);
+        game.state.startTimer();
+        game.run();
 
         // the multi player game engine
         // handle the game loop
-        this.game = OnlineGmeEngine.getInstance();
-        this.game.setNetworkManager(this.networkManager);
-        this.game.setRouter(this.router);
-        await this.game.initGame(this.gameData);
+        // this.game = OnlineGameEnginegetInstance();
+        // this.game.setNetworkManager(this.networkManager);
+        // this.game.setRouter(this.router);
+        // await this.game.initGame(this.gameData);
 
-        // UI place holders
-        document.body.appendChild(getGameContainer());
+        // // UI place holders
 
         this.setupGameChat();
     }
@@ -327,6 +343,7 @@ class OnlineApp {
         const keydownHandler = (e) => {
             if (e.key.toLowerCase() === 't' && !chatVisible) {
                 e.preventDefault();
+                e.stopPropagation();
                 chatVisible = true;
                 chatInput.style.display = 'block';
                 chatInput.focus();
@@ -346,6 +363,7 @@ class OnlineApp {
                 }
                 chatVisible = false;
                 chatInput.style.display = 'none';
+                chatInput.blur();
             }
         };
 
@@ -418,7 +436,7 @@ class OnlineApp {
         document.body.innerHTML = '';
 
         // Reset singleton instance
-        OnlineGmeEngine.resetInstance();
+        OnlineGameEngineresetInstance();
 
         // Clear game reference
         this.game = null;

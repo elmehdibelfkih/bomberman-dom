@@ -1,5 +1,5 @@
 // import { Game } from "./engine/core.js"
-import {OnlineApp} from "./app/onlineApp"
+import {OnlineApp} from "./app/onlineApp.js"
 
 // const game = Game.getInstance();
 // await game.intiElements();

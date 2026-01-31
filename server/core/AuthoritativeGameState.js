@@ -169,12 +169,12 @@ export class AuthoritativeGameState {
         switch (direction) {
             case 'LEFT':
             case 'RIGHT':
-                return { width: 25, height: 64 };
+                return { width: GAME_CONFIG.PLAYER_DIMENSIONS.WIDTH_HORIZONTAL, height: GAME_CONFIG.PLAYER_DIMENSIONS.HEIGHT };
             case 'UP':
             case 'DOWN':
-                return { width: 33, height: 64 };
+                return { width: GAME_CONFIG.PLAYER_DIMENSIONS.WIDTH_VERTICAL, height: GAME_CONFIG.PLAYER_DIMENSIONS.HEIGHT };
             default:
-                return { width: 33, height: 64 };
+                return { width: GAME_CONFIG.PLAYER_DIMENSIONS.WIDTH_VERTICAL, height: GAME_CONFIG.PLAYER_DIMENSIONS.HEIGHT };
         }
     }
 
@@ -294,7 +294,7 @@ export class AuthoritativeGameState {
         const powerUpTimerId = setTimeout(() => {
             player.powerUpTimers.delete(powerUpTimerId)
             this.removePowerUp(player, type)
-        }, 4000);
+        }, GAME_CONFIG.POWERUP_DURATION);
 
         player.powerUpTimers.set(type, powerUpTimerId)
     }
@@ -322,21 +322,21 @@ export class AuthoritativeGameState {
     applyPowerUp(player, type) {
         switch (type) {
             case POWERUP_SPEED:
-                player.speed = Math.min(player.speed + 1, 5);
+                player.speed = Math.min(player.speed + 1, GAME_CONFIG.PLAYER_MAX_STATS.SPEED);
                 break;
             case POWERUP_BOMB:
-                player.maxBombs = Math.min(player.maxBombs + 1, 5);
+                player.maxBombs = Math.min(player.maxBombs + 1, GAME_CONFIG.PLAYER_MAX_STATS.MAX_BOMBS);
                 break;
             case POWERUP_FLAME:
-                player.bombRange = Math.min(player.bombRange + 1, 5);
+                player.bombRange = Math.min(player.bombRange + 1, GAME_CONFIG.PLAYER_MAX_STATS.BOMB_RANGE);
             case POWERUP_BOMB_PASS:
-                player.bombPass = Math.min(player.bombPass + 1, 5)
+                player.bombPass = Math.min(player.bombPass + 1, GAME_CONFIG.PLAYER_MAX_STATS.BOMB_PASS)
                 break;
             case POWERUP_BLOCK_PASS:
-                player.blockPass = Math.min(player.blockPass + 1, 5)
+                player.blockPass = Math.min(player.blockPass + 1, GAME_CONFIG.PLAYER_MAX_STATS.BLOCK_PASS)
                 break;
             case POWERUP_EXTRA_LIFE:
-                player.lives = Math.min(player.lives + 1, 5)
+                player.lives = Math.min(player.lives + 1, GAME_CONFIG.PLAYER_MAX_STATS.LIVES)
                 break;
         }
 

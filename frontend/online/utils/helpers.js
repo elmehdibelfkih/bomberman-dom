@@ -1,3 +1,4 @@
+import { dom } from "../../framework/framework/index.js";
 
 export function throttle(cbf, wait) {
   let block = false

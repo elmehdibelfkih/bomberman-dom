@@ -8,14 +8,16 @@ export class Game {
 
     static #instance = null;
 
-    static getInstance() {
+    static getInstance(gameData) {
+        console.log("ha data =>", gameData);
+        
         if (!Game.#instance) Game.#instance = new Game();
         return Game.#instance;
     }
 
     constructor() {
         this.state = State.getInstance(this);
-        this.scoreboard = Scoreboard.getInstance(this)
+        // this.scoreboard = Scoreboard.getInstance(this)
         this.map = Map.getInstance(this)
         this.player = new Player(this)
         this.ui =  UI.getInstance(this)
@@ -74,9 +76,9 @@ export class Game {
         this.ui.GameOver()
         this.state.setScore(0)
         this.state.initState()
-        this.scoreboard.initScoreBaord()
-        this.scoreboard.updateLives()
-        this.scoreboard.updateScore()
+        // this.scoreboard.initScoreBaord()
+        // this.scoreboard.updateLives()
+        // this.scoreboard.updateScore()
         this.map.bombs = []
         this.player.removeplayer()
         this.map.destructor()
@@ -100,16 +102,16 @@ export class Game {
         await new Promise(resolve => setTimeout(resolve, 1500));
         this.state.setScore(0);
         this.state.initState();
-        this.scoreboard.initScoreBaord();
-        this.scoreboard.updateLives();
-        this.scoreboard.updateScore();
+        // this.scoreboard.initScoreBaord();
+        // this.scoreboard.updateLives();
+        // this.scoreboard.updateScore();
         this.map.bombs = [];
         this.player.removeplayer();
         this.map.destructor();
         this.state.removeEventListeners();
         this.state.initArrowState();
         this.state.nextLevel();
-        this.scoreboard.updateLevel();
+        // this.scoreboard.updateLevel();
         Map.instance = null
         this.map = Map.getInstance(this);
         this.player = new Player(this);
@@ -132,9 +134,9 @@ export class Game {
         await new Promise(resolve => setTimeout(resolve, 1500));
         this.state.setScore(0);
         this.state.initState();
-        this.scoreboard.initScoreBaord();
-        this.scoreboard.updateLives();
-        this.scoreboard.updateScore();
+        // this.scoreboard.initScoreBaord();
+        // this.scoreboard.updateLives();
+        // this.scoreboard.updateScore();
         this.map.bombs = [];
         this.player.removeplayer();
         this.map.destructor();
@@ -142,7 +144,7 @@ export class Game {
         this.state = State.getInstance(this);
         this.state.initArrowState();
         this.state.resetLevel();
-        this.scoreboard.updateLevel();
+        // this.scoreboard.updateLevel();
         Map.instance = null
         this.map = Map.getInstance(this);
         this.player = new Player(this);

@@ -447,3 +447,764 @@ div[class*="soft-block"] img {
   filter: grayscale(100%) brightness(0.5);
 }
 
+
+/* Menu Styles */
+#menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--overlay-bg);
+  backdrop-filter: blur(15px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.5s ease;
+}
+
+#menu.hidden {
+  display: none;
+}
+
+.menu-box {
+  background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--primary-bg) 100%);
+  border: 3px solid var(--accent-color);
+  color: var(--text-primary);
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius-lg);
+  text-align: center;
+  max-width: 500px;
+  box-shadow:
+    0 20px 60px var(--shadow-dark),
+    0 0 40px rgba(255, 71, 87, 0.2);
+  animation: slideUp 0.6s ease;
+}
+
+.menu-box h1 {
+  color: var(--accent-color);
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-md);
+  text-shadow: 2px 2px 4px var(--shadow-dark);
+}
+
+.menu-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-xl);
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.menu-btn {
+  background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-hover) 100%);
+  color: var(--text-primary);
+  border: none;
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  font-family: var(--font-pixel);
+  font-size: var(--font-size-md);
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(255, 71, 87, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.menu-btn:hover {
+  background: linear-gradient(135deg, var(--accent-hover) 0%, #e63946 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 71, 87, 0.4);
+}
+
+.menu-btn:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .menu-box {
+    margin: var(--spacing-md);
+    padding: var(--spacing-lg);
+  }
+}
+
+/* Page Container - Full screen wrapper for each route */
+.page-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, var(--primary-bg) 0%, var(--secondary-bg) 100%);
+}
+
+/* Menu page specific styling */
+#menu {
+  background: var(--overlay-bg);
+  backdrop-filter: blur(15px);
+  z-index: 1000;
+  animation: fadeIn 0.5s ease;
+}
+
+/* Game container styling */
+#game-container {
+  z-index: 1;
+}
+
+/* Multiplayer container styling */
+#multiplayer-container {
+  background: var(--overlay-bg);
+  backdrop-filter: blur(15px);
+  z-index: 1000;
+}
+
+/* Nickname form styling */
+.nickname-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin: var(--spacing-lg) 0;
+}
+
+#nickname-input {
+  padding: var(--spacing-md);
+  border: 2px solid var(--shadow-light);
+  border-radius: var(--border-radius-md);
+  background: var(--secondary-bg);
+  color: var(--text-primary);
+  font-family: var(--font-pixel);
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+#nickname-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 10px rgba(255, 71, 87, 0.3);
+}
+
+/* Lobby styling */
+#lobby-container {
+  background: var(--overlay-bg);
+  backdrop-filter: blur(15px);
+  z-index: 1000;
+}
+
+.lobby-box {
+  background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--primary-bg) 100%);
+  border: 3px solid var(--accent-color);
+  color: var(--text-primary);
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius-lg);
+  text-align: center;
+  max-width: 600px;
+  width: 90%;
+  box-shadow:
+    0 20px 60px var(--shadow-dark),
+    0 0 40px rgba(255, 71, 87, 0.2);
+  animation: slideUp 0.6s ease;
+}
+
+#player-count {
+  font-size: var(--font-size-lg);
+  color: var(--accent-color);
+  margin: var(--spacing-md) 0;
+  font-weight: bold;
+}
+
+.player-position {
+  font-size: var(--font-size-md);
+  color: var(--timer-color);
+  margin: var(--spacing-sm) 0;
+  font-weight: bold;
+  padding: var(--spacing-sm);
+  background: var(--primary-bg);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--shadow-light);
+}
+
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin: var(--spacing-lg) 0;
+  min-height: 120px;
+}
+
+.player-item {
+  background: var(--primary-bg);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--shadow-light);
+  font-size: var(--font-size-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: slideInLeft 0.3s ease forwards;
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.player-number {
+  background: var(--accent-color);
+  color: var(--text-primary);
+  padding: 2px 8px;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: bold;
+}
+
+.player-nickname {
+  flex: 1;
+  margin-left: var(--spacing-md);
+  color: var(--text-secondary);
+}
+
+@keyframes slideInLeft {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.countdown {
+  font-size: var(--font-size-lg);
+  color: var(--timer-color);
+  margin: var(--spacing-md) 0;
+  font-weight: bold;
+  min-height: 30px;
+}
+
+.chat-container {
+  margin: var(--spacing-lg) 0;
+  text-align: left;
+}
+
+.chat-messages {
+  background: var(--primary-bg);
+  border: 2px solid var(--shadow-light);
+  border-radius: var(--border-radius-md);
+  height: 200px;
+  overflow-y: auto;
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.chat-message {
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+}
+
+.chat-nickname {
+  color: var(--accent-color);
+  font-weight: bold;
+}
+
+.chat-text {
+  color: var(--text-secondary);
+}
+
+.chat-input-container {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+#chat-input {
+  flex: 1;
+  padding: var(--spacing-sm);
+  border: 2px solid var(--shadow-light);
+  border-radius: var(--border-radius-md);
+  background: var(--secondary-bg);
+  color: var(--text-primary);
+  font-family: var(--font-pixel);
+  font-size: var(--font-size-xs);
+}
+
+#chat-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+#send-chat-btn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--accent-color);
+  color: var(--text-primary);
+  border: none;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  font-family: var(--font-pixel);
+  font-size: var(--font-size-xs);
+  transition: background 0.2s ease;
+}
+
+#send-chat-btn:hover {
+  background: var(--accent-hover);
+}
+
+/* Multiplayer Game UI */
+#multiplayer-game-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.players-info {
+  position: fixed;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  background: var(--overlay-bg);
+  backdrop-filter: blur(10px);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  border: 2px solid var(--shadow-light);
+  pointer-events: auto;
+}
+
+.game-chat {
+  position: fixed;
+  bottom: var(--spacing-md);
+  left: var(--spacing-md);
+  width: 300px;
+  pointer-events: auto;
+}
+
+.chat-messages-small {
+  background: var(--overlay-bg);
+  backdrop-filter: blur(10px);
+  border: 2px solid var(--shadow-light);
+  border-radius: var(--border-radius-md);
+  height: 120px;
+  overflow-y: auto;
+  padding: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-xs);
+}
+
+.game-chat-message {
+  margin-bottom: var(--spacing-xs);
+  padding: var(--spacing-xs);
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--border-radius-sm);
+  transition: opacity 0.3s ease;
+  animation: slideInUp 0.3s ease;
+}
+
+.game-chat-nickname {
+  color: var(--accent-color);
+  font-weight: bold;
+}
+
+.game-chat-text {
+  color: var(--text-secondary);
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Chat Notifications */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+.chat-notification {
+  box-shadow: 0 4px 12px var(--shadow-dark);
+}
+
+.chat-notification-success {
+  border-left-color: var(--timer-color) !important;
+}
+
+.chat-notification-warning {
+  border-left-color: var(--score-color) !important;
+}
+
+.chat-notification-error {
+  border-left-color: var(--accent-color) !important;
+}
+
+#chat-input-game {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 2px solid var(--shadow-light);
+  border-radius: var(--border-radius-md);
+  background: var(--secondary-bg);
+  color: var(--text-primary);
+  font-family: var(--font-pixel);
+  font-size: var(--font-size-xs);
+}
+
+#chat-input-game:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+/* Remote players */
+.remote-player {
+  filter: drop-shadow(2px 2px 4px var(--shadow-dark));
+  transition: all 0.1s ease;
+}
+
+.local-player {
+  filter: drop-shadow(2px 2px 4px var(--shadow-dark));
+  transition: all 0.1s ease;
+  border: 2px solid var(--timer-color) !important;
+}
+
+.player-info-item {
+  font-family: var(--font-pixel);
+  color: var(--text-primary);
+}
+
+.players-info {
+  min-width: 200px;
+}
+
+.players-info h3 {
+  color: var(--accent-color);
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-sm);
+}
+
+/* Player List Styles */
+.player-list-container {
+  background: var(--overlay-bg);
+  backdrop-filter: blur(10px);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  border: 2px solid var(--shadow-light);
+}
+
+.players-title {
+  color: var(--accent-color);
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: var(--font-size-md);
+  text-align: center;
+}
+
+.players-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.player-item {
+  background: var(--primary-bg);
+  border: 2px solid var(--shadow-light);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-sm);
+  transition: all 0.3s ease;
+}
+
+.local-player-item {
+  border-color: var(--timer-color);
+  background: rgba(46, 213, 115, 0.1);
+}
+
+.remote-player-item {
+  border-color: var(--accent-color);
+  background: rgba(255, 71, 87, 0.1);
+}
+
+.dead-player {
+  opacity: 0.5;
+  filter: grayscale(100%);
+}
+
+.player-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.player-name {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.player-number {
+  background: var(--accent-color);
+  color: var(--text-primary);
+  padding: 2px 6px;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: bold;
+}
+
+.nickname {
+  color: var(--text-primary);
+  font-size: var(--font-size-xs);
+}
+
+.player-stats {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.lives-display {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.lives-count {
+  color: var(--text-primary);
+  font-size: var(--font-size-xs);
+  font-weight: bold;
+}
+
+.status-display {
+  font-size: var(--font-size-sm);
+}
+
+.damaged {
+  animation: damageFlash 0.5s ease;
+}
+
+@keyframes damageFlash {
+  0%, 100% { background-color: var(--primary-bg); }
+  50% { background-color: rgba(255, 71, 87, 0.3); }
+}
+
+/* Game Status Indicator */
+.game-status-indicator {
+  position: fixed;
+  top: var(--spacing-md);
+  left: var(--spacing-md);
+  background: var(--overlay-bg);
+  backdrop-filter: blur(10px);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  border: 2px solid var(--accent-color);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  z-index: 100;
+}
+
+.status-icon {
+  font-size: var(--font-size-lg);
+}
+
+.status-text {
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+}
+
+/* Local Player Stats */
+.local-player-stats {
+  position: fixed;
+  bottom: var(--spacing-md);
+  right: var(--spacing-md);
+  background: var(--overlay-bg);
+  backdrop-filter: blur(10px);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  border: 2px solid var(--timer-color);
+  display: flex;
+  gap: var(--spacing-md);
+  z-index: 100;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.stat-icon {
+  font-size: var(--font-size-md);
+}
+
+.stat-item span:last-child {
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: bold;
+}
+
+/* Countdown Overlay */
+.countdown-overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2000;
+  pointer-events: none;
+}
+
+.countdown-number {
+  font-size: 8rem;
+  font-weight: bold;
+  color: var(--accent-color);
+  text-shadow: 0 0 20px var(--accent-color);
+  animation: countdownPulse 1s ease-out;
+}
+
+@keyframes countdownPulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* Game Over Screen */
+.game-over-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--overlay-bg);
+  backdrop-filter: blur(15px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.game-over-content {
+  background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--primary-bg) 100%);
+  border: 3px solid var(--accent-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  text-align: center;
+  max-width: 500px;
+  box-shadow: 0 20px 60px var(--shadow-dark);
+}
+
+.game-over-title {
+  color: var(--accent-color);
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-md);
+}
+
+.winner-text {
+  color: var(--timer-color);
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.final-stats {
+  margin: var(--spacing-lg) 0;
+}
+
+.final-stats h3 {
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+/* Power-up Notification */
+.power-up-notification {
+  position: absolute;
+  top: -20px;
+  right: -10px;
+  background: var(--timer-color);
+  color: var(--primary-bg);
+  padding: 2px 6px;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: bold;
+  animation: powerUpNotification 2s ease-out;
+}
+
+@keyframes powerUpNotification {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  20% {
+    transform: scale(1.2) rotate(10deg);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(1) rotate(-5deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8) rotate(0deg);
+    opacity: 0;
+  }
+}
+
+.remote-bomb {
+  filter: drop-shadow(1px 1px 2px var(--shadow-dark));
+}
+
+.explosion-effect {
+  animation: explosionPulse 0.5s ease-out;
+}
+
+@keyframes explosionPulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes powerUpPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+  }
+}

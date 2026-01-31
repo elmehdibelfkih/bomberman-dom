@@ -1,4 +1,4 @@
-import { dom } from "../../framework/framwork/index.js";
+import { dom } from "../../framework/framework/index.js";
 
 export class Scoreboard {
 

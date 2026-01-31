@@ -18,7 +18,7 @@ The `domAbstracting` function is the core of the DOM abstraction. It takes an ob
 **Example:**
 
 ```javascript
-import * as fm from '../framwork/index.js';
+import * as fm from '../framework/index.js';
 
 const myElement = fm.domAbstracting({
   tag: 'div',

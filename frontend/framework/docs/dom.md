@@ -13,7 +13,7 @@
 
 ```javascript
 
-import * as fm from "../../framwork/index.js";
+import * as fm from "../../framework/index.js";
 const { dom, createSignal } = fm;
 
 const [count, setCount] = createSignal(0);

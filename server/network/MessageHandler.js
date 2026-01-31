@@ -123,7 +123,9 @@ export class MessageHandler {
     }
 
     handleQuitGame(connection, message) {
-
+        if (connection.playerId) {
+            this.roomManager.handleDisconnect(connection.playerId);
+        }
     }
 
     sendError(connection, message) {

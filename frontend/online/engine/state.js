@@ -1,5 +1,5 @@
 import * as helpers from '../utils/helpers.js';
-import { eventManager } from '../../framework/framwork/index.js';
+import { eventManager } from '../../framework/framework/index.js';
 export class State {
 
     #CURRENT_LEVEL = 1

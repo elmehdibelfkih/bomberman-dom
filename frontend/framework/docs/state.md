@@ -49,7 +49,7 @@ A component for conditional rendering.
 **Example:**
 
 ```javascript
-import * as fm from '../framwork/index.js';
+import * as fm from '../framework/index.js';
 
 function h(tag, attributes, ...children) {
     if (typeof tag === 'function') {

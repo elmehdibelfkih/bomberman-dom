@@ -1,5 +1,5 @@
 import * as consts from '../utils/consts.js';
-import { dom, eventManager } from '../../framework/framwork/index.js';
+import { dom, eventManager } from '../../framework/framework/index.js';
 import { Bomb } from "./bomb.js";
 import { Bonus } from './bonus.js';
 

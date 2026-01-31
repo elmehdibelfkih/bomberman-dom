@@ -13,5 +13,19 @@ export const GAME_CONFIG = {
         { x: 13, y: 1, corner: 'top-right' },
         { x: 1, y: 9, corner: 'bottom-left' },
         { x: 13, y: 9, corner: 'bottom-right' }
-    ]
+    ],
+    PLAYER_DIMENSIONS: {
+        WIDTH_HORIZONTAL: 25,
+        WIDTH_VERTICAL: 33,
+        HEIGHT: 64
+    },
+    POWERUP_DURATION: 4000,
+    PLAYER_MAX_STATS: {
+        SPEED: 5,
+        MAX_BOMBS: 5,
+        BOMB_RANGE: 5,
+        BOMB_PASS: 5,
+        BLOCK_PASS: 5,
+        LIVES: 5
+    }
 };
