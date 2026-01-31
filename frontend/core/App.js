@@ -4,6 +4,7 @@ import { GameState } from './GameState.js';
 import { HomePage } from '../ui/pages/HomePage.js';
 import { LobbyPage } from '../ui/pages/LobbyPage.js';
 import { GamePage } from '../ui/pages/GamePage.js';
+import { InputManager } from './InputManager.js';
 import { CLIENT_CONFIG } from '../config/client-config.js';
 import { ClientMessages, ServerMessages } from '../shared/message-types.js';
 
@@ -18,6 +19,25 @@ export class App {
     async init() {
         this.setupMessageHandlers();
         this.renderPage('home');
+        this.setupGlobalShortcuts();
+    }
+
+    setupGlobalShortcuts() {
+        window.addEventListener('keydown', (e) => {
+            // focus chat input with 't' key (ignore when typing into inputs)
+            if (e.key === 't' && document.activeElement && document.activeElement.tagName.toLowerCase() === 'body') {
+                // prefer lobby input if present, otherwise game input
+                if (this._lobbyPage && this._lobbyPage.chatInput) {
+                    this._lobbyPage.chatInput.focus();
+                    e.preventDefault();
+                    return;
+                }
+                if (this._gamePage && this._gamePage.chatInput) {
+                    this._gamePage.chatInput.focus();
+                    e.preventDefault();
+                }
+            }
+        });
     }
 
     setupMessageHandlers() {
@@ -75,6 +95,19 @@ export class App {
 
         this.messageHandler.register(ServerMessages.GAME_STARTED, (msg) => {
             console.log('🎮 GAME_STARTED:', msg);
+            // initialize input manager so client sends MOVE/STOP messages to server
+            if (!this.inputManager) {
+                this.inputManager = new InputManager();
+                this.inputManager.init();
+            }
+
+            // populate local game state
+            this.gameState.mapData = msg.mapData;
+            this.gameState.clear();
+            if (Array.isArray(msg.players)) {
+                msg.players.forEach(p => this.gameState.players.set(p.playerId, p));
+            }
+
             this.renderPage('game', {
                 mapData: msg.mapData,
                 players: msg.players,
@@ -84,6 +117,20 @@ export class App {
 
         this.messageHandler.register(ServerMessages.PLAYER_MOVED, (msg) => {
             this.gameState.updatePlayer(msg.playerId, msg);
+            // update board if present
+            if (this._gamePage && this._gamePage.updatePlayers) {
+                const playersArray = Array.from(this.gameState.players.values());
+                this._gamePage.updatePlayers(playersArray);
+            }
+        });
+
+        this.messageHandler.register(ServerMessages.PLAYER_STOPPED, (msg) => {
+            // server told us a player stopped (blocked or client released key)
+            this.gameState.updatePlayer(msg.playerId, msg);
+            if (this._gamePage && this._gamePage.updatePlayers) {
+                const playersArray = Array.from(this.gameState.players.values());
+                this._gamePage.updatePlayers(playersArray);
+            }
         });
 
         this.messageHandler.register(ServerMessages.BOMB_PLACED, (msg) => {

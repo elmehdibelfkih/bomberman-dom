@@ -11,44 +11,90 @@ export class AuthoritativeGameState {
         this.powerUpSpawnQueue = [];
         this.nextPowerUpId = 1;
         this.lastProcessedSequenceNumber = new Map();
+        this._tickInterval = null;
     }
 
     validatePlayerMove(playerId, direction, sequenceNumber) {
+        // Server-side movement is now authoritative and runs on a tick loop.
+        // Client sends MOVE messages to indicate intent; server records the
+        // last processed sequenceNumber and sets the player's direction/isMoving.
         const lastSequenceNumber = this.lastProcessedSequenceNumber.get(playerId) || 0;
         if (sequenceNumber <= lastSequenceNumber) return false;
 
         const player = this.gameEngine.entities.players.get(playerId);
         if (!player || !player.alive) return false;
 
-        let newGridX = player.gridX;
-        let newGridY = player.gridY;
-
-        switch (direction) {
-            case 'UP': newGridY--; break;
-            case 'DOWN': newGridY++; break;
-            case 'LEFT': newGridX--; break;
-            case 'RIGHT': newGridX++; break;
-        }
-
-        if (!this.isValidGridPosition(newGridX, newGridY, playerId)) {
-            return false;
-        }
-        
-        player.gridX = newGridX;
-        player.gridY = newGridY;
-        player.x = newGridX * GAME_CONFIG.BLOCK_SIZE;
-        player.y = newGridY * GAME_CONFIG.BLOCK_SIZE;
+        // Set movement intent; actual position updates happen in the tick loop
         player.direction = direction;
         player.isMoving = true;
 
         this.lastProcessedSequenceNumber.set(playerId, sequenceNumber);
 
-        this.gameRoom.broadcast(
-            MessageBuilder.playerMoved(playerId, player.x, player.y, newGridX, newGridY, direction, sequenceNumber)
-        );
-
-        this.checkPowerUpCollection(playerId, newGridX, newGridY);
         return true;
+    }
+
+    // Start authoritative tick loop (60 FPS)
+    start() {
+        if (this._tickInterval) return;
+        const tickMs = 1000 / 60;
+        this._tickInterval = setInterval(() => this._step(), tickMs);
+    }
+
+    stop() {
+        if (this._tickInterval) {
+            clearInterval(this._tickInterval);
+            this._tickInterval = null;
+        }
+    }
+
+    _step() {
+        // Advance players by pixel amounts based on their speed and direction
+        for (const player of this.gameEngine.entities.players.values()) {
+            if (!player || !player.alive || !player.isMoving || !player.direction) continue;
+
+            let dx = 0;
+            let dy = 0;
+            switch (player.direction) {
+                case 'UP': dy = -player.speed; break;
+                case 'DOWN': dy = player.speed; break;
+                case 'LEFT': dx = -player.speed; break;
+                case 'RIGHT': dx = player.speed; break;
+            }
+
+            const newX = player.x + dx;
+            const newY = player.y + dy;
+
+            const newGridX = Math.floor(newX / GAME_CONFIG.BLOCK_SIZE);
+            const newGridY = Math.floor(newY / GAME_CONFIG.BLOCK_SIZE);
+
+            // Validate new position using grid coordinates
+            if (!this.isValidGridPosition(newGridX, newGridY, player.playerId)) {
+                // stop movement if blocked
+                player.isMoving = false;
+                this.gameRoom.broadcast(MessageBuilder.playerStopped(player.playerId, this.lastProcessedSequenceNumber.get(player.playerId) || 0));
+                continue;
+            }
+
+            // Commit movement
+            player.x = newX;
+            player.y = newY;
+            player.gridX = newGridX;
+            player.gridY = newGridY;
+
+            // Broadcast updated position
+            this.gameRoom.broadcast(MessageBuilder.playerMoved(
+                player.playerId,
+                Math.round(player.x),
+                Math.round(player.y),
+                player.gridX,
+                player.gridY,
+                player.direction,
+                this.lastProcessedSequenceNumber.get(player.playerId) || 0
+            ));
+
+            // Check for powerup collection at the new grid cell
+            this.checkPowerUpCollection(player.playerId, player.gridX, player.gridY);
+        }
     }
 
 

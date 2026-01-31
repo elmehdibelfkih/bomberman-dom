@@ -1,38 +1,12 @@
 import { dom } from '../../../framework/index.js';
 import { CLIENT_CONFIG } from '../../config/client-config.js';
+import { Board } from '../components/Board.js';
 
 export const GamePage = ({ mapData, players, yourPlayerId, onSendChat = () => {} }) => {
-    const cellSize = CLIENT_CONFIG.CELL_SIZE;
-    const grid = mapData.initial_grid;
-
-    const gameContainer = dom({
-        tag: 'div',
-        attributes: {
-            id: 'game-container',
-            style: `position: relative; width: ${CLIENT_CONFIG.CANVAS_WIDTH}px; height: ${CLIENT_CONFIG.CANVAS_HEIGHT}px; background: #000;`
-        }
-    });
-
-    // Render map
-    for (let y = 0; y < grid.length; y++) {
-        for (let x = 0; x < grid[y].length; x++) {
-            const cell = createCell(x, y, grid[y][x], cellSize);
-            gameContainer.appendChild(cell);
-        }
-    }
-
-    // Render players
-    players.forEach(player => {
-        const playerEl = createPlayer(player, cellSize, player.playerId === yourPlayerId);
-        gameContainer.appendChild(playerEl);
-    });
-
-    const page = dom({
-        tag: 'div',
-        attributes: { class: 'game-page' }
-    });
-
-    page.appendChild(gameContainer);
+    // Use Board component to render map and players
+    const board = Board({ mapData, players, yourPlayerId });
+    const page = dom({ tag: 'div', attributes: { class: 'game-page' } });
+    page.appendChild(board.element);
 
     // Chat UI
     const chatContainer = dom({ tag: 'div', attributes: { class: 'game-chat', style: 'position: absolute; right: 8px; bottom: 8px; width: 300px; background: rgba(0,0,0,0.6); padding:8px; color:#fff; z-index:50;' } });
@@ -70,7 +44,11 @@ export const GamePage = ({ mapData, players, yourPlayerId, onSendChat = () => {}
         addChatMessage(msg);
     }
 
-    return { element: page, addChatMessage, updateChatMessage };
+    function updatePlayers(newPlayers) {
+        if (board && board.updatePlayers) board.updatePlayers(newPlayers);
+    }
+
+    return { element: page, addChatMessage, updateChatMessage, chatInput, updatePlayers };
 };
 
 function createCell(x, y, type, cellSize) {

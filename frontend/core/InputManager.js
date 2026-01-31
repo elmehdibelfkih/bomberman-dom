@@ -1,7 +1,12 @@
+import { NetworkManager } from '../network/NetworkManager.js';
+import { ClientMessages } from '../../shared/message-types.js';
+
 export class InputManager {
     constructor() {
         this.keys = new Map();
         this.listeners = [];
+        this.network = NetworkManager.getInstance();
+        this._seq = 0;
     }
 
     init() {
@@ -9,14 +14,59 @@ export class InputManager {
         window.addEventListener('keyup', (e) => this.handleKeyUp(e));
     }
 
+    nextSequence() {
+        this._seq = (this._seq + 1) % Number.MAX_SAFE_INTEGER;
+        return this._seq;
+    }
+
     handleKeyDown(e) {
-        this.keys.set(e.key, true);
-        this.notifyListeners('keydown', e.key);
+        const key = e.key;
+        if (this.keys.get(key)) return; // already pressed
+        this.keys.set(key, true);
+
+        const dir = this._keyToDirection(key);
+        if (dir) {
+            const seq = this.nextSequence();
+            this.network.send({ type: ClientMessages.MOVE, direction: dir, sequenceNumber: seq });
+        }
+
+        this.notifyListeners('keydown', key);
     }
 
     handleKeyUp(e) {
-        this.keys.set(e.key, false);
-        this.notifyListeners('keyup', e.key);
+        const key = e.key;
+        this.keys.set(key, false);
+
+        const dir = this._keyToDirection(key);
+        if (dir) {
+            const seq = this.nextSequence();
+            this.network.send({ type: ClientMessages.STOP_MOVE, sequenceNumber: seq });
+        }
+
+        this.notifyListeners('keyup', key);
+    }
+
+    _keyToDirection(key) {
+        switch (key) {
+            case 'ArrowUp':
+            case 'w':
+            case 'W':
+                return 'UP';
+            case 'ArrowDown':
+            case 's':
+            case 'S':
+                return 'DOWN';
+            case 'ArrowLeft':
+            case 'a':
+            case 'A':
+                return 'LEFT';
+            case 'ArrowRight':
+            case 'd':
+            case 'D':
+                return 'RIGHT';
+            default:
+                return null;
+        }
     }
 
     isKeyPressed(key) {

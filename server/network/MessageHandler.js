@@ -127,6 +127,20 @@ export class MessageHandler {
     }
 
     sendError(connection, message) {
-        connection.send(JSON.stringify(message))
+        // Use the Connection helper (which formats the error as an object)
+        // to avoid double-JSON-encoding a plain string which produced
+        // messages like '"Unknown message type"' on the client.
+        try {
+            if (connection && typeof connection.sendError === 'function') {
+                connection.sendError('SERVER_ERROR', String(message));
+            } else if (connection && typeof connection.send === 'function') {
+                // fallback: send an error object
+                connection.send({ type: 'ERROR', code: 'SERVER_ERROR', message: String(message) });
+            } else {
+                console.error('Unable to send error, invalid connection:', message);
+            }
+        } catch (err) {
+            console.error('Error while sending error to connection:', err, message);
+        }
     }
 }

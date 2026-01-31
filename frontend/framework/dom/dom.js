@@ -19,10 +19,25 @@ export function dom(node) {
 
 // Handles attributes, including reactive ones
 function setAttributes(el, attributes = {}) {
+    // Defensive: attributes must be a plain object. If it's an array or primitive
+    // something went wrong in the caller. Skip and warn to avoid InvalidCharacterError.
+    if (!attributes || typeof attributes !== 'object' || Array.isArray(attributes)) {
+        console.warn('dom.setAttributes: expected attributes object, got:', attributes, '\n', new Error().stack);
+        return;
+    }
+
     for (const [key, value] of Object.entries(attributes)) {
         const trimmedKey = key.trim();
         if (trimmedKey === "") { // Skip empty trimmed keys
-            console.warn(`Invalid attribute name: ${key}`);
+            console.warn(`Invalid attribute name: ${key}`, '\n', new Error().stack);
+            continue;
+        }
+
+        // Validate attribute name against a conservative HTML attribute name pattern.
+        // Skip numeric or otherwise invalid attribute names to avoid DOM exceptions.
+        const validAttrName = /^[a-zA-Z_:\-][a-zA-Z0-9_:\.\-]*$/;
+        if (!validAttrName.test(trimmedKey)) {
+            console.warn(`Skipping invalid attribute name: ${trimmedKey}`, '\n', new Error().stack);
             continue;
         }
 

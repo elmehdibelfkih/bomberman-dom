@@ -82,5 +82,5 @@ export const LobbyPage = ({ players = [], countdown = null, onSendChat = () => {
         countdownElement.textContent = value !== null ? `Game starting in ${value}...` : '';
     }
 
-    return { element: page, countdownElement, addChatMessage, updatePlayers, updateCountdown };
+    return { element: page, countdownElement, addChatMessage, updatePlayers, updateCountdown, chatInput };
 };

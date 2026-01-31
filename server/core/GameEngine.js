@@ -28,7 +28,10 @@ export class GameEngine {
     async initialize(players) {
         Logger.info(`Initializing game engine for ${players.length} players`);
         players.forEach((player, index) => {
-            const spawn = GAME_CONFIG.SPAWN_POSITIONS[index];
+            // pick configured spawn, but avoid placing players on walls/blocks
+            const configuredSpawn = GAME_CONFIG.SPAWN_POSITIONS[index];
+            const spawn = this.findNearestFreeCell(configuredSpawn.x, configuredSpawn.y);
+
             this.entities.players.set(player.playerId,
                 new Player(player.playerId, player.nickname,
                     spawn.x * GAME_CONFIG.BLOCK_SIZE,
@@ -36,14 +39,13 @@ export class GameEngine {
                     spawn.x, spawn.y)
             );
 
-
             this.clearSpawnArea(spawn.x, spawn.y);
         });
 
         this.gameState.status = 'READY';
 
         this.authoritativeState = new AuthoritativeGameState(this.gameRoom, this);
-        // this.authoritativeState.start();
+    this.authoritativeState.start();
 
         Logger.info('Game engine initialized successfully');
     }
@@ -70,6 +72,56 @@ export class GameEngine {
                 }
             }
         }
+    }
+
+    findNearestFreeCell(startX, startY) {
+        const grid = this.mapData.initial_grid;
+        const height = grid.length;
+        const width = grid[0].length;
+
+        const inBounds = (x, y) => x >= 0 && x < width && y >= 0 && y < height;
+
+        // If starting cell is already free (not WALL or BLOCK), return it
+        if (inBounds(startX, startY)) {
+            const val = grid[startY][startX];
+            if (val !== 1 && val !== 2) {
+                return { x: startX, y: startY };
+            }
+        }
+
+        // BFS outward until we find a free cell (value !== WALL && !== BLOCK)
+        const visited = new Set();
+        const q = [];
+        q.push({ x: startX, y: startY });
+        visited.add(`${startX}_${startY}`);
+
+        const dirs = [
+            { dx: 0, dy: -1 },
+            { dx: 0, dy: 1 },
+            { dx: -1, dy: 0 },
+            { dx: 1, dy: 0 }
+        ];
+
+        while (q.length > 0) {
+            const cur = q.shift();
+            for (const d of dirs) {
+                const nx = cur.x + d.dx;
+                const ny = cur.y + d.dy;
+                const key = `${nx}_${ny}`;
+                if (!inBounds(nx, ny) || visited.has(key)) continue;
+                visited.add(key);
+
+                const cellVal = grid[ny][nx];
+                if (cellVal !== 1 && cellVal !== 2) {
+                    return { x: nx, y: ny };
+                }
+
+                q.push({ x: nx, y: ny });
+            }
+        }
+
+        // fallback to original spawn if nothing found
+        return { x: startX, y: startY };
     }
 
 
