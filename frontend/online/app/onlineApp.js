@@ -311,11 +311,6 @@ export class OnlineApp {
             await new Promise(r => setTimeout(r, 0));
         }
 
-        await game.waitForLevel();
-        game.state.stopTimer();
-        game.state.resetTimer();
-        game.state.setTime(game.map.level.level_time);
-        game.state.startTimer();
         game.run();
 
         // the multi player game engine

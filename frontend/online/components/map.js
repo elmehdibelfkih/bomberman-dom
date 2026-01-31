@@ -34,7 +34,7 @@ export class Map {
         return Map.instance;
     }
 
-    async initMap() {
+    initMap() {
         this.initGrid();
         this.initAudios();
     }
