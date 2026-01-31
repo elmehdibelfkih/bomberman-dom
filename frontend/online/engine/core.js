@@ -15,10 +15,10 @@ export class Game {
         return Game.#instance;
     }
 
-    constructor() {
+    constructor(gameData) {
         this.state = State.getInstance(this);
         // this.scoreboard = Scoreboard.getInstance(this)
-        this.map = Map.getInstance(this)
+        this.map = Map.getInstance(this, gameData.mapData)
         this.player = new Player(this)
         this.ui =  UI.getInstance(this)
         this.IDRE = null

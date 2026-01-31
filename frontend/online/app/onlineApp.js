@@ -2,8 +2,7 @@ import { Router, dom, usePathname } from "../../framework/framework/index.js";
 import { Game  } from "../engine/core.js";
 import { createEffect } from "../../framework/framework/state/signal.js";
 import { NetworkManager } from '../network/networkManager.js';
-import { getGameContainer } from "../utils/helpers.js";
-import { getLobbyContainer } from "../utils/helpers.js";
+import { getGameContainer, getLobbyContainer, getControlsContainer } from "../utils/helpers.js";
 // import { NetworkStateSynchronizer } from '../game/network/NetworkStateSynchronizer.js';
 
 export class OnlineApp {
@@ -302,7 +301,8 @@ export class OnlineApp {
 
     async startMultiplayerGame() {
         document.body.innerHTML = '';
-        // document.body.appendChild(getGameContainer());
+        document.body.appendChild(getGameContainer());
+        document.body.appendChild(getControlsContainer());
 
         const game = Game.getInstance(this.gameData);
         await game.intiElements();
