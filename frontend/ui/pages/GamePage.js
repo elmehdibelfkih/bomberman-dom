@@ -1,7 +1,7 @@
 import { dom } from '../../../framework/index.js';
 import { CLIENT_CONFIG } from '../../config/client-config.js';
 
-export const GamePage = ({ mapData, players, yourPlayerId }) => {
+export const GamePage = ({ mapData, players, yourPlayerId, onSendChat = () => {} }) => {
     const cellSize = CLIENT_CONFIG.CELL_SIZE;
     const grid = mapData.initial_grid;
 
@@ -33,7 +33,44 @@ export const GamePage = ({ mapData, players, yourPlayerId }) => {
     });
 
     page.appendChild(gameContainer);
-    return page;
+
+    // Chat UI
+    const chatContainer = dom({ tag: 'div', attributes: { class: 'game-chat', style: 'position: absolute; right: 8px; bottom: 8px; width: 300px; background: rgba(0,0,0,0.6); padding:8px; color:#fff; z-index:50;' } });
+    const chatMessages = dom({ tag: 'div', attributes: { class: 'chat-messages', style: 'max-height: 160px; overflow-y:auto; margin-bottom:8px;' } });
+    const chatForm = dom({ tag: 'form', attributes: { class: 'chat-form', style: 'display:flex; gap:8px;' } });
+    const chatInput = dom({ tag: 'input', attributes: { type: 'text', placeholder: 'Say something...', class: 'chat-input', style: 'flex:1; padding:6px;' } });
+    const sendBtn = dom({ tag: 'button', attributes: { type: 'submit', class: 'btn' }, children: ['Send'] });
+
+    chatForm.appendChild(chatInput);
+    chatForm.appendChild(sendBtn);
+    chatContainer.appendChild(chatMessages);
+    chatContainer.appendChild(chatForm);
+    page.appendChild(chatContainer);
+
+    function addChatMessage({ from, nickname, text }) {
+        const msgEl = dom({ tag: 'div', attributes: { class: 'chat-message', style: 'margin-bottom:6px;' } });
+        const nameEl = dom({ tag: 'span', attributes: { style: 'font-weight:700; color:#9ad;' }, children: [nickname || from] });
+        const textEl = dom({ tag: 'span', attributes: { style: 'margin-left:6px; color:#fff;' }, children: [text] });
+        msgEl.appendChild(nameEl);
+        msgEl.appendChild(textEl);
+        chatMessages.appendChild(msgEl);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text = chatInput.value && chatInput.value.trim();
+        if (!text) return;
+        // send to server and wait for server broadcast to display (prevents duplication and ensures server nickname)
+        onSendChat(text);
+        chatInput.value = '';
+    });
+
+    function updateChatMessage(msg) {
+        addChatMessage(msg);
+    }
+
+    return { element: page, addChatMessage, updateChatMessage };
 };
 
 function createCell(x, y, type, cellSize) {

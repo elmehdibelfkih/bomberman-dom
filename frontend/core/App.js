@@ -26,29 +26,51 @@ export class App {
         this.messageHandler.register(ServerMessages.LOBBY_JOINED, (msg) => {
             this.gameState.setLocalPlayer(msg.playerId);
             lobbyData.players = msg.players;
-            this.renderPage('lobby', lobbyData);
+            // If lobby is already rendered, update it in-place, otherwise render
+            if (this._lobbyPage && this._lobbyPage.updatePlayers) {
+                this._lobbyPage.updatePlayers(msg.players);
+                if (this._lobbyPage.updateCountdown) this._lobbyPage.updateCountdown(msg.countdown || null);
+            } else {
+                this.renderPage('lobby', lobbyData);
+            }
         });
 
         this.messageHandler.register(ServerMessages.PLAYER_JOINED, (msg) => {
             lobbyData.players = msg.players;
-            this.renderPage('lobby', lobbyData);
+            if (this._lobbyPage && this._lobbyPage.updatePlayers) {
+                this._lobbyPage.updatePlayers(msg.players);
+            } else {
+                this.renderPage('lobby', lobbyData);
+            }
         });
 
         this.messageHandler.register(ServerMessages.PLAYER_LEFT, (msg) => {
             lobbyData.players = msg.players;
-            this.renderPage('lobby', lobbyData);
+            if (this._lobbyPage && this._lobbyPage.updatePlayers) {
+                this._lobbyPage.updatePlayers(msg.players);
+            } else {
+                this.renderPage('lobby', lobbyData);
+            }
         });
 
         this.messageHandler.register(ServerMessages.COUNTDOWN_START, (msg) => {
             console.log('⏰ COUNTDOWN_START:', msg);
             lobbyData.countdown = msg.seconds;
-            this.renderPage('lobby', lobbyData);
+            if (this._lobbyPage && this._lobbyPage.updateCountdown) {
+                this._lobbyPage.updateCountdown(msg.seconds);
+            } else {
+                this.renderPage('lobby', lobbyData);
+            }
         });
 
         this.messageHandler.register(ServerMessages.COUNTDOWN_TICK, (msg) => {
             console.log('⏰ COUNTDOWN_TICK:', msg.remaining);
             lobbyData.countdown = msg.remaining;
-            this.renderPage('lobby', lobbyData);
+            if (this._lobbyPage && this._lobbyPage.updateCountdown) {
+                this._lobbyPage.updateCountdown(msg.remaining);
+            } else {
+                this.renderPage('lobby', lobbyData);
+            }
         });
 
         this.messageHandler.register(ServerMessages.GAME_STARTED, (msg) => {
@@ -80,6 +102,18 @@ export class App {
             console.log('Game Over! Winner:', msg.winner);
         });
 
+        // Chat messages
+        this.messageHandler.register(ServerMessages.CHAT_MESSAGE, (msg) => {
+            // If lobby page is active, display message
+            if (this._lobbyPage && this._lobbyPage.addChatMessage) {
+                this._lobbyPage.addChatMessage(msg);
+            }
+            // If in-game page is active, display message there too
+            if (this._gamePage && this._gamePage.addChatMessage) {
+                this._gamePage.addChatMessage(msg);
+            }
+        });
+
         this.messageHandler.register(ServerMessages.ERROR, (msg) => {
             console.error('Server error:', msg.message);
         });
@@ -105,17 +139,25 @@ export class App {
         } else if (page === 'lobby') {
             const lobbyPage = LobbyPage({
                 players: data.players || [],
-                countdown: data.countdown
+                countdown: data.countdown,
+                onSendChat: (text) => {
+                    this.networkManager.send({ type: ClientMessages.CHAT_MESSAGE, text });
+                }
             });
+            this._lobbyPage = lobbyPage;
             this.container.appendChild(lobbyPage.element);
             return lobbyPage;
         } else if (page === 'game') {
-            pageElement = GamePage({
+            const gamePage = GamePage({
                 mapData: data.mapData,
                 players: data.players,
-                yourPlayerId: data.yourPlayerId
+                yourPlayerId: data.yourPlayerId,
+                onSendChat: (text) => {
+                    this.networkManager.send({ type: ClientMessages.CHAT_MESSAGE, text });
+                }
             });
-            this.container.appendChild(pageElement);
+            this._gamePage = gamePage;
+            this.container.appendChild(gamePage.element);
         }
     }
 }
