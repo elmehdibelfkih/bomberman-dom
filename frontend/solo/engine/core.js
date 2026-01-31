@@ -17,29 +17,32 @@ export class Game {
         this.state = State.getInstance(this);
         this.scoreboard = Scoreboard.getInstance(this)
         this.map = Map.getInstance(this)
-        this.player = Player.getInstance(this)
+        this.player = new Player(this)
         this.ui =  UI.getInstance(this)
         this.IDRE = null
-        this.stateofrest = false
         this.nextLevelTimeoutId = null;
         this.levelComplete = false;
         this.Detect = false
     }
+
     async waitForLevel() {
         while (!this.map || !this.map.level) {
             await new Promise(r => setTimeout(r, 50));
         }
     }
+
     async intiElements() {
         this.state.initArrowState()
         await this.map.initMap()
         await this.player.initPlayer()
         return
     }
+
     run = () => {
         if (this.IDRE) return;
         this.IDRE = requestAnimationFrame(this.loop.bind(this));
     }
+    
     async loop(timestamp) {
         if (this.state.isGameOver() || this.state.Isrestar()) {
             this.state.SetPause(false)
@@ -53,7 +56,6 @@ export class Game {
     }
 
     async updateRender(timestamp) {
-        if (this.stateofrest) return
         this.player.updateRender(timestamp);
         this.map.bombs = this.map.bombs?.filter(b => b.updateRender(timestamp) && !b.done);
         this.map.enemys = this.map.enemys?.filter(b => {
@@ -70,7 +72,6 @@ export class Game {
             cancelAnimationFrame(this.IDRE);
             this.IDRE = null;
         }
-        this.stateofrest = true
         this.levelComplete = false;
         this.ui.GameOver()
         this.state.setScore(0)
@@ -87,11 +88,10 @@ export class Game {
         this.state.initArrowState();
         Map.instance = null
         this.map = Map.getInstance(this)
-        this.player = Player.getInstance(this)
+        this.player = new Player(this)
         await this.map.initMap()
         await this.player.initPlayer()
         this.enemie = new Enemy(this);
-        this.stateofrest = false
     }
 
     async nextLevel() {
@@ -117,7 +117,7 @@ export class Game {
         this.scoreboard.updateLevel();
         Map.instance = null
         this.map = Map.getInstance(this);
-        this.player = Player.getInstance(this);
+        this.player = new Player(this);
         await this.map.initMap();
         await this.player.initPlayer();
         await this.waitForLevel();
@@ -125,7 +125,6 @@ export class Game {
         this.state.resetTimer();
         this.state.setTime(this.map.level.level_time);
         this.state.startTimer();
-        this.stateofrest = false;
         this.levelComplete = false;
     }
 
@@ -135,7 +134,6 @@ export class Game {
             cancelAnimationFrame(this.IDRE);
             this.IDRE = null;
         }
-        this.stateofrest = true
         this.ui.win()
         await new Promise(resolve => setTimeout(resolve, 1500));
         this.state.setScore(0);
@@ -154,7 +152,7 @@ export class Game {
         this.scoreboard.updateLevel();
         Map.instance = null
         this.map = Map.getInstance(this);
-        this.player = Player.getInstance(this);
+        this.player = new Player(this);
         await this.map.initMap();
         await this.player.initPlayer();
         await this.waitForLevel();
@@ -162,7 +160,6 @@ export class Game {
         this.state.resetTimer();
         this.state.setTime(this.map.level.level_time);
         this.state.startTimer();
-        this.stateofrest = false;
         this.levelComplete = false;
     }
 

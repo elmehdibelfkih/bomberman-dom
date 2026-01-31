@@ -1,6 +1,6 @@
 import * as consts from '../utils/consts.js';
 import * as helpers from '../utils/helpers.js';
-import { dom } from '../../framework/framwork/index.js';
+import { dom, eventManager } from '../../framework/framwork/index.js';
 
 
 export class Player {
@@ -8,8 +8,6 @@ export class Player {
     constructor(game) {
         this.game = game
     }
-
-    static getInstance = (game) => Player.instance ? Player.instance : new Player(game)
 
     async initPlayer() {
         this.playerCoordinate = await fetch(`../assets/playerCoordinate.json`).then(res => res.json())
@@ -25,8 +23,9 @@ export class Player {
         this.game.map.grid.appendChild(this.player)
         await this.initClassData()
         this.canPutBomb = true
-        document.addEventListener('keydown', (event) => event.key === ' ' ? this.putBomb = true : 0)
-        document.addEventListener('keyup', (event) => event.key === ' ' ? this.canPutBomb = true : 0)
+        // register on document.documentElement so GlobalEventManager will reach these handlers
+        eventManager.linkNodeToHandlers(document.documentElement, 'keydown', (e) => e.nativeEvent.key === ' ' ? this.putBomb = true : 0)
+        eventManager.linkNodeToHandlers(document.documentElement, 'keyup', (e) => e.nativeEvent.key === ' ' ? this.canPutBomb = true : 0)
     }
 
     async initClassData() {
