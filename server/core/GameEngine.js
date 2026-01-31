@@ -81,19 +81,29 @@ export class GameEngine {
 
         const inBounds = (x, y) => x >= 0 && x < width && y >= 0 && y < height;
 
-        // If starting cell is already free (not WALL or BLOCK), return it
+        // Clamp start into bounds if it's outside the grid so BFS begins from a valid cell
+        const clampedX = Math.min(Math.max(startX, 0), width - 1);
+        const clampedY = Math.min(Math.max(startY, 0), height - 1);
+
+        // If starting cell (or its clamped equivalent) is already free (not WALL or BLOCK), return it
         if (inBounds(startX, startY)) {
             const val = grid[startY][startX];
             if (val !== 1 && val !== 2) {
                 return { x: startX, y: startY };
             }
+        } else {
+            const val = grid[clampedY][clampedX];
+            if (val !== 1 && val !== 2) {
+                return { x: clampedX, y: clampedY };
+            }
         }
 
         // BFS outward until we find a free cell (value !== WALL && !== BLOCK)
-        const visited = new Set();
-        const q = [];
-        q.push({ x: startX, y: startY });
-        visited.add(`${startX}_${startY}`);
+    const visited = new Set();
+    const q = [];
+    // start BFS from the clamped, in-bounds cell
+    q.push({ x: clampedX, y: clampedY });
+    visited.add(`${clampedX}_${clampedY}`);
 
         const dirs = [
             { dx: 0, dy: -1 },
@@ -120,8 +130,8 @@ export class GameEngine {
             }
         }
 
-        // fallback to original spawn if nothing found
-        return { x: startX, y: startY };
+        // fallback to the clamped start if nothing found
+        return { x: clampedX, y: clampedY };
     }
 
 

@@ -55,21 +55,25 @@ export class GameRoom {
 
         Logger.info(`Game ${this.roomId} starting with ${this.players.length} players`);
 
-        const initialPlayers = this.players.map((player, index) => {
-            const spawn = GAME_CONFIG.SPAWN_POSITIONS[index];
-            return {
-                ...player,
-                gridX: spawn.x,
-                gridY: spawn.y,
-                x: spawn.x * GAME_CONFIG.BLOCK_SIZE,
-                y: spawn.y * GAME_CONFIG.BLOCK_SIZE,
-                lives: INITIAL_LIVES,
-                speed: INITIAL_SPEED,
-                bombCount: 1,
-                bombRange: 1,
-                alive: true
-            };
-        });
+        // Build initialPlayers from the engine's entities (GameEngine.initialize
+        // already picked nearest free cell for each player), so we guarantee
+        // players are placed inside the map and allowed blocks.
+        const initialPlayers = [];
+        for (const playerEntity of this.engine.entities.players.values()) {
+            initialPlayers.push({
+                playerId: playerEntity.playerId,
+                nickname: playerEntity.nickname,
+                gridX: playerEntity.gridX,
+                gridY: playerEntity.gridY,
+                x: playerEntity.x,
+                y: playerEntity.y,
+                lives: playerEntity.lives || INITIAL_LIVES,
+                speed: playerEntity.speed || INITIAL_SPEED,
+                bombCount: playerEntity.maxBombs || 1,
+                bombRange: playerEntity.bombRange || 1,
+                alive: playerEntity.alive !== undefined ? playerEntity.alive : true
+            });
+        }
 
         for (const [playerId, connection] of this.playerConnections.entries()) {
             if (connection.isConnected()) {

@@ -4,9 +4,12 @@ import { CLIENT_CONFIG } from '../../config/client-config.js';
 // Stable minimal Board implementation with same external API.
 export const Board = ({ mapData = { initial_grid: [[]] }, players = [], yourPlayerId } = {}) => {
     const cellSize = (CLIENT_CONFIG && CLIENT_CONFIG.CELL_SIZE) || 32;
+    // Visual scale factor for slightly larger board
+    const SCALE = 1.1; // ~10% larger
+    const scaledCell = Math.round(cellSize * SCALE);
     const grid = (mapData && mapData.initial_grid) || [[]];
 
-    const boardEl = dom({ tag: 'div', attributes: { class: 'board', style: `position: relative; width: ${grid[0].length * cellSize}px; height: ${grid.length * cellSize}px; background: #071;` } });
+    const boardEl = dom({ tag: 'div', attributes: { class: 'board', style: `position: relative; width: ${grid[0].length * scaledCell}px; height: ${grid.length * scaledCell}px; background: #071;` } });
 
     // render tiles with clear colors for floor, wall and block
     for (let y = 0; y < grid.length; y++) {
@@ -19,7 +22,7 @@ export const Board = ({ mapData = { initial_grid: [[]] }, players = [], yourPlay
             else if (val === 1) { color = '#263238'; border = '1px solid rgba(0,0,0,0.6)'; }
             else if (val === 2) { color = '#6d4c41'; border = '1px solid rgba(0,0,0,0.5)'; }
 
-            const tile = dom({ tag: 'div', attributes: { class: `cell cell-${val}`, style: `position:absolute; left:${x*cellSize}px; top:${y*cellSize}px; width:${cellSize}px; height:${cellSize}px; background:${color}; border:${border}; box-sizing:border-box;` } });
+            const tile = dom({ tag: 'div', attributes: { class: `cell cell-${val}`, style: `position:absolute; left:${x*scaledCell}px; top:${y*scaledCell}px; width:${scaledCell}px; height:${scaledCell}px; background:${color}; border:${border}; box-sizing:border-box;` } });
             boardEl.appendChild(tile);
         }
     }
@@ -28,8 +31,9 @@ export const Board = ({ mapData = { initial_grid: [[]] }, players = [], yourPlay
     boardEl.appendChild(playersContainer);
 
     function updatePlayers(newPlayers = []) {
-        const playerSize = Math.round(cellSize * 0.55);
-        const offset = Math.round((cellSize - playerSize) / 2);
+        // match server-side hitbox which uses ~40% of block size; scale for visuals
+        const playerSize = Math.round(scaledCell * 0.4);
+        const offset = Math.round((scaledCell - playerSize) / 2);
 
         newPlayers.forEach(p => {
             const id = `player-${p.playerId}`;
@@ -39,8 +43,10 @@ export const Board = ({ mapData = { initial_grid: [[]] }, players = [], yourPlay
                 playersContainer.appendChild(el);
             }
 
-            const left = (typeof p.x === 'number' ? Math.round(p.x) : ((p.gridX || 0) * cellSize)) + offset;
-            const top = (typeof p.y === 'number' ? Math.round(p.y) : ((p.gridY || 0) * cellSize)) + offset;
+            const px = (typeof p.x === 'number' ? Math.round(p.x) : ((p.gridX || 0) * cellSize));
+            const py = (typeof p.y === 'number' ? Math.round(p.y) : ((p.gridY || 0) * cellSize));
+            const left = Math.round(px * SCALE) + offset;
+            const top = Math.round(py * SCALE) + offset;
             el.style.left = `${left}px`;
             el.style.top = `${top}px`;
         });

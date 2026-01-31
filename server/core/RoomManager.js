@@ -149,13 +149,15 @@ export class RoomManager {
             const roomId = IdGenerator.generateRoomId();
 
             const players = [];
-            lobby.players.forEach((playerData, playerId) => {
-                players.push({
-                    playerId: playerId,
-                    nickname: playerData.nickname
-                });
+            // Cap players to the number of configured spawn positions (max players)
+            const spawnCount = GAME_CONFIG.SPAWN_POSITIONS.length || 4;
+            let i = 0;
+            for (const [playerId, playerData] of lobby.players.entries()) {
+                if (i >= spawnCount) break;
+                players.push({ playerId: playerId, nickname: playerData.nickname });
                 this.playerToRoom.set(playerId, roomId);
-            });
+                i++;
+            }
 
             Logger.info(`Creating game room: ${roomId}, map: ${mapId}, players: ${players.length}`);
 
