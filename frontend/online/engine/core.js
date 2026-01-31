@@ -1,4 +1,4 @@
-import { Scoreboard } from '../components/scoreboard.js';
+// import { Scoreboard } from '../components/scoreboard.js';
 import { Player } from '../components/player.js';
 import { Map } from '../components/map.js';
 import { State } from './state.js';

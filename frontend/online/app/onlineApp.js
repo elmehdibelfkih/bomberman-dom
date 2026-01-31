@@ -1,5 +1,5 @@
 import { Router, dom, usePathname } from "../../framework/framework/index.js";
-import { Game  } from "../engine/core.";
+import { Game  } from "../engine/core.js";
 import { createEffect } from "../../framework/framework/state/signal.js";
 import { NetworkManager } from '../network/networkManager.js';
 import { getGameContainer } from "../utils/helpers.js";
