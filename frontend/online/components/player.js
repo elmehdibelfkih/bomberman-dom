@@ -5,38 +5,26 @@ import { dom, eventManager } from '../../framework/framework/index.js';
 
 export class Player {
 
-    constructor(game) {
+    constructor(game, playerData, isLocal = false) {
         this.game = game;
-        this.is_local = false;
+        this.is_local = isLocal;
         this.state = {
-            id: null,
-            nickname: null,
-            x: 0,
-            y: 0,
+            id: playerData.playerId,
+            nickname: playerData.nickname,
+            x: playerData.x,
+            y: playerData.y,
             direction: 'Down',
-            speed: 4,
+            speed: playerData.speed,
             movement: false,
-            dying: false,
-            isDead: false,
-            bombCount: 0,
-            maxBombs: 3,
-            bombRange: 1
+            dying: !playerData.alive,
+            isDead: !playerData.alive,
+            bombCount: playerData.bombCount,
+            maxBombs: playerData.bombCount, // Assuming bombCount from data is maxBombs
+            bombRange: playerData.bombRange
         };
     }
 
-    async initPlayer(playerData, isLocal) {
-        this.is_local = isLocal;
-
-        this.state.id = playerData.playerId;
-        this.state.nickname = playerData.nickname;
-        this.state.x = playerData.x;
-        this.state.y = playerData.y;
-        this.state.speed = playerData.speed;
-        this.state.bombCount = playerData.bombCount;
-        this.state.bombRange = playerData.bombRange;
-        this.state.isDead = !playerData.alive;
-        this.state.dying = !playerData.alive;
-
+    async initPlayer() {
         this.playerCoordinate = await fetch(`../assets/playerCoordinate.json`).then(res => res.json())
         if (this.player) this.game.grid.removeChild(this.player)
         this.dyingSound = new Audio(this.game.map.level.dying_sound);
@@ -140,9 +128,12 @@ export class Player {
         this.left()
 
         if (this.putBomb && this.canPutBomb) {
-            this.game.map.addBomb(this.x + (this.getPlayerWidth() / 2), this.y + (this.getPlayerHeight() / 2), timestamp)
-            this.putBomb = false
-            this.canPutBomb = false
+            if (this.state.bombCount < this.state.maxBombs) {
+                this.game.map.addBomb(this, this.x + (this.getPlayerWidth() / 2), this.y + (this.getPlayerHeight() / 2), timestamp);
+                this.putBomb = false;
+                this.canPutBomb = false;
+                this.incrementBombCount();
+            }
         }
 
         if (!this.movement && this.direction.includes("walking")) {
@@ -165,9 +156,9 @@ export class Player {
     async up() {
         if (this.game.state.isArrowUp() || this.Up) {
             this.Up = false
-            if (this.game.map.canPlayerMoveTo(this.x, this.y - this.game.state.getPlayerSpeed())) {
+            if (this.game.map.canPlayerMoveTo(this, this.x, this.y - this.game.state.getPlayerSpeed())) {
                 this.direction = 'walkingUp'
-                if (!this.game.map.canPlayerMoveTo(this.x, this.y) || !this.game.map.canPlayerMoveTo(this.x, this.y - this.game.state.getPlayerSpeed())) this.x -= 7
+                if (!this.game.map.canPlayerMoveTo(this, this.x, this.y) || !this.game.map.canPlayerMoveTo(this, this.x, this.y - this.game.state.getPlayerSpeed())) this.x -= 7
                 this.y -= this.game.state.getPlayerSpeed()
                 this.movement = true
             } else {
@@ -183,9 +174,9 @@ export class Player {
     async down() {
         if (this.game.state.isArrowDown() || this.Down) {
             this.Down = false
-            if (this.game.map.canPlayerMoveTo(this.x, this.y + this.game.state.getPlayerSpeed())) {
+            if (this.game.map.canPlayerMoveTo(this, this.x, this.y + this.game.state.getPlayerSpeed())) {
                 this.direction = 'walkingDown'
-                if (!this.game.map.canPlayerMoveTo(this.x, this.y) || !this.game.map.canPlayerMoveTo(this.x, this.y + this.game.state.getPlayerSpeed())) this.x -= 7
+                if (!this.game.map.canPlayerMoveTo(this, this.x, this.y) || !this.game.map.canPlayerMoveTo(this, this.x, this.y + this.game.state.getPlayerSpeed())) this.x -= 7
                 this.y += this.game.state.getPlayerSpeed()
                 this.movement = true
             } else {
@@ -201,7 +192,7 @@ export class Player {
     async left() {
         if (this.game.state.isArrowLeft() || this.Left) {
             this.Left = false
-            if (this.game.map.canPlayerMoveTo(this.x - this.game.state.getPlayerSpeed(), this.y)) {
+            if (this.game.map.canPlayerMoveTo(this, this.x - this.game.state.getPlayerSpeed(), this.y)) {
                 this.direction = 'walkingLeft'
                 this.x -= this.game.state.getPlayerSpeed()
                 this.movement = true
@@ -218,7 +209,7 @@ export class Player {
     async right() {
         if (this.game.state.isArrowRight() || this.Right) {
             this.Right = false
-            if (this.game.map.canPlayerMoveTo(this.x + this.game.state.getPlayerSpeed(), this.y)) {
+            if (this.game.map.canPlayerMoveTo(this, this.x + this.game.state.getPlayerSpeed(), this.y)) {
                 this.direction = 'walkingRight'
                 this.x += this.game.state.getPlayerSpeed()
                 this.movement = true
@@ -280,4 +271,7 @@ export class Player {
     getPlayerHeight = () => this.playerCoordinate[this.direction][this.frameIndex].height
     getPlayerWidth = () => this.playerCoordinate[this.direction][this.frameIndex].width
     removeplayer = () => this.player.remove()
+
+    incrementBombCount = () => { this.state.bombCount++; }
+    decrementBombCount = () => { this.state.bombCount--; }
 }

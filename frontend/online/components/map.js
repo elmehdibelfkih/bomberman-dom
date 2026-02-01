@@ -166,10 +166,10 @@ export class Map {
         }
     }
 
-    canPlayerMoveTo(x, y) {
+    canPlayerMoveTo(player, x, y) {
         const blockSize = this.mapData.block_size;
-        const width = this.game.player.getPlayerWidth();
-        const height = this.game.player.getPlayerHeight();
+        const width = player.getPlayerWidth();
+        const height = player.getPlayerHeight();
         const corners = [
             [x, y],
             [x + width, y],
@@ -188,9 +188,8 @@ export class Map {
     isBlock = (x, y) => this.gridArray[y][x] === consts.BLOCK;
     isFreeSpaceInGrid = (x, y) => this.gridArray[y][x] !== consts.BLOCK && this.gridArray[y][x] !== consts.WALL;
 
-    addBomb(x, y, timestamp) {
-        if (this.game.state.getBombCount() < this.game.state.getMaxAllowdBombCount())
-            this.bombs.push(new Bomb(this.game, x, y, timestamp));
+    addBomb(player, x, y, timestamp) {
+        this.bombs.push(new Bomb(this.game, player, x, y, timestamp));
     }
 
     addSpeedBonus(xMap, yMap, node) {

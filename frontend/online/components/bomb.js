@@ -2,9 +2,10 @@ import * as consts from '../utils/consts.js';
 import { dom } from '../../framework/framework/index.js';
 
 export class Bomb {
-    constructor(game, x, y, timestamp) {
+    constructor(game, player, x, y, timestamp) {
         this.game = game
-        this.id = this.game.state.getBombCount()
+        this.player = player
+        this.id = player.state.id + '_bomb_' + Date.now();
         this.done = false
         this.xMap = Math.floor(x / this.game.map.level.block_size)
         this.yMap = Math.floor(y / this.game.map.level.block_size)
@@ -49,7 +50,6 @@ export class Bomb {
         });
         this.bomb.appendChild(this.img);
 
-        this.game.state.setBombCount(1);
         this.game.map.grid.appendChild(this.bomb);
         this.game.map.gridArray[this.yMap][this.xMap] = consts.BOMB;
         this.game.map.gridArray[this.yMap][this.xMap - 1] !== consts.WALL ? this.freeBlocks.push(1) : 0;
@@ -96,13 +96,29 @@ export class Bomb {
         if (timestamp - this.startTime >= this.explosionTime) {
             if (!this.kill) {
                 const tmp = this.game.map.level.block_size
-                const x = this.xMap * this.game.map.level.block_size
-                const y = this.yMap * this.game.map.level.block_size
-                this.game.player.isColliding(x, y, tmp, tmp) ? (this.game.player.kill(), this.kill = true) : 0
-                this.game.player.isColliding(x, y - tmp, tmp, tmp) ? (this.game.player.kill(), this.kill = true) : 0
-                this.game.player.isColliding(x, y + tmp, tmp, tmp) ? (this.game.player.kill(), this.kill = true) : 0
-                this.game.player.isColliding(x - tmp, y, tmp, tmp) ? (this.game.player.kill(), this.kill = true) : 0
-                this.game.player.isColliding(x + tmp, y, tmp, tmp) ? (this.game.player.kill(), this.kill = true) : 0
+                const bombX = this.xMap * tmp
+                const bombY = this.yMap * tmp
+
+                for (const player of this.game.players.values()) {
+                    // Check collision with the center of the bomb
+                    if (player.isColliding(bombX, bombY, tmp, tmp)) {
+                        player.kill();
+                    }
+                    // Check collision with the explosion arms (up, down, left, right)
+                    if (player.isColliding(bombX, bombY - tmp, tmp, tmp)) { // Up
+                        player.kill();
+                    }
+                    if (player.isColliding(bombX, bombY + tmp, tmp, tmp)) { // Down
+                        player.kill();
+                    }
+                    if (player.isColliding(bombX - tmp, bombY, tmp, tmp)) { // Left
+                        player.kill();
+                    }
+                    if (player.isColliding(bombX + tmp, bombY, tmp, tmp)) { // Right
+                        player.kill();
+                    }
+                }
+                this.kill = true; // Mark that explosion has processed player kills
             }
             if (!this.blowingUpBlock) {
                 this.game.map.isBlock(this.xMap - 1, this.yMap) ? (this.game.map.blowingUpBlock(this.xMap - 1, this.yMap), this.blowingUpBlock = true) : 0
@@ -165,7 +181,7 @@ export class Bomb {
         this.bomb.style.opacity = parseFloat(this.bomb.style.opacity) - 0.1;
         if (this.bomb.style.opacity <= 0) {
             this.game.map.grid.removeChild(this.bomb);
-            this.game.state.setBombCount(-1);
+            this.player.decrementBombCount();
             this.done = true;
         }
     }
@@ -173,7 +189,7 @@ export class Bomb {
         this.done = true;
         this.active = false;
         if (this.bomb && this.bomb.parentNode) this.bomb.parentNode.removeChild(this.bomb);
-        this.game.state.setBombCount(-1);
+        this.player.decrementBombCount();
         this.bomb = null;
         this.img = null;
         this.exp = null;
