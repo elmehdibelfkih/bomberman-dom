@@ -20,6 +20,9 @@ export class Player {
             maxBombs: playerData.bombCount, // Assuming bombCount from data is maxBombs
             bombRange: playerData.bombRange
         };
+        // Initialize instance properties x and y directly from playerData
+        this.x = playerData.x;
+        this.y = playerData.y;
     }
 
     async initPlayer() {
