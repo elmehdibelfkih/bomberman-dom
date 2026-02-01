@@ -6,7 +6,6 @@ import { Bonus } from './bonus.js';
 export class Map {
 
     constructor(game, mapData) {
-        console.log("hadi l map data",mapData);
         this.mapData = mapData;
         
         this.bonusArray = [];

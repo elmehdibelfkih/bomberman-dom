@@ -1,6 +1,6 @@
 // import { Scoreboard } from '../components/scoreboard.js';
 import { Player } from '../components/player.js';
-import { Map } from '../components/map.js';
+import { Map as gameMap } from '../components/map.js';
 import { State } from './state.js';
 import { UI } from '../components/ui.js';
 
@@ -8,9 +8,7 @@ export class Game {
 
     static #instance = null;
 
-    static getInstance(gameData) {
-        console.log("ha data =>", gameData);
-        
+    static getInstance(gameData) {        
         if (!Game.#instance || gameData) {
             Game.#instance = new Game(gameData);
         }
@@ -23,22 +21,15 @@ export class Game {
 
     constructor(gameData) {
         this.gameData = gameData;
+        
         this.state = State.getInstance(this);
         // this.scoreboard = Scoreboard.getInstance(this)
-        this.map = Map.getInstance(this, gameData.mapData)
+        this.map = gameMap.getInstance(this, gameData.mapData)
         
         this.players = new Map();
         
-        // Defensive check: Ensure this.players is still a Map before iterating and setting.
-        if (!(this.players instanceof Map)) {
-            this.players = new Map();
-        }
-
-        // Now safely proceed with iterating and setting players
-        if (gameData && gameData.players && (Array.isArray(gameData.players) || typeof gameData.players === 'object')) {
-            for (const playerData of Object.values(gameData.players)) {
-                this.players.set(playerData.playerId, new Player(this, playerData));
-            }
+        for (const playerData of Object.values(gameData.players)) {
+            this.players.set(playerData.playerId, new Player(this, playerData));
         }
         this.ui =  UI.getInstance(this)
         this.IDRE = null
@@ -56,6 +47,8 @@ export class Game {
     }
 
     run = () => {
+        console.log("hani dkhalt l run");
+        
         if (this.IDRE) return;
         this.loop = this.loop.bind(this);
         this.IDRE = requestAnimationFrame(this.loop);
@@ -96,7 +89,7 @@ export class Game {
         Game.resetInstance();
     }
     
-    loop(timestamp) {
+    loop(timestamp) {        
         this.updateRender(timestamp);
         this.IDRE = requestAnimationFrame(this.loop);
     }

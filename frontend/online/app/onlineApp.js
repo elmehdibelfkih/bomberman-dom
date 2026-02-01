@@ -232,7 +232,6 @@ export class OnlineApp {
     }
 
     updatePlayerList(players) {
-        console.log('Updating player list:', players);
         if (!this.lobbyContainer) return;
         const playerCount = this.lobbyContainer.querySelector('#player-count');
         const playerList = this.lobbyContainer.querySelector('#player-list');
@@ -315,11 +314,12 @@ export class OnlineApp {
 
         this.game = Game.getInstance(this.gameData);
         await this.game.intiElements();
-
-        while (!this.game.player || !this.game.player.playerCoordinate) {
-            await new Promise(r => setTimeout(r, 0));
-        }
-
+        console.log("1");
+        
+        // while (!this.game.player.playerCoordinate) {
+            await new Promise(r => setTimeout(r, 50));
+        // }
+        console.log("2");
         this.game.run();
 
         // the multi player game engine

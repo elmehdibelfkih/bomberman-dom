@@ -1,5 +1,3 @@
-import * as consts from '../utils/consts.js';
-import * as helpers from '../utils/helpers.js';
 import { dom, eventManager } from '../../framework/framework/index.js';
 
 
@@ -27,7 +25,7 @@ export class Player {
     async initPlayer() {
         this.playerCoordinate = await fetch(`../assets/playerCoordinate.json`).then(res => res.json())
         if (this.player) this.game.grid.removeChild(this.player)
-        this.dyingSound = new Audio(this.game.map.level.dying_sound);
+        this.dyingSound = new Audio(this.game.map.mapData.dying_sound);
         this.player = dom({
             tag: 'div',
             attributes: {
@@ -60,7 +58,7 @@ export class Player {
         this.lastTime = performance.now()
         this.MS_PER_FRAME = 100
         
-        this.player.style.backgroundImage = `url(${this.game.map.level.player})`;
+        this.player.style.backgroundImage = `url(${this.game.map.mapData.player})`;
         this.player.style.backgroundRepeat = 'no-repeat';
         this.player.style.imageRendering = 'pixelated';
         this.player.style.position = 'absolute';
@@ -100,7 +98,7 @@ export class Player {
             })
             this.game.map.grid.appendChild(this.exp)
             this.explosionFrameIndex = 0
-            this.explosionImg = this.game.map.level.player_explosion_img
+            this.explosionImg = this.game.map.mapData.player_explosion_img
             this.renderExp = true
         }
         const delta = timestamp - this.lastTimeDying;
@@ -136,7 +134,7 @@ export class Player {
             }
         }
 
-        if (!this.movement && this.direction.includes("walking")) {
+        if (!this.movement && this.state.direction.includes("walking")) {
             this.direction = this.direction.replace("walking", '')
             this.animate = true
             this.frameIndex = 0
@@ -162,10 +160,10 @@ export class Player {
                 this.y -= this.game.state.getPlayerSpeed()
                 this.movement = true
             } else {
-                this.xMap = Math.floor((this.x - 10) / this.game.map.level.block_size)
-                this.yMap = Math.floor(this.y / this.game.map.level.block_size)
+                this.xMap = Math.floor((this.x - 10) / this.game.map.mapData.block_size)
+                this.yMap = Math.floor(this.y / this.game.map.mapData.block_size)
                 if (this.game.map.isFreeSpaceInGrid(this.xMap, this.yMap - 1) && !this.game.state.isArrowRight()) return this.Left = true
-                this.xMap = Math.floor((this.x + this.playerCoordinate[this.direction][this.frameIndex].width + 10) / this.game.map.level.block_size)
+                this.xMap = Math.floor((this.x + this.playerCoordinate[this.direction][this.frameIndex].width + 10) / this.game.map.mapData.block_size)
                 if (this.game.map.isFreeSpaceInGrid(this.xMap, this.yMap - 1) && !this.game.state.isArrowLeft()) return this.Right = true
             }
         }
@@ -180,10 +178,10 @@ export class Player {
                 this.y += this.game.state.getPlayerSpeed()
                 this.movement = true
             } else {
-                this.xMap = Math.floor((this.x - 10) / this.game.map.level.block_size)
-                this.yMap = Math.floor((this.y + this.playerCoordinate[this.direction][this.frameIndex].height) / this.game.map.level.block_size)
+                this.xMap = Math.floor((this.x - 10) / this.game.map.mapData.block_size)
+                this.yMap = Math.floor((this.y + this.playerCoordinate[this.direction][this.frameIndex].height) / this.game.map.mapData.block_size)
                 if (this.game.map.isFreeSpaceInGrid(this.xMap, this.yMap + 1) && !this.game.state.isArrowRight()) return this.Left = true
-                this.xMap = Math.floor((this.x + this.playerCoordinate[this.direction][this.frameIndex].width + 10) / this.game.map.level.block_size)
+                this.xMap = Math.floor((this.x + this.playerCoordinate[this.direction][this.frameIndex].width + 10) / this.game.map.mapData.block_size)
                 if (this.game.map.isFreeSpaceInGrid(this.xMap, this.yMap + 1) && !this.game.state.isArrowLeft()) return this.Right = true
             }
         }
@@ -197,10 +195,10 @@ export class Player {
                 this.x -= this.game.state.getPlayerSpeed()
                 this.movement = true
             } else {
-                this.xMap = Math.floor((this.x) / this.game.map.level.block_size)
-                this.yMap = Math.floor((this.y) / this.game.map.level.block_size)
+                this.xMap = Math.floor((this.x) / this.game.map.mapData.block_size)
+                this.yMap = Math.floor((this.y) / this.game.map.mapData.block_size)
                 if (this.game.map.isFreeSpaceInGrid(this.xMap - 1, this.yMap) && !this.game.state.isArrowDown()) return this.Up = true
-                this.yMap = Math.floor((this.y + this.playerCoordinate[this.direction][this.frameIndex].height) / this.game.map.level.block_size)
+                this.yMap = Math.floor((this.y + this.playerCoordinate[this.direction][this.frameIndex].height) / this.game.map.mapData.block_size)
                 if (this.game.map.isFreeSpaceInGrid(this.xMap - 1, this.yMap) && !this.game.state.isArrowUp()) return this.Down = true
             }
         }
@@ -214,10 +212,10 @@ export class Player {
                 this.x += this.game.state.getPlayerSpeed()
                 this.movement = true
             } else {
-                this.xMap = Math.floor((this.x + this.playerCoordinate[this.direction][this.frameIndex].width) / this.game.map.level.block_size)
-                this.yMap = Math.floor((this.y) / this.game.map.level.block_size)
+                this.xMap = Math.floor((this.x + this.playerCoordinate[this.direction][this.frameIndex].width) / this.game.map.mapData.block_size)
+                this.yMap = Math.floor((this.y) / this.game.map.mapData.block_size)
                 if (this.game.map.isFreeSpaceInGrid(this.xMap + 1, this.yMap) && !this.game.state.isArrowDown()) return this.Up = true
-                this.yMap = Math.floor((this.y + this.playerCoordinate[this.direction][this.frameIndex].height) / this.game.map.level.block_size)
+                this.yMap = Math.floor((this.y + this.playerCoordinate[this.direction][this.frameIndex].height) / this.game.map.mapData.block_size)
                 if (this.game.map.isFreeSpaceInGrid(this.xMap + 1, this.yMap) && !this.game.state.isArrowUp()) return this.Down = true
             }
         }
@@ -256,7 +254,7 @@ export class Player {
 
     async checkLoot() {
         for (const loot of this.game.map.loot) {
-            const blockSize = this.game.map.level.block_size;
+            const blockSize = this.game.map.mapData.block_size;
             if (this.isColliding(loot.x, loot.y, blockSize, blockSize)) {
                 loot.removeitfromDOM()
                 loot.removeitfromgrid()
@@ -268,8 +266,8 @@ export class Player {
 
 
     kill = () => this.dying = true
-    getPlayerHeight = () => this.playerCoordinate[this.direction][this.frameIndex].height
-    getPlayerWidth = () => this.playerCoordinate[this.direction][this.frameIndex].width
+    getPlayerHeight = () => this.playerCoordinate[this.state.direction][this.frameIndex].height
+    getPlayerWidth = () => this.playerCoordinate[this.state.direction][this.frameIndex].width
     removeplayer = () => this.player.remove()
 
     incrementBombCount = () => { this.state.bombCount++; }
