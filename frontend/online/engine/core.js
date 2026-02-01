@@ -28,8 +28,17 @@ export class Game {
         this.map = Map.getInstance(this, gameData.mapData)
         
         this.players = new Map();
-        for (const playerData of Object.values(gameData.players)) {
-            this.players.set(playerData.playerId, new Player(this, playerData));
+        
+        // Defensive check: Ensure this.players is still a Map before iterating and setting.
+        if (!(this.players instanceof Map)) {
+            this.players = new Map();
+        }
+
+        // Now safely proceed with iterating and setting players
+        if (gameData && gameData.players && (Array.isArray(gameData.players) || typeof gameData.players === 'object')) {
+            for (const playerData of Object.values(gameData.players)) {
+                this.players.set(playerData.playerId, new Player(this, playerData));
+            }
         }
         this.ui =  UI.getInstance(this)
         this.IDRE = null
