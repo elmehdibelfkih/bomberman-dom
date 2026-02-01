@@ -21,31 +21,28 @@ export class Game {
         Game.#instance = null;
     }
 
-    static resetInstance() {
-        Game.#instance = null;
-    }
-
     constructor(gameData) {
         this.gameData = gameData;
         this.state = State.getInstance(this);
         // this.scoreboard = Scoreboard.getInstance(this)
         this.map = Map.getInstance(this, gameData.mapData)
         
-        this.player = new Player(this)
+        this.players = new Map();
+        for (const playerData of Object.values(gameData.players)) {
+            this.players.set(playerData.playerId, new Player(this, playerData));
+        }
         this.ui =  UI.getInstance(this)
         this.IDRE = null
     }
 
-    // async waitForLevel() {
-    //     while (!this.map || !this.map.level) {
-    //         await new Promise(r => setTimeout(r, 50));
-    //     }
-    // }
+
 
     async intiElements() {
         this.state.initArrowState()
         await this.map.initMap()
-        await this.player.initPlayer()
+        for (const player of this.players.values()) {
+            await player.initPlayer();
+        }
         return
     }
 
@@ -61,9 +58,12 @@ export class Game {
             this.IDRE = null;
         }
 
-        if (this.player) {
-            this.player.removeplayer();
-            this.player = null;
+        if (this.players) {
+            for (const player of this.players.values()) {
+                player.removeplayer();
+            }
+            this.players.clear();
+            this.players = null;
         }
         if (this.map) {
             this.map.destructor();
@@ -93,7 +93,9 @@ export class Game {
     }
 
     async updateRender(timestamp) {
-        this.player.updateRender(timestamp);
+        for (const player of this.players.values()) {
+            player.updateRender(timestamp);
+        }
         this.map.bombs = this.map.bombs?.filter(b => b.updateRender(timestamp) && !b.done);
         this.state.update()
         this.checkState()
