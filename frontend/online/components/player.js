@@ -89,10 +89,10 @@ export class Player {
         this.player.style.opacity = 1;
 
         if (this.isLocal) {
-            this.state.onMovementStopped = () => {
+            // this.state.onMovementStopped = () => {
                 this.sequenceNumber = (this.sequenceNumber || 0) + 1;
                 this.networkManager.sendPlayerStop(this.sequenceNumber)
-            }
+            // }
             this.pendingMoves = [];
         }
     }
