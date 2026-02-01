@@ -30,6 +30,15 @@ export class Player {
         // Initialize instance properties x and y directly from playerData
         this.x = playerData.x;
         this.y = playerData.y;
+        if (this.is_local) {
+            this.initKeyEvent();
+        }
+    }
+
+    initKeyEvent() {
+        // register on document.documentElement so GlobalEventManager will reach these handlers        
+        eventManager.linkNodeToHandlers(document.documentElement, 'keydown', this.setArrowStateKeyDown)
+        eventManager.linkNodeToHandlers(document.documentElement, 'keyup', this.setArrowStateKeyUp)
     }
 
     async initPlayer() {
@@ -51,9 +60,7 @@ export class Player {
 
         if (this.is_local) {
             this.canPutBomb = true
-            // register on document.documentElement so GlobalEventManager will reach these handlers
-            eventManager.linkNodeToHandlers(document.documentElement, 'keydown', (e) => e.nativeEvent.key === ' ' ? this.putBomb = true : 0)
-            eventManager.linkNodeToHandlers(document.documentElement, 'keyup', (e) => e.nativeEvent.key === ' ' ? this.canPutBomb = true : 0)
+
         }
     }
 
@@ -74,6 +81,7 @@ export class Player {
         this.player.style.position = 'absolute';
         this.player.style.transform = `translate(${this.state.x}px, ${this.state.y}px)`;
         this.frame = this.playerCoordinate[this.state.direction][this.frameIndex];
+        
         this.player.style.width = `${this.frame.width}px`;
         this.player.style.height = `${this.frame.height}px`;
         this.player.style.backgroundPosition = `${this.frame.x} ${this.frame.y}`;
@@ -164,10 +172,10 @@ export class Player {
     async up() {
         if (this.state.ARROW_UP || this.Up) {
             this.Up = false
-            if (this.game.map.canPlayerMoveTo(this, this.x, this.y - this.game.state.getPlayerSpeed())) {
+            if (this.game.map.canPlayerMoveTo(this, this.x, this.y - this.state.speed)) {
                 this.state.direction = 'walkingUp'
-                if (!this.game.map.canPlayerMoveTo(this, this.x, this.y) || !this.game.map.canPlayerMoveTo(this, this.x, this.y - this.game.state.getPlayerSpeed())) this.x -= 7
-                this.y -= this.game.state.getPlayerSpeed()
+                if (!this.game.map.canPlayerMoveTo(this, this.x, this.y) || !this.game.map.canPlayerMoveTo(this, this.x, this.y - this.state.speed)) this.x -= 7
+                this.y -= this.state.speed
                 this.state.movement = true
             } else {
                 this.xMap = Math.floor((this.x - 10) / this.game.map.mapData.block_size)
@@ -182,10 +190,10 @@ export class Player {
     async down() {
         if (this.state.ARROW_DOWN || this.Down) {
             this.Down = false
-            if (this.game.map.canPlayerMoveTo(this, this.x, this.y + this.game.state.getPlayerSpeed())) {
+            if (this.game.map.canPlayerMoveTo(this, this.x, this.y + this.state.speed)) {
                 this.state.direction = 'walkingDown'
-                if (!this.game.map.canPlayerMoveTo(this, this.x, this.y) || !this.game.map.canPlayerMoveTo(this, this.x, this.y + this.game.state.getPlayerSpeed())) this.x -= 7
-                this.y += this.game.state.getPlayerSpeed()
+                if (!this.game.map.canPlayerMoveTo(this, this.x, this.y) || !this.game.map.canPlayerMoveTo(this, this.x, this.y + this.state.speed)) this.x -= 7
+                this.y += this.state.speed
                 this.state.movement = true
             } else {
                 this.xMap = Math.floor((this.x - 10) / this.game.map.mapData.block_size)
@@ -200,9 +208,9 @@ export class Player {
     async left() {
         if (this.state.ARROW_LEFT || this.Left) {
             this.Left = false
-            if (this.game.map.canPlayerMoveTo(this, this.x - this.game.state.getPlayerSpeed(), this.y)) {
+            if (this.game.map.canPlayerMoveTo(this, this.x - this.state.speed, this.y)) {
                 this.state.direction = 'walkingLeft'
-                this.x -= this.game.state.getPlayerSpeed()
+                this.x -= this.state.speed
                 this.state.movement = true
             } else {
                 this.xMap = Math.floor((this.x) / this.game.map.mapData.block_size)
@@ -215,23 +223,13 @@ export class Player {
     }
 
     async right() {
-        console.log(" 1");
-
         if (this.state.ARROW_RIGHT || this.Right) {
-            console.log(" 2");
-
             this.Right = false
-            console.log(">>", this.game.map.canPlayerMoveTo(this, this.x + this.game.state.getPlayerSpeed(), this.y));
-
-            if (this.game.map.canPlayerMoveTo(this, this.x + this.game.state.getPlayerSpeed(), this.y)) {
-                console.log(" 3");
-
+            if (this.game.map.canPlayerMoveTo(this, this.x + this.state.speed, this.y)) {
                 this.state.direction = 'walkingRight'
-                this.x += this.game.state.getPlayerSpeed()
+                this.x += this.state.speed
                 this.state.movement = true
             } else {
-                console.log(" 4");
-
                 this.xMap = Math.floor((this.x + this.playerCoordinate[this.state.direction][this.frameIndex].width) / this.game.map.mapData.block_size)
                 this.yMap = Math.floor((this.y) / this.game.map.mapData.block_size)
                 if (this.game.map.isFreeSpaceInGrid(this.xMap + 1, this.yMap) && !this.state.ARROW_DOWN) return this.Up = true
@@ -296,16 +294,22 @@ export class Player {
     decrementBombCount = () => { this.state.bombCount--; }
 
     setArrowStateKeyDown = (event) => {
-        if (event.key === 'ArrowUp') this.state.ARROW_UP = true
-        if (event.key === 'ArrowDown') this.state.ARROW_DOWN = true
-        if (event.key === 'ArrowRight') this.state.ARROW_RIGHT = true
-        if (event.key === 'ArrowLeft') this.state.ARROW_LEFT = true
+        console.log("lolo");
+        const key = event.nativeEvent.key;
+        if (key === 'ArrowUp') this.state.ARROW_UP = true;
+        if (key === 'ArrowDown') this.state.ARROW_DOWN = true;
+        if (key === 'ArrowRight') this.state.ARROW_RIGHT = true;
+        if (key === 'ArrowLeft') this.state.ARROW_LEFT = true;
+        if (key === ' ') this.putBomb = true;
     }
 
     setArrowStateKeyUp = (event) => {
-        if (event.key === 'ArrowUp') this.state.ARROW_UP = false
-        if (event.key === 'ArrowDown') this.state.ARROW_DOWN = false
-        if (event.key === 'ArrowRight') this.state.ARROW_RIGHT = false
-        if (event.key === 'ArrowLeft') this.state.ARROW_LEFT = false
+        console.log("kiti");
+        const key = event.nativeEvent.key;
+        if (key === 'ArrowUp') this.state.ARROW_UP = false;
+        if (key === 'ArrowDown') this.state.ARROW_DOWN = false;
+        if (key === 'ArrowRight') this.state.ARROW_RIGHT = false;
+        if (key === 'ArrowLeft') this.state.ARROW_LEFT = false;
+        if (key === ' ') this.canPutBomb = true;
     }
 }

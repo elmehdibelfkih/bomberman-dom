@@ -7,7 +7,7 @@ export class Map {
 
     constructor(game, mapData) {
         this.mapData = mapData;
-        
+
         this.bonusArray = [];
         this.bonusArray.push(this.addTimeBonus.bind(this));
         this.bonusArray.push(this.addSpeedBonus.bind(this));
@@ -175,9 +175,15 @@ export class Map {
             [x, y + height],
             [x + width, y + height]
         ];
+        let i = 0
+        console.log(x, y);
+
         for (const [cx, cy] of corners) {
+
             const gridX = Math.floor(cx / blockSize);
             const gridY = Math.floor(cy / blockSize);
+            console.log("count:", i++, gridX, gridY);
+            i++
             if (!this.isFreeSpaceInGrid(gridX, gridY)) return false;
         }
         return true;
@@ -185,13 +191,8 @@ export class Map {
 
     Canmove = (row, col) => this.gridArray[row] && this.gridArray[row][col] === 0;
     isBlock = (x, y) => this.gridArray[y][x] === consts.BLOCK;
-    isFreeSpaceInGrid = (x, y) => 
-    {
-        // console.log("==>",this.gridArray, x, y, this.gridArray[y][x], consts.BLOCK);
-        
-        this.gridArray[y][x] !== consts.BLOCK && this.gridArray[y][x] !== consts.WALL;
 
-    }
+    isFreeSpaceInGrid = (x, y) => this.gridArray[y][x] !== consts.BLOCK && this.gridArray[y][x] !== consts.WALL;
 
     addBomb(player, x, y, timestamp) {
         this.bombs.push(new Bomb(this.game, player, x, y, timestamp));
