@@ -51,9 +51,9 @@ export class Player {
                 class: 'player'
             }
         });
-        if (this.is_local) {
-            this.player.classList.add('local-player');
-        }
+        // if (this.is_local) {
+        //     this.player.classList.add('local-player');
+        // }
         this.player.appendChild(this.dyingSound);
         this.game.map.grid.appendChild(this.player)
         await this.initClassData()
@@ -79,6 +79,9 @@ export class Player {
         this.player.style.backgroundRepeat = 'no-repeat';
         this.player.style.imageRendering = 'pixelated';
         this.player.style.position = 'absolute';
+        if (this.is_local) {
+            this.player.style.zIndex = 100;
+        }
         this.player.style.transform = `translate(${this.state.x}px, ${this.state.y}px)`;
         this.frame = this.playerCoordinate[this.state.direction][this.frameIndex];
         

@@ -448,6 +448,8 @@ div[class*="soft-block"] img {
 }
 
 
+/* Hi gemini start from here */
+
 /* Menu Styles */
 #menu {
   position: fixed;
@@ -877,32 +879,6 @@ div[class*="soft-block"] img {
   border-color: var(--accent-color);
 }
 
-/* Remote players */
-.remote-player {
-  filter: drop-shadow(2px 2px 4px var(--shadow-dark));
-  transition: all 0.1s ease;
-}
-
-.local-player {
-  filter: drop-shadow(2px 2px 4px var(--shadow-dark));
-  transition: all 0.1s ease;
-  border: 2px solid var(--timer-color) !important;
-}
-
-.player-info-item {
-  font-family: var(--font-pixel);
-  color: var(--text-primary);
-}
-
-.players-info {
-  min-width: 200px;
-}
-
-.players-info h3 {
-  color: var(--accent-color);
-  margin-bottom: var(--spacing-md);
-  font-size: var(--font-size-sm);
-}
 
 /* Player List Styles */
 .player-list-container {
