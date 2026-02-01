@@ -3,6 +3,7 @@ import { Player } from '../components/player.js';
 import { Map as gameMap } from '../components/map.js';
 import { State } from './state.js';
 import { UI } from '../components/ui.js';
+import { NetworkManager } from '../network/networkManager.js';
 
 export class Game {
 
@@ -29,7 +30,7 @@ export class Game {
         this.players = new Map();
         
         for (const playerData of Object.values(gameData.players)) {
-            this.players.set(playerData.playerId, new Player(this, playerData));
+            this.players.set(playerData.playerId, new Player(this, playerData, playerData.playerId === NetworkManager.getInstance().getPlayerId()));
         }
         this.ui =  UI.getInstance(this)
         this.IDRE = null

@@ -4,9 +4,16 @@ import { dom, eventManager } from '../../framework/framework/index.js';
 export class Player {
 
     constructor(game, playerData, isLocal = false) {
+        console.log("is local", isLocal);
+        
         this.game = game;
         this.is_local = isLocal;
         this.state = {
+            ARROW_UP: false,
+            ARROW_DOWN: false,
+            ARROW_RIGHT: false,
+            ARROW_LEFT: false,
+
             id: playerData.playerId,
             nickname: playerData.nickname,
             x: playerData.x,
@@ -155,7 +162,7 @@ export class Player {
     }
 
     async up() {
-        if (this.game.state.isArrowUp() || this.Up) {
+        if (this.state.ARROW_UP || this.Up) {
             this.Up = false
             if (this.game.map.canPlayerMoveTo(this, this.x, this.y - this.game.state.getPlayerSpeed())) {
                 this.state.direction = 'walkingUp'
@@ -165,15 +172,15 @@ export class Player {
             } else {
                 this.xMap = Math.floor((this.x - 10) / this.game.map.mapData.block_size)
                 this.yMap = Math.floor(this.y / this.game.map.mapData.block_size)
-                if (this.game.map.isFreeSpaceInGrid(this.xMap, this.yMap - 1) && !this.game.state.isArrowRight()) return this.Left = true
+                if (this.game.map.isFreeSpaceInGrid(this.xMap, this.yMap - 1) && !this.state.ARROW_RIGHT) return this.Left = true
                 this.xMap = Math.floor((this.x + this.playerCoordinate[this.state.direction][this.frameIndex].width + 10) / this.game.map.mapData.block_size)
-                if (this.game.map.isFreeSpaceInGrid(this.xMap, this.yMap - 1) && !this.game.state.isArrowLeft()) return this.Right = true
+                if (this.game.map.isFreeSpaceInGrid(this.xMap, this.yMap - 1) && !this.state.ARROW_LEFT) return this.Right = true
             }
         }
     }
 
     async down() {
-        if (this.game.state.isArrowDown() || this.Down) {
+        if (this.state.ARROW_DOWN || this.Down) {
             this.Down = false
             if (this.game.map.canPlayerMoveTo(this, this.x, this.y + this.game.state.getPlayerSpeed())) {
                 this.state.direction = 'walkingDown'
@@ -183,15 +190,15 @@ export class Player {
             } else {
                 this.xMap = Math.floor((this.x - 10) / this.game.map.mapData.block_size)
                 this.yMap = Math.floor((this.y + this.playerCoordinate[this.state.direction][this.frameIndex].height) / this.game.map.mapData.block_size)
-                if (this.game.map.isFreeSpaceInGrid(this.xMap, this.yMap + 1) && !this.game.state.isArrowRight()) return this.Left = true
+                if (this.game.map.isFreeSpaceInGrid(this.xMap, this.yMap + 1) && !this.state.ARROW_RIGHT) return this.Left = true
                 this.xMap = Math.floor((this.x + this.playerCoordinate[this.state.direction][this.frameIndex].width + 10) / this.game.map.mapData.block_size)
-                if (this.game.map.isFreeSpaceInGrid(this.xMap, this.yMap + 1) && !this.game.state.isArrowLeft()) return this.Right = true
+                if (this.game.map.isFreeSpaceInGrid(this.xMap, this.yMap + 1) && !this.state.ARROW_LEFT) return this.Right = true
             }
         }
     }
 
     async left() {
-        if (this.game.state.isArrowLeft() || this.Left) {
+        if (this.state.ARROW_LEFT || this.Left) {
             this.Left = false
             if (this.game.map.canPlayerMoveTo(this, this.x - this.game.state.getPlayerSpeed(), this.y)) {
                 this.state.direction = 'walkingLeft'
@@ -200,9 +207,9 @@ export class Player {
             } else {
                 this.xMap = Math.floor((this.x) / this.game.map.mapData.block_size)
                 this.yMap = Math.floor((this.y) / this.game.map.mapData.block_size)
-                if (this.game.map.isFreeSpaceInGrid(this.xMap - 1, this.yMap) && !this.game.state.isArrowDown()) return this.Up = true
+                if (this.game.map.isFreeSpaceInGrid(this.xMap - 1, this.yMap) && !this.state.ARROW_DOWN) return this.Up = true
                 this.yMap = Math.floor((this.y + this.playerCoordinate[this.state.direction][this.frameIndex].height) / this.game.map.mapData.block_size)
-                if (this.game.map.isFreeSpaceInGrid(this.xMap - 1, this.yMap) && !this.game.state.isArrowUp()) return this.Down = true
+                if (this.game.map.isFreeSpaceInGrid(this.xMap - 1, this.yMap) && !this.state.ARROW_UP) return this.Down = true
             }
         }
     }
@@ -210,12 +217,12 @@ export class Player {
     async right() {
         console.log(" 1");
 
-        if (this.game.state.isArrowRight() || this.Right) {
+        if (this.state.ARROW_RIGHT || this.Right) {
             console.log(" 2");
 
             this.Right = false
-            console.log(">>",this.game.map.canPlayerMoveTo(this, this.x + this.game.state.getPlayerSpeed(), this.y));
-            
+            console.log(">>", this.game.map.canPlayerMoveTo(this, this.x + this.game.state.getPlayerSpeed(), this.y));
+
             if (this.game.map.canPlayerMoveTo(this, this.x + this.game.state.getPlayerSpeed(), this.y)) {
                 console.log(" 3");
 
@@ -227,9 +234,9 @@ export class Player {
 
                 this.xMap = Math.floor((this.x + this.playerCoordinate[this.state.direction][this.frameIndex].width) / this.game.map.mapData.block_size)
                 this.yMap = Math.floor((this.y) / this.game.map.mapData.block_size)
-                if (this.game.map.isFreeSpaceInGrid(this.xMap + 1, this.yMap) && !this.game.state.isArrowDown()) return this.Up = true
+                if (this.game.map.isFreeSpaceInGrid(this.xMap + 1, this.yMap) && !this.state.ARROW_DOWN) return this.Up = true
                 this.yMap = Math.floor((this.y + this.playerCoordinate[this.state.direction][this.frameIndex].height) / this.game.map.mapData.block_size)
-                if (this.game.map.isFreeSpaceInGrid(this.xMap + 1, this.yMap) && !this.game.state.isArrowUp()) return this.Down = true
+                if (this.game.map.isFreeSpaceInGrid(this.xMap + 1, this.yMap) && !this.state.ARROW_UP) return this.Down = true
             }
         }
     }
@@ -280,7 +287,6 @@ export class Player {
 
     kill = () => this.dying = true
     getPlayerHeight = () => {
-
         return this.playerCoordinate[this.state.direction][this.frameIndex].height
     }
     getPlayerWidth = () => this.playerCoordinate[this.state.direction][this.frameIndex].width
@@ -288,4 +294,18 @@ export class Player {
 
     incrementBombCount = () => { this.state.bombCount++; }
     decrementBombCount = () => { this.state.bombCount--; }
+
+    setArrowStateKeyDown = (event) => {
+        if (event.key === 'ArrowUp') this.state.ARROW_UP = true
+        if (event.key === 'ArrowDown') this.state.ARROW_DOWN = true
+        if (event.key === 'ArrowRight') this.state.ARROW_RIGHT = true
+        if (event.key === 'ArrowLeft') this.state.ARROW_LEFT = true
+    }
+
+    setArrowStateKeyUp = (event) => {
+        if (event.key === 'ArrowUp') this.state.ARROW_UP = false
+        if (event.key === 'ArrowDown') this.state.ARROW_DOWN = false
+        if (event.key === 'ArrowRight') this.state.ARROW_RIGHT = false
+        if (event.key === 'ArrowLeft') this.state.ARROW_LEFT = false
+    }
 }
