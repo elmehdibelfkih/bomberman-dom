@@ -50,6 +50,14 @@ export class Game {
         return
     }
 
+    reconcileLocalPlayer(data) {
+        this.players.get(data.playerId).reconcileWithServer(data);
+    }
+
+    updateRemotePlayer() {
+        this.players.get(data.playerId).updateStateFromServer(data);
+    }
+
     run = () => {
         if (this.IDRE) return;
         this.loop = this.loop.bind(this);

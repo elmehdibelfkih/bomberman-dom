@@ -62,7 +62,7 @@ export class Player {
     }
 
     async initClassData() {
-        
+
         this.state.movement = false
         this.reRender = false
         this.renderExp = false
@@ -90,12 +90,76 @@ export class Player {
 
         if (this.isLocal) {
             // this.state.onMovementStopped = () => {
-                this.sequenceNumber = (this.sequenceNumber || 0) + 1;
-                this.networkManager.sendPlayerStop(this.sequenceNumber)
+            this.sequenceNumber = (this.sequenceNumber || 0) + 1;
+            this.networkManager.sendPlayerStop(this.sequenceNumber)
             // }
             this.pendingMoves = [];
         }
     }
+
+    //     updateStateFromServer(serverData) {
+    //     const oldX = this.x;
+    //     const oldY = this.y;
+
+    //     this.x = serverData.x;
+    //     this.y = serverData.y;
+    //     this.gridX = serverData.gridX;
+    //     this.gridY = serverData.gridY;
+    //     this.lives = serverData.lives;
+    //     this.speed = serverData.speed;
+    //     this.bombCount = serverData.bombCount;
+    //     this.bombRange = serverData.bombRange;
+    //     this.alive = serverData.alive;
+
+    //     const dx = this.x - oldX;
+    //     const dy = this.y - oldY;
+
+    //     this.direction = "walking" + serverData.direction.charAt(0) + serverData.direction.slice(1).toLowerCase();
+
+    //     if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+    //         this.movement = true;
+    //         // Update remote player state to simulate movement
+    //         if (!this.isLocal) {
+    //             this.state.setDirection(this.direction);
+    //         }
+    //     } else {
+    //         this.movement = false;
+    //         if (this.direction.includes("walking")) {
+    //             this.direction = this.direction.replace("walking", '');
+    //         }
+    //         if (!this.isLocal) {
+    //             this.state.clearDirection();
+    //         }
+    //         this.animate = true;
+    //     }
+    // }
+
+    // reconcileWithServer(serverData, networkManager) {
+    //     if (!this.isLocal) return;
+
+    //     // Remove acknowledged moves
+    //     this.pendingMoves = this.pendingMoves.filter(m => m.sequenceNumber > serverData.sequenceNumber);
+
+    //     // Server sends pixel coordinates directly
+    //     const serverX = serverData.x;
+    //     const serverY = serverData.y;
+    //     const error = Math.sqrt(Math.pow(this.x - serverX, 2) + Math.pow(this.y - serverY, 2));
+
+    //     // If error is significant, correct position
+    //     if (error > 5) {
+    //         this.x = serverX;
+    //         this.y = serverY;
+    //         this.gridX = serverData.gridX;
+    //         this.gridY = serverData.gridY;
+    //     }
+
+    //     // Update stats from server
+    //     this.lives = serverData.lives || this.lives;
+    //     this.speed = serverData.speed || this.speed;
+    //     this.bombCount = serverData.bombCount || this.bombCount;
+    //     this.bombRange = serverData.bombRange || this.bombRange;
+    //     this.alive = serverData.alive !== undefined ? serverData.alive : this.alive;
+    // }
 
     async updateRender(timestamp) {
         this.playerDying(timestamp)
@@ -154,10 +218,10 @@ export class Player {
 
         if (this.putBomb && this.canPutBomb && this.state.bombCount <= this.state.maxBombs) {
             // if (this.state.bombCount <= this.state.maxBombs) {
-                this.game.map.addBomb(this, this.x + (this.getPlayerWidth() / 2), this.y + (this.getPlayerHeight() / 2), timestamp);
-                this.putBomb = false;
-                this.canPutBomb = false;
-                this.incrementBombCount();
+            this.game.map.addBomb(this, this.x + (this.getPlayerWidth() / 2), this.y + (this.getPlayerHeight() / 2), timestamp);
+            this.putBomb = false;
+            this.canPutBomb = false;
+            this.incrementBombCount();
             // }
         }
 

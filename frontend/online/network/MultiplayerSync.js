@@ -19,18 +19,14 @@ export function setupMultiplayerSync(game, networkManager) {
     //     game.stateSynchronizer.handleFullState(data);
     // });
 
-    // Debug all messages
-    networkManager.on('*', (data) => {
-        console.log('Received message:', data.type, data);
-    });
 
     // Handle player movements
     networkManager.on('PLAYER_MOVED', (data) => {
         console.log('Received PLAYER_MOVED:', data);
         if (data.playerId === networkManager.getPlayerId()) {
-            game.playerManager.reconcileLocalPlayer(data);
+            game.reconcileLocalPlayer(data);
         } else {
-            game.playerManager.updateRemotePlayer(data);
+            game.updateRemotePlayer(data);
         }
     });
 
