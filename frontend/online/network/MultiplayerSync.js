@@ -34,9 +34,9 @@ export function setupMultiplayerSync(game, networkManager) {
         console.log('Received PLAYER_STOPED:', data);
         const player = game.players.get(data.playerId);
         if (player) {
-            player.movement = false;
-            if (player.direction.includes("walking")) {
-                player.direction = player.direction.replace("walking", '');
+            player.state.movement = false;
+            if (player.state.direction && player.state.direction.includes("walking")) {
+                player.state.direction = player.state.direction.replace("walking", '');
             }
         }
     });

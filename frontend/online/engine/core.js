@@ -50,11 +50,11 @@ export class Game {
         return
     }
 
-    reconcileLocalPlayer(data) {
+    async reconcileLocalPlayer(data) {
         this.players.get(data.playerId).reconcileWithServer(data);
     }
 
-    updateRemotePlayer() {
+    async updateRemotePlayer(data) {
         this.players.get(data.playerId).updateStateFromServer(data);
     }
 

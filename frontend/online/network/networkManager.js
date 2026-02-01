@@ -41,7 +41,9 @@ export class NetworkManager {
     }
 
     #handleMessage(rawData) {
-        try {
+        // try {
+            console.log("ha data khawia", rawData);
+            
             if (rawData === 'ping') return;
             const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
             
@@ -57,9 +59,10 @@ export class NetworkManager {
                 handlers.forEach(handler => handler(data));
             }
 
-        } catch (error) {
-            console.error('Error handling message:', error);
-        }
+        // } 
+        // catch (error) {
+        //     console.error('Error handling message:', error);
+        // }
     }
 
     on(messageType, handler) {

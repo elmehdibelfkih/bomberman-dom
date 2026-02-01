@@ -97,69 +97,62 @@ export class Player {
         }
     }
 
-    //     updateStateFromServer(serverData) {
-    //     const oldX = this.x;
-    //     const oldY = this.y;
+    async updateStateFromServer(serverData) {
+        const oldX = this.state.x;
+        const oldY = this.state.y;
 
-    //     this.x = serverData.x;
-    //     this.y = serverData.y;
-    //     this.gridX = serverData.gridX;
-    //     this.gridY = serverData.gridY;
-    //     this.lives = serverData.lives;
-    //     this.speed = serverData.speed;
-    //     this.bombCount = serverData.bombCount;
-    //     this.bombRange = serverData.bombRange;
-    //     this.alive = serverData.alive;
+        this.state.x = serverData.x;
+        this.state.y = serverData.y;
+        this.x = serverData.x;
+        this.y = serverData.y;
+        this.state.speed = serverData.speed;
+        this.state.bombCount = serverData.bombCount;
+        this.state.bombRange = serverData.bombRange;
+        this.state.isDead = !serverData.alive;
+        this.state.dying = !serverData.alive;
 
-    //     const dx = this.x - oldX;
-    //     const dy = this.y - oldY;
+        const dx = this.state.x - oldX;
+        const dy = this.state.y - oldY;
 
-    //     this.direction = "walking" + serverData.direction.charAt(0) + serverData.direction.slice(1).toLowerCase();
+        this.state.direction = "walking" + serverData.direction.charAt(0) + serverData.direction.slice(1).toLowerCase();
 
-    //     if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
-    //         this.movement = true;
-    //         // Update remote player state to simulate movement
-    //         if (!this.isLocal) {
-    //             this.state.setDirection(this.direction);
-    //         }
-    //     } else {
-    //         this.movement = false;
-    //         if (this.direction.includes("walking")) {
-    //             this.direction = this.direction.replace("walking", '');
-    //         }
-    //         if (!this.isLocal) {
-    //             this.state.clearDirection();
-    //         }
-    //         this.animate = true;
-    //     }
-    // }
+        if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+            this.state.movement = true;
+        } else {
+            this.state.movement = false;
+            if (this.state.direction.includes("walking")) {
+                this.state.direction = this.state.direction.replace("walking", '');
+            }
+            this.animate = true;
+        }
+    }
 
-    // reconcileWithServer(serverData, networkManager) {
-    //     if (!this.isLocal) return;
+    async reconcileWithServer(serverData) {
+        if (!this.isLocal) return;
 
-    //     // Remove acknowledged moves
-    //     this.pendingMoves = this.pendingMoves.filter(m => m.sequenceNumber > serverData.sequenceNumber);
+        // Remove acknowledged moves
+        this.pendingMoves = this.pendingMoves.filter(m => m.sequenceNumber > serverData.sequenceNumber);
 
-    //     // Server sends pixel coordinates directly
-    //     const serverX = serverData.x;
-    //     const serverY = serverData.y;
-    //     const error = Math.sqrt(Math.pow(this.x - serverX, 2) + Math.pow(this.y - serverY, 2));
+        // Server sends pixel coordinates directly
+        const serverX = serverData.x;
+        const serverY = serverData.y;
+        const error = Math.sqrt(Math.pow(this.state.x - serverX, 2) + Math.pow(this.state.y - serverY, 2));
 
-    //     // If error is significant, correct position
-    //     if (error > 5) {
-    //         this.x = serverX;
-    //         this.y = serverY;
-    //         this.gridX = serverData.gridX;
-    //         this.gridY = serverData.gridY;
-    //     }
+        // If error is significant, correct position
+        if (error > 5) {
+            this.state.x = serverX;
+            this.state.y = serverY;
+            this.x = serverX;
+            this.y = serverY;
+        }
 
-    //     // Update stats from server
-    //     this.lives = serverData.lives || this.lives;
-    //     this.speed = serverData.speed || this.speed;
-    //     this.bombCount = serverData.bombCount || this.bombCount;
-    //     this.bombRange = serverData.bombRange || this.bombRange;
-    //     this.alive = serverData.alive !== undefined ? serverData.alive : this.alive;
-    // }
+        // Update stats from server
+        this.state.speed = serverData.speed || this.state.speed;
+        this.state.bombCount = serverData.bombCount || this.state.bombCount;
+        this.state.bombRange = serverData.bombRange || this.state.bombRange;
+        this.state.isDead = serverData.alive !== undefined ? !serverData.alive : this.state.isDead;
+        this.state.dying = this.state.isDead;
+    }
 
     async updateRender(timestamp) {
         this.playerDying(timestamp)
