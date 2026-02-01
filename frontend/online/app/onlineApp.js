@@ -314,12 +314,10 @@ export class OnlineApp {
 
         this.game = Game.getInstance(this.gameData);
         await this.game.intiElements();
-        console.log("1");
         
         // while (!this.game.player.playerCoordinate) {
             await new Promise(r => setTimeout(r, 50));
         // }
-        console.log("2");
         this.game.run();
 
         // the multi player game engine

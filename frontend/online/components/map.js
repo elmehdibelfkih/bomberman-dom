@@ -185,7 +185,13 @@ export class Map {
 
     Canmove = (row, col) => this.gridArray[row] && this.gridArray[row][col] === 0;
     isBlock = (x, y) => this.gridArray[y][x] === consts.BLOCK;
-    isFreeSpaceInGrid = (x, y) => this.gridArray[y][x] !== consts.BLOCK && this.gridArray[y][x] !== consts.WALL;
+    isFreeSpaceInGrid = (x, y) => 
+    {
+        // console.log("==>",this.gridArray, x, y, this.gridArray[y][x], consts.BLOCK);
+        
+        this.gridArray[y][x] !== consts.BLOCK && this.gridArray[y][x] !== consts.WALL;
+
+    }
 
     addBomb(player, x, y, timestamp) {
         this.bombs.push(new Bomb(this.game, player, x, y, timestamp));

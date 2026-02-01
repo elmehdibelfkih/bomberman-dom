@@ -46,9 +46,7 @@ export class Game {
         return
     }
 
-    run = () => {
-        console.log("hani dkhalt l run");
-        
+    run = () => {        
         if (this.IDRE) return;
         this.loop = this.loop.bind(this);
         this.IDRE = requestAnimationFrame(this.loop);
