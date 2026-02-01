@@ -1,13 +1,13 @@
 import { dom, eventManager } from '../../framework/framework/index.js';
+import { NetworkManager } from "../network/networkManager.js";
 
 
 export class Player {
 
     constructor(game, playerData, isLocal = false) {
-        console.log("is local", isLocal);
-
+        this.networkManager = NetworkManager.getInstance()
         this.game = game;
-        this.is_local = isLocal;
+        this.isLocal = isLocal;
         this.state = {
             ARROW_UP: false,
             ARROW_DOWN: false,
@@ -30,7 +30,7 @@ export class Player {
         // Initialize instance properties x and y directly from playerData
         this.x = playerData.x;
         this.y = playerData.y;
-        if (this.is_local) {
+        if (this.isLocal) {
             this.initKeyEvent();
         }
     }
@@ -55,13 +55,14 @@ export class Player {
         this.game.map.grid.appendChild(this.player)
         await this.initClassData()
 
-        if (this.is_local) {
+        if (this.isLocal) {
             this.canPutBomb = true
 
         }
     }
 
     async initClassData() {
+        
         this.state.movement = false
         this.reRender = false
         this.renderExp = false
@@ -76,7 +77,7 @@ export class Player {
         this.player.style.backgroundRepeat = 'no-repeat';
         this.player.style.imageRendering = 'pixelated';
         this.player.style.position = 'absolute';
-        if (this.is_local) {
+        if (this.isLocal) {
             this.player.style.zIndex = 100;
         }
         this.player.style.transform = `translate(${this.state.x}px, ${this.state.y}px)`;
@@ -86,6 +87,14 @@ export class Player {
         this.player.style.height = `${this.frame.height}px`;
         this.player.style.backgroundPosition = `${this.frame.x} ${this.frame.y}`;
         this.player.style.opacity = 1;
+
+        if (this.isLocal) {
+            this.state.onMovementStopped = () => {
+                this.sequenceNumber = (this.sequenceNumber || 0) + 1;
+                this.networkManager.sendPlayerStop(this.sequenceNumber)
+            }
+            this.pendingMoves = [];
+        }
     }
 
     async updateRender(timestamp) {
@@ -144,8 +153,6 @@ export class Player {
         this.left()
 
         if (this.putBomb && this.canPutBomb && this.state.bombCount <= this.state.maxBombs) {
-            console.log("7at dakci");
-
             // if (this.state.bombCount <= this.state.maxBombs) {
                 this.game.map.addBomb(this, this.x + (this.getPlayerWidth() / 2), this.y + (this.getPlayerHeight() / 2), timestamp);
                 this.putBomb = false;
@@ -176,6 +183,10 @@ export class Player {
             this.Up = false
             if (this.game.map.canPlayerMoveTo(this, this.x, this.y - this.state.speed)) {
                 this.state.direction = 'walkingUp'
+                if (this.isLocal) {
+                    this.sequenceNumber++
+                    this.networkManager.sendPlayerMove("UP", this.sequenceNumber)
+                }
                 if (!this.game.map.canPlayerMoveTo(this, this.x, this.y) || !this.game.map.canPlayerMoveTo(this, this.x, this.y - this.state.speed)) this.x -= 7
                 this.y -= this.state.speed
                 this.state.movement = true
@@ -194,6 +205,10 @@ export class Player {
             this.Down = false
             if (this.game.map.canPlayerMoveTo(this, this.x, this.y + this.state.speed)) {
                 this.state.direction = 'walkingDown'
+                if (this.isLocal) {
+                    this.sequenceNumber++
+                    this.networkManager.sendPlayerMove("DOWN", this.sequenceNumber)
+                }
                 if (!this.game.map.canPlayerMoveTo(this, this.x, this.y) || !this.game.map.canPlayerMoveTo(this, this.x, this.y + this.state.speed)) this.x -= 7
                 this.y += this.state.speed
                 this.state.movement = true
@@ -212,6 +227,10 @@ export class Player {
             this.Left = false
             if (this.game.map.canPlayerMoveTo(this, this.x - this.state.speed, this.y)) {
                 this.state.direction = 'walkingLeft'
+                if (this.isLocal) {
+                    this.sequenceNumber++
+                    this.networkManager.sendPlayerMove("LEFT", this.sequenceNumber)
+                }
                 this.x -= this.state.speed
                 this.state.movement = true
             } else {
@@ -229,6 +248,10 @@ export class Player {
             this.Right = false
             if (this.game.map.canPlayerMoveTo(this, this.x + this.state.speed, this.y)) {
                 this.state.direction = 'walkingRight'
+                if (this.isLocal) {
+                    this.sequenceNumber++
+                    this.networkManager.sendPlayerMove("RIGHT", this.sequenceNumber)
+                }
                 this.x += this.state.speed
                 this.state.movement = true
             } else {

@@ -4,12 +4,12 @@ import { Map as gameMap } from '../components/map.js';
 import { State } from './state.js';
 import { UI } from '../components/ui.js';
 import { NetworkManager } from '../network/networkManager.js';
-
+import { setupMultiplayerSync } from '../network/MultiplayerSync.js';
 export class Game {
 
     static #instance = null;
 
-    static getInstance(gameData) {        
+    static getInstance(gameData) {
         if (!Game.#instance || gameData) {
             Game.#instance = new Game(gameData);
         }
@@ -22,23 +22,26 @@ export class Game {
 
     constructor(gameData) {
         this.gameData = gameData;
-        
+        this.networkManager = NetworkManager.getInstance();
+
         this.state = State.getInstance(this);
         // this.scoreboard = Scoreboard.getInstance(this)
         this.map = gameMap.getInstance(this, gameData.mapData)
-        
+
         this.players = new Map();
-        
+
         for (const playerData of Object.values(gameData.players)) {
-            this.players.set(playerData.playerId, new Player(this, playerData, playerData.playerId === NetworkManager.getInstance().getPlayerId()));
+            this.players.set(playerData.playerId, new Player(this, playerData, playerData.playerId === this.networkManager.getPlayerId()));
         }
-        this.ui =  UI.getInstance(this)
+        this.ui = UI.getInstance(this)
         this.IDRE = null
     }
 
 
 
     async intiElements() {
+        setupMultiplayerSync(this, this.networkManager);
+
         this.state.initArrowState()
         await this.map.initMap()
         for (const player of this.players.values()) {
@@ -47,7 +50,7 @@ export class Game {
         return
     }
 
-    run = () => {        
+    run = () => {
         if (this.IDRE) return;
         this.loop = this.loop.bind(this);
         this.IDRE = requestAnimationFrame(this.loop);
@@ -83,12 +86,12 @@ export class Game {
             this.state = null;
             State.resetInstance();
         }
-        
+
         this.gameData = null;
         Game.resetInstance();
     }
-    
-    loop(timestamp) {        
+
+    loop(timestamp) {
         this.updateRender(timestamp);
         this.IDRE = requestAnimationFrame(this.loop);
     }

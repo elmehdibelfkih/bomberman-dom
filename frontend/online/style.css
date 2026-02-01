@@ -63,6 +63,17 @@ html, body {
   user-select: none;
 }
 
+.page-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 #grid-container {
   position: fixed;
   top: 0;
@@ -477,30 +488,36 @@ div[class*="soft-block"] img {
   padding: var(--spacing-xl);
   border-radius: var(--border-radius-lg);
   text-align: center;
-  max-width: 500px;
+  max-width: 600px;
+  width: 90%;
+  min-width: 400px;
   box-shadow:
     0 20px 60px var(--shadow-dark),
     0 0 40px rgba(255, 71, 87, 0.2);
   animation: slideUp 0.6s ease;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
 }
 
 .menu-box h1 {
   color: var(--accent-color);
   font-size: var(--font-size-xl);
-  margin-bottom: var(--spacing-md);
+  margin: 0;
   text-shadow: 2px 2px 4px var(--shadow-dark);
 }
 
 .menu-subtitle {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
-  margin-bottom: var(--spacing-xl);
+  margin: 0;
 }
 
 .menu-buttons {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: var(--spacing-md);
+  justify-content: center;
 }
 
 .menu-btn {
@@ -516,64 +533,10 @@ div[class*="soft-block"] img {
   box-shadow: 0 6px 20px rgba(255, 71, 87, 0.3);
   text-transform: uppercase;
   letter-spacing: 1px;
-}
-
-.menu-btn:hover {
-  background: linear-gradient(135deg, var(--accent-hover) 0%, #e63946 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(255, 71, 87, 0.4);
-}
-
-.menu-btn:active {
-  transform: translateY(0);
-}
-
-@media (max-width: 768px) {
-  .menu-box {
-    margin: var(--spacing-md);
-    padding: var(--spacing-lg);
-  }
-}
-
-/* Page Container - Full screen wrapper for each route */
-.page-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(135deg, var(--primary-bg) 0%, var(--secondary-bg) 100%);
-}
-
-/* Menu page specific styling */
-#menu {
-  background: var(--overlay-bg);
-  backdrop-filter: blur(15px);
-  z-index: 1000;
-  animation: fadeIn 0.5s ease;
-}
-
-/* Game container styling */
-#game-container {
-  z-index: 1;
-}
-
-/* Multiplayer container styling */
-#multiplayer-container {
-  background: var(--overlay-bg);
-  backdrop-filter: blur(15px);
-  z-index: 1000;
-}
-
-/* Nickname form styling */
-.nickname-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  margin: var(--spacing-lg) 0;
+  text-decoration: none;
+  display: inline-block;
+  min-width: 200px;
+  text-align: center;
 }
 
 #nickname-input {
@@ -585,12 +548,26 @@ div[class*="soft-block"] img {
   font-family: var(--font-pixel);
   font-size: var(--font-size-sm);
   text-align: center;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
 }
 
-#nickname-input:focus {
-  outline: none;
-  border-color: var(--accent-color);
-  box-shadow: 0 0 10px rgba(255, 71, 87, 0.3);
+@media (max-width: 600px) {
+  .menu-box {
+    min-width: 300px;
+    padding: var(--spacing-lg);
+  }
+  
+  .menu-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .menu-btn {
+    width: 100%;
+    max-width: 250px;
+  }
 }
 
 /* Lobby styling */
