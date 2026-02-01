@@ -16,8 +16,6 @@ export class Player {
 
             id: playerData.playerId,
             nickname: playerData.nickname,
-            x: playerData.x,
-            y: playerData.y,
             direction: 'Down',
             speed: playerData.speed,
             movement: false,
@@ -27,16 +25,12 @@ export class Player {
             maxBombs: playerData.bombCount, // Assuming bombCount from data is maxBombs
             bombRange: playerData.bombRange
         };
-        // Initialize instance properties x and y directly from playerData
         this.x = playerData.x;
         this.y = playerData.y;
-        if (this.isLocal) {
-            this.initKeyEvent();
-        }
+        if (this.isLocal) this.initKeyEvent();
     }
 
     initKeyEvent() {
-        // register on document.documentElement so GlobalEventManager will reach these handlers        
         eventManager.linkNodeToHandlers(document.documentElement, 'keydown', this.setArrowStateKeyDown)
         eventManager.linkNodeToHandlers(document.documentElement, 'keyup', this.setArrowStateKeyUp)
     }
@@ -80,7 +74,7 @@ export class Player {
         if (this.isLocal) {
             this.player.style.zIndex = 100;
         }
-        this.player.style.transform = `translate(${this.state.x}px, ${this.state.y}px)`;
+        this.player.style.transform = `translate(${this.x}px, ${this.y}px)`;
         this.frame = this.playerCoordinate[this.state.direction][this.frameIndex];
 
         this.player.style.width = `${this.frame.width}px`;
@@ -89,20 +83,18 @@ export class Player {
         this.player.style.opacity = 1;
 
         if (this.isLocal) {
-            // this.state.onMovementStopped = () => {
             this.sequenceNumber = (this.sequenceNumber || 0) + 1;
             this.networkManager.sendPlayerStop(this.sequenceNumber)
-            // }
             this.pendingMoves = [];
         }
     }
 
     async updateStateFromServer(serverData) {
-        const oldX = this.state.x;
-        const oldY = this.state.y;
+        const oldX = this.x;
+        const oldY = this.y;
 
-        this.state.x = serverData.x;
-        this.state.y = serverData.y;
+        this.x = serverData.x;
+        this.y = serverData.y;
         this.x = serverData.x;
         this.y = serverData.y;
         this.state.speed = serverData.speed;
@@ -111,8 +103,8 @@ export class Player {
         this.state.isDead = !serverData.alive;
         this.state.dying = !serverData.alive;
 
-        const dx = this.state.x - oldX;
-        const dy = this.state.y - oldY;
+        const dx = this.x - oldX;
+        const dy = this.y - oldY;
 
         this.state.direction = "walking" + serverData.direction.charAt(0) + serverData.direction.slice(1).toLowerCase();
 
@@ -136,12 +128,10 @@ export class Player {
         // Server sends pixel coordinates directly
         const serverX = serverData.x;
         const serverY = serverData.y;
-        const error = Math.sqrt(Math.pow(this.state.x - serverX, 2) + Math.pow(this.state.y - serverY, 2));
+        const error = Math.sqrt(Math.pow(this.x - serverX, 2) + Math.pow(this.y - serverY, 2));
 
         // If error is significant, correct position
         if (error > 5) {
-            this.state.x = serverX;
-            this.state.y = serverY;
             this.x = serverX;
             this.y = serverY;
         }
