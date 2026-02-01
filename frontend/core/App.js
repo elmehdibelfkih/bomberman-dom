@@ -1,6 +1,7 @@
 import { NetworkManager } from '../network/NetworkManager.js';
 import { MessageHandler } from '../network/MessageHandler.js';
 import { GameState } from './GameState.js';
+import { GameEngine } from './GameEngine.js';
 import { HomePage } from '../ui/pages/HomePage.js';
 import { LobbyPage } from '../ui/pages/LobbyPage.js';
 import { GamePage } from '../ui/pages/GamePage.js';
@@ -95,17 +96,33 @@ export class App {
 
         this.messageHandler.register(ServerMessages.GAME_STARTED, (msg) => {
             console.log('🎮 GAME_STARTED:', msg);
+            
+            // Create game engine for client-side prediction
+            if (!this.gameEngine) {
+                this.gameEngine = new GameEngine();
+            }
+            
             // initialize input manager so client sends MOVE/STOP messages to server
             if (!this.inputManager) {
-                this.inputManager = new InputManager();
+                this.inputManager = new InputManager(this.gameEngine);
                 this.inputManager.init();
             }
+            
+            // Set map data for collision detection
+            this.inputManager.setMapData(msg.mapData);
 
             // populate local game state
             this.gameState.mapData = msg.mapData;
             this.gameState.clear();
             if (Array.isArray(msg.players)) {
-                msg.players.forEach(p => this.gameState.players.set(p.playerId, p));
+                msg.players.forEach(p => {
+                    // Mark local player for client prediction
+                    if (p.playerId === msg.yourPlayerId) {
+                        p.isLocal = true;
+                    }
+                    this.gameState.players.set(p.playerId, p);
+                    this.gameEngine.addEntity('players', p.playerId, p);
+                });
             }
 
             this.renderPage('game', {
@@ -117,6 +134,19 @@ export class App {
 
         this.messageHandler.register(ServerMessages.PLAYER_MOVED, (msg) => {
             this.gameState.updatePlayer(msg.playerId, msg);
+            
+            // Update game engine entity for client prediction reconciliation
+            if (this.gameEngine) {
+                const player = this.gameEngine.getEntity('players', msg.playerId);
+                if (player) {
+                    // Server reconciliation - update position from server
+                    player.x = msg.x;
+                    player.y = msg.y;
+                    player.gridX = msg.gridX;
+                    player.gridY = msg.gridY;
+                }
+            }
+            
             // update board if present
             if (this._gamePage && this._gamePage.updatePlayers) {
                 const playersArray = Array.from(this.gameState.players.values());
@@ -166,11 +196,86 @@ export class App {
         });
 
         this.messageHandler.register(ServerMessages.PLAYER_DIED, (msg) => {
-            this.gameState.updatePlayer(msg.playerId, { alive: false });
+            this.gameState.updatePlayer(msg.playerId, { alive: false, lives: 0 });
+            
+            // Check if it's the local player who died
+            if (msg.playerId === this.gameState.localPlayerId && this._gamePage) {
+                this._gamePage.showNotification('☠️ You died! Respawning...', 3000);
+            }
+            
+            // Update player display
+            if (this._gamePage && this._gamePage.updatePlayers) {
+                const playersArray = Array.from(this.gameState.players.values());
+                this._gamePage.updatePlayers(playersArray);
+            }
+        });
+
+        this.messageHandler.register(ServerMessages.PLAYER_DAMAGED, (msg) => {
+            // msg: { playerId, livesRemaining }
+            this.gameState.updatePlayer(msg.playerId, { lives: msg.livesRemaining });
+            
+            // Show damage notification for local player
+            if (msg.playerId === this.gameState.localPlayerId && this._gamePage) {
+                this._gamePage.showNotification(`❤️ Lives remaining: ${msg.livesRemaining}`, 2000);
+            }
+            
+            // Update player display
+            if (this._gamePage && this._gamePage.updatePlayers) {
+                const playersArray = Array.from(this.gameState.players.values());
+                this._gamePage.updatePlayers(playersArray);
+            }
+        });
+
+        this.messageHandler.register(ServerMessages.POWERUP_SPAWNED, (msg) => {
+            // msg: { powerupId, powerupType, gridX, gridY }
+            const p = { powerupId: msg.powerupId, type: msg.powerupType, gridX: msg.gridX, gridY: msg.gridY };
+            this.gameState.powerups.set(p.powerupId, p);
+            if (this._gamePage && this._gamePage.updatePowerups) {
+                this._gamePage.updatePowerups(Array.from(this.gameState.powerups.values()));
+            }
+        });
+
+        this.messageHandler.register(ServerMessages.POWERUP_COLLECTED, (msg) => {
+            // msg: { playerId, powerupId, powerupType, newStats }
+            if (msg.powerupId && this.gameState.powerups.has(msg.powerupId)) {
+                this.gameState.powerups.delete(msg.powerupId);
+            }
+            if (this._gamePage && this._gamePage.updatePowerups) {
+                this._gamePage.updatePowerups(Array.from(this.gameState.powerups.values()));
+            }
+
+            // Show power-up notification if it's the local player
+            if (msg.playerId === this.gameState.localPlayerId && this._gamePage && this._gamePage.showPowerUpNotification) {
+                this._gamePage.showPowerUpNotification(msg.powerupType);
+            }
+
+            // update player stats locally
+            if (msg.playerId && msg.newStats) {
+                this.gameState.updatePlayer(msg.playerId, msg.newStats);
+                if (this._gamePage && this._gamePage.updatePlayers) {
+                    const playersArray = Array.from(this.gameState.players.values());
+                    this._gamePage.updatePlayers(playersArray);
+                }
+            }
         });
 
         this.messageHandler.register(ServerMessages.GAME_OVER, (msg) => {
             console.log('Game Over! Winner:', msg.winner);
+            
+            if (this._gamePage) {
+                const isLocalPlayerWinner = msg.winner && msg.winner.playerId === this.gameState.localPlayerId;
+                
+                if (isLocalPlayerWinner) {
+                    // Local player won
+                    this._gamePage.showEndMessage(`🏆 Congratulations!\n\nYou are the winner!\n\n🎉 Victory! 🎉`);
+                } else if (msg.winner) {
+                    // Another player won
+                    this._gamePage.showEndMessage(`💀 Game Over\n\nWinner: ${msg.winner.nickname || msg.winner.playerId}\n\n🏆 Better luck next time!`);
+                } else {
+                    // No winner (draw or error)
+                    this._gamePage.showEndMessage(`💀 Game Over\n\nNo winner\n\n🤝 It's a draw!`);
+                }
+            }
         });
 
         // Chat messages

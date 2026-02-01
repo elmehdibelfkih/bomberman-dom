@@ -16,7 +16,7 @@ export const Board = ({ mapData = { initial_grid: [[]] }, players = [], yourPlay
     if (!document.getElementById(styleId)) {
         const styleEl = document.createElement('style');
         styleEl.id = styleId;
-        styleEl.innerHTML = `@keyframes bomb-pulse { 0% { transform: scale(1); opacity: 1 } 50% { transform: scale(1.15); opacity: 0.85 } 100% { transform: scale(1); opacity: 1 } } .bomb { box-shadow: 0 0 8px rgba(0,0,0,0.6); }`;
+        styleEl.innerHTML = ``; // Animations now in main CSS
         document.head.appendChild(styleEl);
     }
 
@@ -47,23 +47,35 @@ export const Board = ({ mapData = { initial_grid: [[]] }, players = [], yourPlay
     const playersContainer = dom({ tag: 'div', attributes: { class: 'players-container', style: 'position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; z-index:10;' } });
     boardEl.appendChild(playersContainer);
 
+    const powerupsContainer = dom({ tag: 'div', attributes: { class: 'powerups-container', style: 'position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; z-index:6;' } });
+    boardEl.appendChild(powerupsContainer);
+
     function updatePlayers(newPlayers = []) {
-        // match server-side hitbox which uses ~40% of block size; scale for visuals
-        const playerSize = Math.round(scaledCell * 0.4);
+        // Use consistent player size (70% of block size to match server collision)
+        const playerSize = Math.round(scaledCell * 0.7);
         const offset = Math.round((scaledCell - playerSize) / 2);
 
         newPlayers.forEach(p => {
             const id = `player-${p.playerId}`;
             let el = playersContainer.querySelector(`#${id}`);
             if (!el) {
-                el = dom({ tag: 'div', attributes: { id, class: p.playerId === yourPlayerId ? 'player local-player' : 'player remote-player', style: `position:absolute; width:${playerSize}px; height:${playerSize}px; border-radius:50%; background:${p.playerId === yourPlayerId ? '#0c6' : '#36f'}; z-index:10;` } });
+                el = dom({ 
+                    tag: 'div', 
+                    attributes: { 
+                        id, 
+                        class: p.playerId === yourPlayerId ? 'player local-player' : 'player remote-player', 
+                        style: `position:absolute; width:${playerSize}px; height:${playerSize}px; border-radius:50%; background:${p.playerId === yourPlayerId ? '#0c6' : '#36f'}; z-index:10; transition: all 0.05s linear;` 
+                    } 
+                });
                 playersContainer.appendChild(el);
             }
 
+            // Use server's pixel coordinates directly for smooth movement
             const px = (typeof p.x === 'number' ? Math.round(p.x) : ((p.gridX || 0) * cellSize));
             const py = (typeof p.y === 'number' ? Math.round(p.y) : ((p.gridY || 0) * cellSize));
             const left = Math.round(px * SCALE) + offset;
             const top = Math.round(py * SCALE) + offset;
+            
             el.style.left = `${left}px`;
             el.style.top = `${top}px`;
         });
@@ -137,9 +149,48 @@ export const Board = ({ mapData = { initial_grid: [[]] }, players = [], yourPlay
         });
     }
 
+    function updatePowerups(powerups = []) {
+        powerupsContainer.innerHTML = '';
+        powerups.forEach(p => {
+            const size = Math.round(scaledCell * 0.45);
+            const leftPx = p.gridX * scaledCell + Math.round((scaledCell - size) / 2);
+            const topPx = p.gridY * scaledCell + Math.round((scaledCell - size) / 2);
+
+            let color = '#ff0';
+            let label = '';
+            
+            // Handle both string and numeric power-up types
+            const powerupType = p.type || p.powerupType;
+            
+            switch (powerupType) {
+                case 'BOMB_COUNT':
+                case 8: // POWERUP_BOMB
+                    color = '#ff9800'; 
+                    label = '💣'; 
+                    break;
+                case 'SPEED':
+                case 10: // POWERUP_SPEED
+                    color = '#4caf50'; 
+                    label = '⚡'; 
+                    break;
+                case 'BOMB_RANGE':
+                case 9: // POWERUP_FLAME
+                    color = '#f44336'; 
+                    label = '🔥'; 
+                    break;
+                default: 
+                    console.log('Unknown power-up type:', powerupType);
+                    return; // Skip unknown power-ups
+            }
+
+            const el = dom({ tag: 'div', attributes: { class: 'powerup', style: `position:absolute; left:${leftPx}px; top:${topPx}px; width:${size}px; height:${size}px; border-radius:6px; background:${color}; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; z-index:6; font-size:${Math.round(size * 0.6)}px;` }, children: [label] });
+            powerupsContainer.appendChild(el);
+        });
+    }
+
     // initial players
     updatePlayers(players);
 
-    return { element: boardEl, updatePlayers, updateBombs, updateBlocks, playExplosions };
+    return { element: boardEl, updatePlayers, updateBombs, updateBlocks, playExplosions, updatePowerups };
 };
 

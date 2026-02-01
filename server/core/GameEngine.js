@@ -140,16 +140,7 @@ export class GameEngine {
     }
 
     processPlayerStop(playerId, sequenceNumber) {
-        const player = this.entities.players.get(playerId)
-        if (!player || !player.alive) return false
-
-        player.stopMove()
-
-        const message = MessageBuilder.playerStopped(playerId, sequenceNumber)
-
-        this.gameRoom.broadcast(message)
-
-        return true;
+        return this.authoritativeState.validatePlayerStop(playerId, sequenceNumber);
     }
 
     processPlaceBomb(playerId) {

@@ -51,64 +51,61 @@ export class AuthoritativeGameState {
         // Advance players by pixel amounts based on their speed and direction
         for (const player of this.gameEngine.entities.players.values()) {
             if (!player || !player.alive || !player.isMoving || !player.direction) continue;
-            // Determine intended pixel movement
+            
+            // Use smaller movement distance (3 pixels per frame for precise control)
+            const moveSpeed = 3;
+            
             let dx = 0;
             let dy = 0;
             switch (player.direction) {
-                case 'UP': dy = -player.speed; break;
-                case 'DOWN': dy = player.speed; break;
-                case 'LEFT': dx = -player.speed; break;
-                case 'RIGHT': dx = player.speed; break;
+                case 'UP': dy = -moveSpeed; break;
+                case 'DOWN': dy = moveSpeed; break;
+                case 'LEFT': dx = -moveSpeed; break;
+                case 'RIGHT': dx = moveSpeed; break;
             }
 
             const tryX = player.x + dx;
             const tryY = player.y + dy;
 
-            // Helper to compute player's bbox size; use GAME_CONFIG.BLOCK_SIZE scaled
-            // Use a slightly smaller hitbox so players can traverse narrow passages and
-            // move across multiple floor tiles without getting stuck on edges.
-            const playerSize = Math.max(1, Math.round(GAME_CONFIG.BLOCK_SIZE * 0.4));
+            // Use proper player hitbox (slightly smaller than block for smooth passage)
+            const playerSize = Math.round(GAME_CONFIG.BLOCK_SIZE * 0.7); // 70% of block size
 
-            // Attempt full move first
+            // Attempt movement with proper collision detection
             if (this.isPositionFree(tryX, tryY, player, playerSize)) {
                 player.x = tryX;
                 player.y = tryY;
-            } else if (this.isPositionFree(tryX, player.y, player, playerSize)) {
-                // try sliding on X axis only
-                player.x = tryX;
-            } else if (this.isPositionFree(player.x, tryY, player, playerSize)) {
-                // try sliding on Y axis only
-                player.y = tryY;
+                
+                // Update grid coordinates
+                const newGridX = Math.floor((player.x + playerSize/2) / GAME_CONFIG.BLOCK_SIZE);
+                const newGridY = Math.floor((player.y + playerSize/2) / GAME_CONFIG.BLOCK_SIZE);
+                player.gridX = newGridX;
+                player.gridY = newGridY;
+                
+                // Broadcast position update
+                this.gameRoom.broadcast(MessageBuilder.playerMoved(
+                    player.playerId,
+                    Math.round(player.x),
+                    Math.round(player.y),
+                    player.gridX,
+                    player.gridY,
+                    player.direction,
+                    this.lastProcessedSequenceNumber.get(player.playerId) || 0
+                ));
+                
+                // Check for powerup collection
+                this.checkPowerUpCollection(player.playerId, player.gridX, player.gridY);
             } else {
-                // fully blocked: stop movement and notify
+                // Movement blocked - stop player
                 player.isMoving = false;
-                this.gameRoom.broadcast(MessageBuilder.playerStopped(player.playerId, this.lastProcessedSequenceNumber.get(player.playerId) || 0));
-                continue;
+                this.gameRoom.broadcast(MessageBuilder.playerStopped(
+                    player.playerId, 
+                    this.lastProcessedSequenceNumber.get(player.playerId) || 0
+                ));
             }
-
-            // Update grid coordinates from pixel position
-            const newGridX = Math.floor(player.x / GAME_CONFIG.BLOCK_SIZE);
-            const newGridY = Math.floor(player.y / GAME_CONFIG.BLOCK_SIZE);
-            player.gridX = newGridX;
-            player.gridY = newGridY;
-
-            // Broadcast updated position
-            this.gameRoom.broadcast(MessageBuilder.playerMoved(
-                player.playerId,
-                Math.round(player.x),
-                Math.round(player.y),
-                player.gridX,
-                player.gridY,
-                player.direction,
-                this.lastProcessedSequenceNumber.get(player.playerId) || 0
-            ));
-
-            // Check for powerup collection at the new grid cell
-            this.checkPowerUpCollection(player.playerId, player.gridX, player.gridY);
         }
     }
 
-    // Pixel-based collision check: compute player's bounding box at (x,y)
+    // Improved collision detection - no wall clipping allowed
     isPositionFree(x, y, player, size) {
         const grid = this.gameEngine.mapData.initial_grid;
         if (!grid || !grid.length) return false;
@@ -116,55 +113,41 @@ export class AuthoritativeGameState {
         const gridHeight = grid.length;
         const gridWidth = grid[0].length;
 
-        // Ensure within world bounds (using player's bbox)
+        // Strict bounds checking - no partial overlap with world edges
         if (x < 0 || y < 0) return false;
         if (x + size > gridWidth * GAME_CONFIG.BLOCK_SIZE) return false;
         if (y + size > gridHeight * GAME_CONFIG.BLOCK_SIZE) return false;
 
-        // Compute covered grid cells by bbox
+        // Calculate which grid cells the player's bounding box covers
         const left = Math.floor(x / GAME_CONFIG.BLOCK_SIZE);
         const top = Math.floor(y / GAME_CONFIG.BLOCK_SIZE);
         const right = Math.floor((x + size - 1) / GAME_CONFIG.BLOCK_SIZE);
         const bottom = Math.floor((y + size - 1) / GAME_CONFIG.BLOCK_SIZE);
 
-        // Check bombs collision first
+        // Check bomb collisions first
         for (const bomb of this.gameEngine.entities.bombs.values()) {
             if (!bomb) continue;
             if (bomb.gridX >= left && bomb.gridX <= right && bomb.gridY >= top && bomb.gridY <= bottom) {
-                // Allow the owner to walk over their own bomb so they can step off after placing it.
+                // Allow bomb owner to pass through their own bomb
                 if (bomb.playerId === player.playerId) continue;
                 if (!player.bombPass) return false;
             }
         }
 
-    // Allow a small overlap tolerance (in pixels) to avoid sticking on 1-2px edges.
-    // Keep this relatively small since we reduced the player hitbox.
-    const overlapTolerance = Math.max(1, Math.floor(GAME_CONFIG.BLOCK_SIZE * 0.08));
-
+        // Check each grid cell for walls and blocks - NO OVERLAP ALLOWED
         for (let gy = top; gy <= bottom; gy++) {
             for (let gx = left; gx <= right; gx++) {
                 if (gx < 0 || gx >= gridWidth || gy < 0 || gy >= gridHeight) return false;
+                
                 const cellValue = grid[gy][gx];
-                if (cellValue === WALL || (cellValue === BLOCK && !player.blockPass)) {
-                    // compute overlap rectangle between player's bbox and this cell in pixels
-                    const cellLeft = gx * GAME_CONFIG.BLOCK_SIZE;
-                    const cellTop = gy * GAME_CONFIG.BLOCK_SIZE;
-                    const cellRight = cellLeft + GAME_CONFIG.BLOCK_SIZE;
-                    const cellBottom = cellTop + GAME_CONFIG.BLOCK_SIZE;
-
-                    const overlapLeft = Math.max(x, cellLeft);
-                    const overlapTop = Math.max(y, cellTop);
-                    const overlapRight = Math.min(x + size, cellRight);
-                    const overlapBottom = Math.min(y + size, cellBottom);
-
-                    const overlapWidth = Math.max(0, overlapRight - overlapLeft);
-                    const overlapHeight = Math.max(0, overlapBottom - overlapTop);
-                    const overlapArea = overlapWidth * overlapHeight;
-
-                    // If overlap area is small (below tolerance area), allow it; otherwise block.
-                    if (overlapArea > overlapTolerance * overlapTolerance) {
-                        return false;
-                    }
+                
+                // Strict collision - no clipping into walls or blocks
+                if (cellValue === WALL) {
+                    return false;
+                }
+                
+                if (cellValue === BLOCK && !player.blockPass) {
+                    return false;
                 }
             }
         }
@@ -324,7 +307,8 @@ export class AuthoritativeGameState {
     }
 
     spawnPowerUp(gridX, gridY) {
-        const powerUpTypes = [POWERUP_SPEED, POWERUP_BOMB, POWERUP_FLAME, POWERUP_BOMB_PASS];
+        // Only spawn these three power-ups: bomb (extra bomb), speed, flame (bigger explosions)
+        const powerUpTypes = [POWERUP_BOMB, POWERUP_SPEED, POWERUP_FLAME];
         const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
 
         const powerUpId = `powerup_${this.nextPowerUpId++}`;

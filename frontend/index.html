@@ -19,6 +19,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            overflow-x: hidden;
         }
 
         #app {
@@ -27,6 +28,7 @@
             padding: 20px;
         }
 
+        /* Home Page Styles */
         .home-page {
             background: white;
             border-radius: 20px;
@@ -36,7 +38,7 @@
         }
 
         .home-page h1 {
-            font-size: 48px;
+            font-size: clamp(32px, 5vw, 48px);
             color: #333;
             margin-bottom: 40px;
         }
@@ -54,6 +56,7 @@
             font-size: 16px;
             border: 2px solid #ddd;
             border-radius: 10px;
+            width: 100%;
         }
 
         .btn {
@@ -64,8 +67,14 @@
             border: none;
             border-radius: 10px;
             cursor: pointer;
+            transition: transform 0.2s;
         }
 
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Lobby Page Styles */
         .lobby-page {
             background: white;
             border-radius: 20px;
@@ -73,11 +82,12 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             max-width: 600px;
             margin: 0 auto;
+            width: 100%;
         }
 
         .lobby-page h1 {
             text-align: center;
-            font-size: 36px;
+            font-size: clamp(28px, 4vw, 36px);
             color: #333;
             margin-bottom: 30px;
         }
@@ -119,6 +129,278 @@
             background: #f0f0f0;
             border-radius: 10px;
             margin-top: 20px;
+        }
+
+        /* Game Page Styles */
+        .game-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #1a1a1a;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Responsive Game Board */
+        .board {
+            position: relative;
+            border: 2px solid #333;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            background: #071;
+            max-width: 95vw;
+            max-height: 85vh;
+            margin: auto;
+        }
+
+        /* Game UI Elements */
+        .perf-monitor {
+            position: fixed;
+            left: 8px;
+            top: 8px;
+            background: rgba(0,0,0,0.7);
+            color: #0f0;
+            padding: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 100;
+            border-radius: 4px;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .lives-display {
+            position: fixed;
+            left: 8px;
+            top: 50px;
+            background: rgba(0,0,0,0.7);
+            color: #ff4444;
+            padding: 8px 12px;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 100;
+            border-radius: 4px;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .game-chat {
+            position: fixed;
+            right: 8px;
+            bottom: 8px;
+            width: min(300px, 40vw);
+            background: rgba(0,0,0,0.6);
+            padding: 8px;
+            color: #fff;
+            z-index: 50;
+            border-radius: 8px;
+        }
+
+        .chat-messages {
+            max-height: 160px;
+            overflow-y: auto;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .chat-form {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 6px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .chat-message {
+            margin-bottom: 6px;
+            word-wrap: break-word;
+        }
+
+        /* Game Elements */
+        .bomb {
+            border: 2px solid #444;
+            box-shadow: 0 0 8px rgba(0,0,0,0.6);
+        }
+
+        .explosion {
+            pointer-events: none;
+        }
+
+        .player {
+            border: 2px solid rgba(255,255,255,0.3);
+            transition: all 0.1s ease-out;
+        }
+
+        .local-player {
+            box-shadow: 0 0 10px rgba(0,255,0,0.5);
+        }
+
+        .remote-player {
+            box-shadow: 0 0 10px rgba(0,100,255,0.5);
+        }
+
+        .powerup {
+            border: 1px solid rgba(255,255,255,0.3);
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* Game Overlays */
+        .game-overlay {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            font-size: clamp(20px, 4vw, 28px);
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .game-toast {
+            position: fixed;
+            right: 16px;
+            bottom: 16px;
+            min-width: 160px;
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            border-radius: 6px;
+            display: none;
+            z-index: 120;
+            font-size: 14px;
+        }
+
+        /* Power-up Notification */
+        .powerup-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            color: #fff;
+            padding: 20px 30px;
+            border-radius: 15px;
+            font-size: clamp(18px, 3vw, 24px);
+            font-weight: bold;
+            z-index: 200;
+            animation: powerup-show 2s ease-out forwards;
+            text-align: center;
+            border: 2px solid #ffd700;
+            box-shadow: 0 0 20px rgba(255,215,0,0.5);
+        }
+
+        /* Animations */
+        @keyframes explosion-fade {
+            0% { 
+                transform: scale(0.3); 
+                opacity: 1; 
+            }
+            50% { 
+                transform: scale(1.2); 
+                opacity: 0.8; 
+            }
+            100% { 
+                transform: scale(1.5); 
+                opacity: 0; 
+            }
+        }
+
+        @keyframes powerup-show {
+            0% { 
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            80% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        @keyframes bomb-pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.15); opacity: 0.85; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            #app {
+                padding: 10px;
+            }
+
+            .home-page, .lobby-page {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+
+            .game-chat {
+                width: calc(100vw - 16px);
+                right: 8px;
+                left: 8px;
+                bottom: 8px;
+            }
+
+            .perf-monitor {
+                font-size: 10px;
+                padding: 4px;
+            }
+
+            .board {
+                max-width: 98vw;
+                max-height: 80vh;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .powerup-notification {
+                padding: 15px 20px;
+                margin: 0 10px;
+            }
+
+            .game-overlay {
+                padding: 10px;
+            }
+        }
+
+        /* Landscape mobile optimization */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .board {
+                max-height: 90vh;
+            }
+
+            .game-chat {
+                max-height: 120px;
+            }
+
+            .chat-messages {
+                max-height: 80px;
+            }
         }
     </style>
 </head>
