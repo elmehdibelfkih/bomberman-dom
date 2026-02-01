@@ -5,7 +5,7 @@ export class Player {
 
     constructor(game, playerData, isLocal = false) {
         console.log("is local", isLocal);
-        
+
         this.game = game;
         this.is_local = isLocal;
         this.state = {
@@ -51,9 +51,6 @@ export class Player {
                 class: 'player'
             }
         });
-        // if (this.is_local) {
-        //     this.player.classList.add('local-player');
-        // }
         this.player.appendChild(this.dyingSound);
         this.game.map.grid.appendChild(this.player)
         await this.initClassData()
@@ -84,7 +81,7 @@ export class Player {
         }
         this.player.style.transform = `translate(${this.state.x}px, ${this.state.y}px)`;
         this.frame = this.playerCoordinate[this.state.direction][this.frameIndex];
-        
+
         this.player.style.width = `${this.frame.width}px`;
         this.player.style.height = `${this.frame.height}px`;
         this.player.style.backgroundPosition = `${this.frame.x} ${this.frame.y}`;
@@ -146,13 +143,15 @@ export class Player {
         this.right()
         this.left()
 
-        if (this.putBomb && this.canPutBomb) {
-            if (this.state.bombCount < this.state.maxBombs) {
+        if (this.putBomb && this.canPutBomb && this.state.bombCount <= this.state.maxBombs) {
+            console.log("7at dakci");
+
+            // if (this.state.bombCount <= this.state.maxBombs) {
                 this.game.map.addBomb(this, this.x + (this.getPlayerWidth() / 2), this.y + (this.getPlayerHeight() / 2), timestamp);
                 this.putBomb = false;
                 this.canPutBomb = false;
                 this.incrementBombCount();
-            }
+            // }
         }
 
         if (!this.state.movement && this.state.direction.includes("walking")) {
@@ -297,7 +296,6 @@ export class Player {
     decrementBombCount = () => { this.state.bombCount--; }
 
     setArrowStateKeyDown = (event) => {
-        console.log("lolo");
         const key = event.nativeEvent.key;
         if (key === 'ArrowUp') this.state.ARROW_UP = true;
         if (key === 'ArrowDown') this.state.ARROW_DOWN = true;
@@ -307,7 +305,6 @@ export class Player {
     }
 
     setArrowStateKeyUp = (event) => {
-        console.log("kiti");
         const key = event.nativeEvent.key;
         if (key === 'ArrowUp') this.state.ARROW_UP = false;
         if (key === 'ArrowDown') this.state.ARROW_DOWN = false;

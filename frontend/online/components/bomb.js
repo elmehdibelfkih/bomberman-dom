@@ -7,13 +7,13 @@ export class Bomb {
         this.player = player
         this.id = player.state.id + '_bomb_' + Date.now();
         this.done = false
-        this.xMap = Math.floor(x / this.game.map.level.block_size)
-        this.yMap = Math.floor(y / this.game.map.level.block_size)
+        this.xMap = Math.floor(x / this.game.map.mapData.block_size)
+        this.yMap = Math.floor(y / this.game.map.mapData.block_size)
         this.startTime = timestamp
         this.flashing = true
-        this.image = this.game.map.level.bomb
-        this.explosionTime = this.game.map.level.explosion_time
-        this.explosionImg = this.game.map.level.electric_shock_img
+        this.image = this.game.map.mapData.bomb
+        this.explosionTime = this.game.map.mapData.explosion_time
+        this.explosionImg = this.game.map.mapData.electric_shock_img
         this.frameIndex = 0
         this.lastTime = performance.now()
         this.freeBlocks = []
@@ -28,7 +28,7 @@ export class Bomb {
     isDone = () => this.done
 
     initBomb() {
-        const size = this.game.map.level.block_size;
+        const size = this.game.map.mapData.block_size;
         this.img = dom({
             tag: 'img',
             attributes: {
@@ -56,7 +56,7 @@ export class Bomb {
         this.game.map.gridArray[this.yMap][this.xMap + 1] !== consts.WALL ? this.freeBlocks.push(3) : 0;
         this.game.map.gridArray[this.yMap - 1][this.xMap] !== consts.WALL ? this.freeBlocks.push(2) : 0;
         this.game.map.gridArray[this.yMap + 1][this.xMap] !== consts.WALL ? this.freeBlocks.push(0) : 0;
-        this.electricShock = new Audio(this.game.map.level.shock_sound);
+        this.electricShock = new Audio(this.game.map.mapData.shock_sound);
     }
 
     async render() {
@@ -95,7 +95,7 @@ export class Bomb {
         }
         if (timestamp - this.startTime >= this.explosionTime) {
             if (!this.kill) {
-                const tmp = this.game.map.level.block_size
+                const tmp = this.game.map.mapData.block_size
                 const bombX = this.xMap * tmp
                 const bombY = this.yMap * tmp
 

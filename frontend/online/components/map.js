@@ -155,7 +155,6 @@ export class Map {
         this.gridArray[y][x] = consts.FLOOR;
         let img = document.getElementById(x.toString() + y.toString());
         let tile = document.querySelector(`[data-row-index="${x}"][data-col-index="${y}"]`);
-        this.game.state.setScore(25);
         if (tile && img) {
             tile.removeChild(img);
         }
@@ -175,15 +174,10 @@ export class Map {
             [x, y + height],
             [x + width, y + height]
         ];
-        let i = 0
-        console.log(x, y);
 
         for (const [cx, cy] of corners) {
-
             const gridX = Math.floor(cx / blockSize);
             const gridY = Math.floor(cy / blockSize);
-            console.log("count:", i++, gridX, gridY);
-            i++
             if (!this.isFreeSpaceInGrid(gridX, gridY)) return false;
         }
         return true;
