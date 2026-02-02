@@ -750,6 +750,18 @@ div[class*="soft-block"] img {
   border-radius: var(--border-radius-md);
   border: 2px solid var(--shadow-light);
   pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  min-width: 150px;
+  align-items: center;
+}
+
+.players-info h3 {
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--accent-color);
+  font-size: var(--font-size-md);
+  text-align: center;
 }
 
 .game-chat {
@@ -1161,3 +1173,9 @@ div[class*="soft-block"] img {
     box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
   }
 }
+#ping-display {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-weight: bold;
+}
+
