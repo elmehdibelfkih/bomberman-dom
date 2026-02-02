@@ -56,7 +56,6 @@ export class Player {
     }
 
     async initClassData() {
-
         this.state.movement = false
         this.reRender = false
         this.renderExp = false
@@ -133,6 +132,7 @@ export class Player {
 
         // If error is significant, correct position
         if (error > 5) {
+            // todo: fix that
             console.log("hani kayan ghalat");
 
             this.x = serverX;
@@ -196,12 +196,13 @@ export class Player {
         this.left()
 
         if (this.putBomb && this.canPutBomb && this.state.bombCount <= this.state.maxBombs) {
-            // if (this.state.bombCount <= this.state.maxBombs) {
-            this.game.map.addBomb(this, this.x + (this.getPlayerWidth() / 2), this.y + (this.getPlayerHeight() / 2), timestamp);
-            this.putBomb = false;
-            this.canPutBomb = false;
-            this.incrementBombCount();
-            // }
+            // this.game.map.addBomb(this, this.x + (this.getPlayerWidth() / 2), this.y + (this.getPlayerHeight() / 2), timestamp);
+            // this.putBomb = false;
+            // this.canPutBomb = false;
+            // this.incrementBombCount();
+            // console.log(this.x + (this.getPlayerWidth() / 2), this.y + (this.getPlayerHeight() / 2));
+            
+            this.networkManager.sendPlaceBomb()
         }
 
         if (!this.state.movement && this.state.direction.includes("walking")) {

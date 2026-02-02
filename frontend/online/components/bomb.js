@@ -2,14 +2,14 @@ import * as consts from '../utils/consts.js';
 import { dom } from '../../framework/framework/index.js';
 
 export class Bomb {
-    constructor(game, player, x, y, timestamp) {
+    constructor(game, player, xMap, yMap) {
         this.game = game
         this.player = player
         this.id = player.state.id + '_bomb_' + Date.now();
         this.done = false
-        this.xMap = Math.floor(x / this.game.map.mapData.block_size)
-        this.yMap = Math.floor(y / this.game.map.mapData.block_size)
-        this.startTime = timestamp
+        this.xMap = xMap
+        this.yMap = yMap
+        this.startTime = performance.now()
         this.flashing = true
         this.image = this.game.map.mapData.bomb
         this.explosionTime = this.game.map.mapData.explosion_time
@@ -17,8 +17,6 @@ export class Bomb {
         this.frameIndex = 0
         this.lastTime = performance.now()
         this.freeBlocks = []
-        this.x = x
-        this.y = y
         this.active = true
         this.initBomb()
     }
@@ -94,32 +92,32 @@ export class Bomb {
             return
         }
         if (timestamp - this.startTime >= this.explosionTime) {
-            if (!this.kill) {
-                const tmp = this.game.map.mapData.block_size
-                const bombX = this.xMap * tmp
-                const bombY = this.yMap * tmp
+            // if (!this.kill) {
+            //     const tmp = this.game.map.mapData.block_size
+            //     const bombX = this.xMap * tmp
+            //     const bombY = this.yMap * tmp
 
-                for (const player of this.game.players.values()) {
-                    // Check collision with the center of the bomb
-                    if (player.isColliding(bombX, bombY, tmp, tmp)) {
-                        player.kill();
-                    }
-                    // Check collision with the explosion arms (up, down, left, right)
-                    if (player.isColliding(bombX, bombY - tmp, tmp, tmp)) { // Up
-                        player.kill();
-                    }
-                    if (player.isColliding(bombX, bombY + tmp, tmp, tmp)) { // Down
-                        player.kill();
-                    }
-                    if (player.isColliding(bombX - tmp, bombY, tmp, tmp)) { // Left
-                        player.kill();
-                    }
-                    if (player.isColliding(bombX + tmp, bombY, tmp, tmp)) { // Right
-                        player.kill();
-                    }
-                }
-                this.kill = true; // Mark that explosion has processed player kills
-            }
+            //     for (const player of this.game.players.values()) {
+            //         // Check collision with the center of the bomb
+            //         if (player.isColliding(bombX, bombY, tmp, tmp)) {
+            //             player.kill();
+            //         }
+            //         // Check collision with the explosion arms (up, down, left, right)
+            //         if (player.isColliding(bombX, bombY - tmp, tmp, tmp)) { // Up
+            //             player.kill();
+            //         }
+            //         if (player.isColliding(bombX, bombY + tmp, tmp, tmp)) { // Down
+            //             player.kill();
+            //         }
+            //         if (player.isColliding(bombX - tmp, bombY, tmp, tmp)) { // Left
+            //             player.kill();
+            //         }
+            //         if (player.isColliding(bombX + tmp, bombY, tmp, tmp)) { // Right
+            //             player.kill();
+            //         }
+            //     }
+            //     this.kill = true; // Mark that explosion has processed player kills
+            // }
             if (!this.blowingUpBlock) {
                 this.game.map.isBlock(this.xMap - 1, this.yMap) ? (this.game.map.blowingUpBlock(this.xMap - 1, this.yMap), this.blowingUpBlock = true) : 0
                 this.game.map.isBlock(this.xMap + 1, this.yMap) ? (this.game.map.blowingUpBlock(this.xMap + 1, this.yMap), this.blowingUpBlock = true) : 0
