@@ -15,13 +15,9 @@
 
   ],
 
-  "hiden_harts_quantity": 3,
-  "bomb_quantity_at_time": 1,
-  "block_size": 68,
   "explosion_time": 900,
   "level_time": 60,
 
-  "enemy": "./assets/images/grue.png",
   "player": "./assets/images/player.png",
 
   "wall": "./assets/images/wall/wall_19.png",

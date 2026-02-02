@@ -14,14 +14,10 @@
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
   ],
   
-  "enemy_speed": 5,
-  "hiden_harts_quantity": 3,
-  "bomb_quantity_at_time": 1,
   "block_size": 68,
   "explosion_time": 900,
   "level_time": 50,
 
-  "enemy": "./assets/images/grue.png",
   "player": "./assets/images/player.png",
 
   "wall": "../assets/images/floor/floor_8.png",

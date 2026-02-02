@@ -13,14 +13,10 @@
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
   ],
   
-  "enemy_speed": 2,
-  "hiden_harts_quantity": 3,
-  "bomb_quantity_at_time": 1,
+
   "block_size": 68,
   "explosion_time": 2000,
-  "level_time": 60,
 
-  "enemy": "./assets/images/grue.png",
   "player": "./assets/images/player.png",
 
   "wall": "./assets/images/wall/wall_29.png",
@@ -42,5 +38,4 @@
   "time_sound": "./assets/audios/timesounde.mp3",
   "speed_sound": "./assets/audios/CoinGet.mp3",
   "heart_sound": "./assets/audios/heart.mp3"
-
 }
