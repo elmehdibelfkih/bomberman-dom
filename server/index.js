@@ -78,7 +78,6 @@ wss.on('connection', (ws, req) => {
     const playerId = IdGenerator.generatePlayerId()
     const conn = new Connection(ws, playerId)
     connections.add(conn)
-    console.log('🔥 SERVER: New WebSocket connection established for player:', playerId);
 
     ws.on('message', (data) => {
         console.log('🔥 SERVER: Raw message received:', data.toString());

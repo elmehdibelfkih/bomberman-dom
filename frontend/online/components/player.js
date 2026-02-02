@@ -119,8 +119,6 @@ export class Player {
     }
 
     async reconcileWithServer(serverData) {
-        console.log("reconcileWithServer server data:", serverData);
-
         if (!this.isLocal) return;
         
         // Remove acknowledged moves and corrections
@@ -200,7 +198,9 @@ export class Player {
             // this.game.map.addBomb(this, this.x + (this.getPlayerWidth() / 2), this.y + (this.getPlayerHeight() / 2), timestamp);
             this.putBomb = false;
             this.canPutBomb = false;
-            // this.incrementBombCount();            
+            // this.incrementBombCount();
+            // console.log(this.x + (this.getPlayerWidth() / 2), this.y + (this.getPlayerHeight() / 2));
+
             this.networkManager.sendPlaceBomb()
         }
 
@@ -354,7 +354,7 @@ export class Player {
         for (const loot of this.game.map.loot) {
             const blockSize = this.game.map.mapData.block_size;
             if (this.isColliding(loot.x, loot.y, blockSize, blockSize)) {
-                loot.removeitfromDOM()
+                // loot.removeitfromDOM()
                 loot.removeitfromgrid()
                 loot.makeAction()
                 this.game.map.loot = this.game.map.loot.filter(b => b !== loot);

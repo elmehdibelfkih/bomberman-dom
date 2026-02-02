@@ -106,7 +106,7 @@ export class AuthoritativeGameState {
     checkExplosionDamage(playerId, playerX, playerY) {
         const player = this.gameEngine.entities.players.get(playerId)
 
-        for ([explosionID, explosion] of this.activeExplosions.entries()) {
+        for ([explosionId, explosion] of this.activeExplosions.entries()) {
             // check if player is in the range of bomb explosion
             const inRange = explosion.cells.some(cell => {
                 cell.gridX === playerX && cell.gridY === playerY;
@@ -163,49 +163,93 @@ export class AuthoritativeGameState {
     }
 
     isValidPosition(newX, newY, direction, playerId) {
+        const player = this.gameEngine.entities.players.get(playerId);
+        const { width, height } = this.getPlayerDimensions(direction);
+
+        const newCorners = this.calculatePlayerCorners(newX, newY, width, height);
+        const currentOccupiedCells = this.getCurrentOccupiedCells(player, width, height);
+
+        return this.areAllCornersValid(newCorners, currentOccupiedCells, player);
+    }
+
+    calculatePlayerCorners(x, y, width, height) {
+        return [
+            { x: x, y: y },                           // Top-left
+            { x: x + width - 1, y: y },               // Top-right
+            { x: x, y: y + height - 1 },              // Bottom-left
+            { x: x + width - 1, y: y + height - 1 }   // Bottom-right
+        ];
+    }
+
+    getCurrentOccupiedCells(player, width, height) {
+        const currentCorners = this.calculatePlayerCorners(player.x, player.y, width, height);
+        const occupiedCells = new Set();
+
+        currentCorners.forEach(corner => {
+            const gridX = Math.floor(corner.x / GAME_CONFIG.BLOCK_SIZE);
+            const gridY = Math.floor(corner.y / GAME_CONFIG.BLOCK_SIZE);
+            occupiedCells.add(`${gridX},${gridY}`);
+        });
+
+        return occupiedCells;
+    }
+
+    areAllCornersValid(corners, currentOccupiedCells, player) {
+        for (const corner of corners) {
+            if (!this.isCornerValid(corner, currentOccupiedCells, player)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    isCornerValid(corner, currentOccupiedCells, player) {
+        const gridX = Math.floor(corner.x / GAME_CONFIG.BLOCK_SIZE);
+        const gridY = Math.floor(corner.y / GAME_CONFIG.BLOCK_SIZE);
+
+        if (!this.isWithinGridBounds(gridX, gridY)) {
+            return false;
+        }
+
+        if (!this.canMoveIntoBombCell(gridX, gridY, currentOccupiedCells, player)) {
+            return false;
+        }
+
+        if (!this.canMoveIntoStaticCell(gridX, gridY, player)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    isWithinGridBounds(gridX, gridY) {
         const gridHeight = this.gameEngine.mapData.initial_grid.length;
         const gridWidth = this.gameEngine.mapData.initial_grid[0].length;
 
-        const playerDimensions = this.getPlayerDimensions(direction);
-        const width = playerDimensions.width;
-        const height = playerDimensions.height;
+        return gridX >= 0 && gridX < gridWidth && gridY >= 0 && gridY < gridHeight;
+    }
 
-        // future player's position, but by his corners
-        const corners = [
-            { x: newX, y: newY },
-            { x: newX + width - 1, y: newY },
-            { x: newX, y: newY + height - 1 },
-            { x: newX + width - 1, y: newY + height - 1 }
-        ];
+    canMoveIntoBombCell(gridX, gridY, currentOccupiedCells, player) {
+        const cellKey = `${gridX},${gridY}`;
 
-        // check if those positions aren't filled with a block or wall
-        for (const corner of corners) {
-            const gridX = Math.floor(corner.x / GAME_CONFIG.BLOCK_SIZE);
-            const gridY = Math.floor(corner.y / GAME_CONFIG.BLOCK_SIZE);
-
-            if (gridX < 0 || gridX >= gridWidth || gridY < 0 || gridY >= gridHeight) {
-                return false;
-            }
-
-            for (const bomb of this.gameEngine.entities.bombs.values()) {
-                if (bomb.gridX === gridX && bomb.gridY === gridY) {
-                    return false;
+        for (const bomb of this.gameEngine.entities.bombs.values()) {
+            if (bomb.gridX === gridX && bomb.gridY === gridY) {
+                if (currentOccupiedCells.has(cellKey)) {
+                    return true; // can escape from bomb
                 }
-            }
 
-            const cellValue = this.gameEngine.mapData.initial_grid[gridY][gridX];
-            if (cellValue === WALL) {
                 return false;
             }
+        }
 
-            const player = this.gameEngine.entities.players.get(playerId)
-            if (cellValue === BOMB && !player.bombPass) {
-                return false
-            }
+        return true; // no bomb in this cell
+    }
 
-            if (cellValue === BLOCK && !player.blockPass) {
-                return false
-            }
+    canMoveIntoStaticCell(gridX, gridY, player) {
+        const cellValue = this.gameEngine.mapData.initial_grid[gridY][gridX];
+
+        if (cellValue === WALL || cellValue === BLOCK) {
+            return false;
         }
 
         return true;

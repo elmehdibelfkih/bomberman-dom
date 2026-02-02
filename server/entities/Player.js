@@ -17,8 +17,6 @@ export class Player extends Entity {
         this.speed = INITIAL_SPEED;
         this.isMoving = false;
         this.direction = null
-        this.bombPass = 0;
-        this.blockPass = 0
         this.powerUpTimers = new Map();
     }
 
