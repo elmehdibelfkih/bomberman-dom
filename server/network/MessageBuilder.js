@@ -65,6 +65,15 @@ export const MessageBuilder = {
     };
   },
 
+  playerCorrected(playerId, x, y) {
+    return {
+      type: 'PLAYER_CORRECTION',
+      playerId,
+      x,
+      y,
+    };
+  },
+
   playerMoved(playerId, x, y, gridX, gridY, direction, sequenceNumber) {
     return {
       type: 'PLAYER_MOVED',

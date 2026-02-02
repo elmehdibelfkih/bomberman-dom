@@ -121,7 +121,7 @@ export class Player {
 
     async reconcileWithServer(serverData) {
         console.log("reconcileWithServer server data:", serverData);
-        
+
         if (!this.isLocal) return;
         // Remove acknowledged moves
         this.pendingMoves = this.pendingMoves.filter(m => m.sequenceNumber > serverData.sequenceNumber);
@@ -134,7 +134,7 @@ export class Player {
         // If error is significant, correct position
         if (error > 5) {
             console.log("hani kayan ghalat");
-            
+
             this.x = serverX;
             this.y = serverY;
         }
@@ -226,11 +226,15 @@ export class Player {
             this.Up = false
             if (this.game.map.canPlayerMoveTo(this, this.x, this.y - this.state.speed)) {
                 this.state.direction = 'walkingUp'
+                if (!this.game.map.canPlayerMoveTo(this, this.x, this.y) || !this.game.map.canPlayerMoveTo(this, this.x, this.y - this.state.speed)) {
+                    if (this.isLocal) {
+                        this.networkManager.sendPlayerCorrection(this.x - 7)
+                    }
+                }
                 if (this.isLocal) {
                     this.sequenceNumber++
                     this.networkManager.sendPlayerMove("UP", this.sequenceNumber)
                 }
-                if (!this.game.map.canPlayerMoveTo(this, this.x, this.y) || !this.game.map.canPlayerMoveTo(this, this.x, this.y - this.state.speed)) this.x -= 7
                 this.y -= this.state.speed
                 this.state.movement = true
             } else {
@@ -248,11 +252,15 @@ export class Player {
             this.Down = false
             if (this.game.map.canPlayerMoveTo(this, this.x, this.y + this.state.speed)) {
                 this.state.direction = 'walkingDown'
+                if (!this.game.map.canPlayerMoveTo(this, this.x, this.y) || !this.game.map.canPlayerMoveTo(this, this.x, this.y + this.state.speed)) {
+                    if (this.isLocal) {
+                        this.networkManager.sendPlayerCorrection(this.x - 7)
+                    }
+                }
                 if (this.isLocal) {
                     this.sequenceNumber++
                     this.networkManager.sendPlayerMove("DOWN", this.sequenceNumber)
                 }
-                if (!this.game.map.canPlayerMoveTo(this, this.x, this.y) || !this.game.map.canPlayerMoveTo(this, this.x, this.y + this.state.speed)) this.x -= 7
                 this.y += this.state.speed
                 this.state.movement = true
             } else {

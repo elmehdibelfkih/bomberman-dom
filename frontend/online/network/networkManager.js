@@ -102,6 +102,13 @@ export class NetworkManager {
         });
     }
 
+    sendPlayerCorrection(x) {
+        this.send({
+            type: 'PLAYER_CORRECTION',
+            x
+        });
+    }
+
     sendPlayerMove(direction, sequenceNumber) {
         this.send({
             type: 'MOVE',

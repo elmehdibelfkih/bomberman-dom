@@ -73,6 +73,10 @@ export class GameEngine {
     }
 
 
+    processPlayerCorrection(playerId, x) {
+        return this.authoritativeState.correctPlayerPosition(playerId, x);
+    }
+
     processPlayerMove(playerId, direction, sequenceNumber) {
         return this.authoritativeState.validatePlayerMove(playerId, direction, sequenceNumber);
     }

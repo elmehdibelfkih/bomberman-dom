@@ -228,6 +228,31 @@ export class RoomManager {
         }
     }
 
+    handlePlayerCorrection(playerId, x) {
+        const roomId = this.playerToRoom.get(playerId);
+        if (!roomId) {
+            Logger.warn(`Player ${playerId} not in any room`);
+            return;
+        }
+
+        const gameRoom = this.activeGames.get(roomId);
+        if (!gameRoom) {
+            Logger.warn(`Room ${roomId} not found for player ${playerId}`);
+            return;
+        }
+
+        if (gameRoom.status !== 'PLAYING') {
+            Logger.warn(`Move input for room ${roomId} but game status is ${gameRoom.status}`);
+            return;
+        }
+
+        try {
+            gameRoom.engine.processPlayerCorrection(playerId, x);
+        } catch (error) {
+            Logger.error(`Error processing move in room ${roomId}:`, error);
+        }
+    }
+
     handlePlayerStop(playerId, message) {
         const roomId = this.playerToRoom.get(playerId)
         if (!roomId) {

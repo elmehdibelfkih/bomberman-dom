@@ -37,6 +37,10 @@ export class MessageHandler {
                     this.handleQuitGame(connection, message)
                     break
 
+                case ClientMessages.PLAYER_CORRECTION:
+                    this.handlePlayerCorrection(connection, message);
+                    break;
+
                 default:
                     console.log('Unknown message type:', message.type);
                     this.sendError(connection, 'Unknown message type');
@@ -78,6 +82,10 @@ export class MessageHandler {
 
     handleMove(connection, message) {
         this.roomManager.handlePlayerMove(connection.playerId, message.direction, message.sequenceNumber);
+    }
+
+    handlePlayerCorrection(connection, message) {
+        this.roomManager.handlePlayerCorrection(connection.playerId, message.x);
     }
 
     handleStopMove(connection, message) {

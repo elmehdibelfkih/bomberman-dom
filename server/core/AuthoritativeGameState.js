@@ -13,6 +13,19 @@ export class AuthoritativeGameState {
         this.lastProcessedSequenceNumber = new Map();
     }
 
+    correctPlayerPosition(playerId, x) {
+        const player = this.gameEngine.entities.players.get(playerId);
+        if (!player || !player.alive) return false;
+
+        player.x = x;
+
+        this.gameRoom.broadcast(
+            MessageBuilder.playerCorrected(playerId, player.x, player.y)
+        );
+
+        return true;
+    }
+
     validatePlayerMove(playerId, direction, sequenceNumber) {
         const lastSequenceNumber = this.lastProcessedSequenceNumber.get(playerId) || 0;
         if (sequenceNumber <= lastSequenceNumber) return false;
@@ -38,6 +51,11 @@ export class AuthoritativeGameState {
         if (this.isValidPosition(intendedX, intendedY, direction, playerId)) {
             newX = intendedX;
             newY = intendedY;
+            if (direction === 'UP' || direction === 'DOWN') {
+                if (!this.isValidPosition(newX, newY, direction, playerId) || !this.isValidPosition(newX, newY - moveSpeed, direction, playerId)) {
+                    newX -= 7;
+                }
+            }
         } else {
             // Cornering logic
             if (direction === 'UP' || direction === 'DOWN') {
@@ -59,7 +77,8 @@ export class AuthoritativeGameState {
                 } else if (this.isValidPosition(player.x, verticalCheck - moveSpeed, 'UP', playerId)) {
                     newDirection = 'UP';
                     newY = player.y - moveSpeed;
-                } else {
+                }
+                else {
                     return false;
                 }
             }

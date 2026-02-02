@@ -20,6 +20,12 @@ export function setupMultiplayerSync(game, networkManager) {
     // });
 
 
+    networkManager.on('PLAYER_CORRECTION', (data) => {
+        if (data.playerId !== networkManager.getPlayerId()) {
+            game.updateRemotePlayer(data);
+        }
+    });
+
     // Handle player movements
     networkManager.on('PLAYER_MOVED', (data) => {
         // console.log('Received PLAYER_MOVED:', data);
