@@ -65,12 +65,13 @@ export const MessageBuilder = {
     };
   },
 
-  playerCorrected(playerId, x, y) {
+  playerCorrected(playerId, x, y, sequenceNumber) {
     return {
       type: 'PLAYER_CORRECTION',
       playerId,
       x,
       y,
+      sequenceNumber,
     };
   },
 

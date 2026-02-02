@@ -121,10 +121,11 @@ export class NetworkManager {
         });
     }
 
-    sendPlayerCorrection(x) {
+    sendPlayerCorrection(x, sequenceNumber) {
         this.send({
             type: 'PLAYER_CORRECTION',
-            x
+            x,
+            sequenceNumber
         });
     }
 

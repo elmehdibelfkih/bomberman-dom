@@ -228,7 +228,7 @@ export class RoomManager {
         }
     }
 
-    handlePlayerCorrection(playerId, x) {
+    handlePlayerCorrection(playerId, x, sequenceNumber) {
         const roomId = this.playerToRoom.get(playerId);
         if (!roomId) {
             Logger.warn(`Player ${playerId} not in any room`);
@@ -247,7 +247,7 @@ export class RoomManager {
         }
 
         try {
-            gameRoom.engine.processPlayerCorrection(playerId, x);
+            gameRoom.engine.processPlayerCorrection(playerId, x, sequenceNumber);
         } catch (error) {
             Logger.error(`Error processing move in room ${roomId}:`, error);
         }

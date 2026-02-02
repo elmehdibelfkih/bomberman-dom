@@ -122,7 +122,8 @@ export class Player {
         console.log("reconcileWithServer server data:", serverData);
 
         if (!this.isLocal) return;
-        // Remove acknowledged moves
+        
+        // Remove acknowledged moves and corrections
         this.pendingMoves = this.pendingMoves.filter(m => m.sequenceNumber > serverData.sequenceNumber);
 
         // Server sends pixel coordinates directly
@@ -143,7 +144,7 @@ export class Player {
     async updateRender(timestamp) {
         this.playerDying(timestamp)
         this.movePlayer(timestamp)
-        this.checkLoot()
+        // this.checkLoot()
         this.render()
     }
 
@@ -199,9 +200,7 @@ export class Player {
             // this.game.map.addBomb(this, this.x + (this.getPlayerWidth() / 2), this.y + (this.getPlayerHeight() / 2), timestamp);
             this.putBomb = false;
             this.canPutBomb = false;
-            // this.incrementBombCount();
-            // console.log(this.x + (this.getPlayerWidth() / 2), this.y + (this.getPlayerHeight() / 2));
-            
+            // this.incrementBombCount();            
             this.networkManager.sendPlaceBomb()
         }
 
@@ -227,9 +226,11 @@ export class Player {
             this.Up = false
             if (this.game.map.canPlayerMoveTo(this, this.x, this.y - this.state.speed)) {
                 this.state.direction = 'walkingUp'
-                if (!this.game.map.canPlayerMoveTo(this, this.x, this.y) || !this.game.map.canPlayerMoveTo(this, this.x, this.y - this.state.speed)) {
+                if (!this.game.map.canPlayerMoveTo(this, this.x, this.y - this.state.speed)) {
                     if (this.isLocal) {
-                        this.networkManager.sendPlayerCorrection(this.x - 7)
+                        this.x-=7
+                        this.sequenceNumber++
+                        this.networkManager.sendPlayerCorrection(this.x - 7, this.sequenceNumber)
                     }
                 }
                 if (this.isLocal) {
@@ -255,7 +256,9 @@ export class Player {
                 this.state.direction = 'walkingDown'
                 if (!this.game.map.canPlayerMoveTo(this, this.x, this.y) || !this.game.map.canPlayerMoveTo(this, this.x, this.y + this.state.speed)) {
                     if (this.isLocal) {
-                        this.networkManager.sendPlayerCorrection(this.x - 7)
+                        this.x-=7
+                        this.sequenceNumber++
+                        this.networkManager.sendPlayerCorrection(this.x - 7, this.sequenceNumber)
                     }
                 }
                 if (this.isLocal) {

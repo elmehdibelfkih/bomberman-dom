@@ -21,7 +21,11 @@ export function setupMultiplayerSync(game, networkManager) {
 
 
     networkManager.on('PLAYER_CORRECTION', (data) => {
-        if (data.playerId !== networkManager.getPlayerId()) {
+        if (data.playerId === networkManager.getPlayerId()) {
+            // Local player received correction, reconcile with server
+            game.reconcileLocalPlayer(data);
+        } else {
+            // Remote player correction
             game.updateRemotePlayer(data);
         }
     });

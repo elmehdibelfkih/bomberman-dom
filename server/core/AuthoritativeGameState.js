@@ -14,14 +14,14 @@ export class AuthoritativeGameState {
         this.activeExplosions = new Map();
     }
 
-    correctPlayerPosition(playerId, x) {
+    correctPlayerPosition(playerId, x, sequenceNumber) {
         const player = this.gameEngine.entities.players.get(playerId);
         if (!player || !player.alive) return false;
 
         player.x = x;
 
         this.gameRoom.broadcast(
-            MessageBuilder.playerCorrected(playerId, player.x, player.y)
+            MessageBuilder.playerCorrected(playerId, player.x, player.y, sequenceNumber)
         );
 
         return true;
@@ -53,9 +53,9 @@ export class AuthoritativeGameState {
             newX = intendedX;
             newY = intendedY;
             if (direction === 'UP' || direction === 'DOWN') {
-                if (!this.isValidPosition(newX, newY, direction, playerId) || !this.isValidPosition(newX, newY - moveSpeed, direction, playerId)) {
-                    newX -= 7;
-                }
+                // if (!this.isValidPosition(newX, newY, direction, playerId) || !this.isValidPosition(newX, newY - moveSpeed, direction, playerId)) {
+                //     newX -= 7;
+                // }
             }
         } else {
             // Cornering logic

@@ -88,7 +88,7 @@ export class MessageHandler {
     }
 
     handlePlayerCorrection(connection, message) {
-        this.roomManager.handlePlayerCorrection(connection.playerId, message.x);
+        this.roomManager.handlePlayerCorrection(connection.playerId, message.x, message.sequenceNumber);
     }
 
     handleStopMove(connection, message) {
