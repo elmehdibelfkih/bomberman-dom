@@ -197,8 +197,8 @@ export class Player {
 
         if (this.putBomb && this.canPutBomb && this.state.bombCount <= this.state.maxBombs) {
             // this.game.map.addBomb(this, this.x + (this.getPlayerWidth() / 2), this.y + (this.getPlayerHeight() / 2), timestamp);
-            // this.putBomb = false;
-            // this.canPutBomb = false;
+            this.putBomb = false;
+            this.canPutBomb = false;
             // this.incrementBombCount();
             // console.log(this.x + (this.getPlayerWidth() / 2), this.y + (this.getPlayerHeight() / 2));
             
