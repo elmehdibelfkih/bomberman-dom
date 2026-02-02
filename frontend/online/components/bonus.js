@@ -14,7 +14,7 @@ export class Bonus {
     }
 
     removeitfromgrid = () => this.game.map.gridArray[this.at[0]][this.at[1]] = 0
-    removeitfromDOM = () => document.getElementById(this.id).remove()
+    // removeitfromDOM = () => document.getElementById(this.id).remove()
 
     makeAction() {
         switch (this.name) {

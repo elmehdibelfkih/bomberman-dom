@@ -94,32 +94,6 @@ export class Bomb {
             return
         }
         if (timestamp - this.startTime >= this.explosionTime) {
-            if (!this.kill) {
-                const tmp = this.game.map.mapData.block_size
-                const bombX = this.xMap * tmp
-                const bombY = this.yMap * tmp
-
-                for (const player of this.game.players.values()) {
-                    // Check collision with the center of the bomb
-                    if (player.isColliding(bombX, bombY, tmp, tmp)) {
-                        player.kill();
-                    }
-                    // Check collision with the explosion arms (up, down, left, right)
-                    if (player.isColliding(bombX, bombY - tmp, tmp, tmp)) { // Up
-                        player.kill();
-                    }
-                    if (player.isColliding(bombX, bombY + tmp, tmp, tmp)) { // Down
-                        player.kill();
-                    }
-                    if (player.isColliding(bombX - tmp, bombY, tmp, tmp)) { // Left
-                        player.kill();
-                    }
-                    if (player.isColliding(bombX + tmp, bombY, tmp, tmp)) { // Right
-                        player.kill();
-                    }
-                }
-                this.kill = true; // Mark that explosion has processed player kills
-            }
             if (!this.blowingUpBlock) {
                 this.game.map.isBlock(this.xMap - 1, this.yMap) ? (this.game.map.blowingUpBlock(this.xMap - 1, this.yMap), this.blowingUpBlock = true) : 0
                 this.game.map.isBlock(this.xMap + 1, this.yMap) ? (this.game.map.blowingUpBlock(this.xMap + 1, this.yMap), this.blowingUpBlock = true) : 0
@@ -146,6 +120,7 @@ export class Bomb {
         }
         this.render()
     }
+
 
     async makeShockSound() {
         if (!this.shock) {
