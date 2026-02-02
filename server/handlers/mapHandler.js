@@ -10,7 +10,7 @@ const __dirname = dirname(__filename);
 
 export function getMultiplayerMap() {
     const randomIndex = Math.floor(Math.random() * 10) + 1;
-    const mapFileName = `level${1}.json`;
+    const mapFileName = `level${randomIndex}.json`;
     const mapPath = join(__dirname, '../maps', mapFileName);
 
     const mapData = readFileSync(mapPath, 'utf-8');
