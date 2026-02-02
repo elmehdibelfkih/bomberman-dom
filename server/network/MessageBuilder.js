@@ -193,5 +193,11 @@ export const MessageBuilder = {
       code,
       message,
     };
+  },
+
+  pong() {
+    return {
+      type: 'PONG',
+    };
   }
 };

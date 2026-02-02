@@ -1,3 +1,4 @@
+import { ServerMessages, ClientMessages } from "../../shared/message-types.js";
 export class NetworkManager {
     static #instance = null;
 
@@ -19,8 +20,26 @@ export class NetworkManager {
         this.playerId = null;
         this.nickname = null;
         this.messageHandlers = new Map();
+        this.ping = 0;
+        this.lastPingTime = 0;
 
         this.#initWorker();
+        this.on(ServerMessages.PONG, () => {
+            this.ping = Date.now() - this.lastPingTime;
+        });
+
+        setInterval(() => {
+            this.sendPing();
+        }, 2000);
+    }
+
+    sendPing() {
+        this.lastPingTime = Date.now();
+        this.send({ type: ClientMessages.PING });
+    }
+
+    getPing() {
+        return this.ping;
     }
 
     #initWorker() {

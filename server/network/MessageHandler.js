@@ -40,6 +40,9 @@ export class MessageHandler {
                 case ClientMessages.PLAYER_CORRECTION:
                     this.handlePlayerCorrection(connection, message);
                     break;
+                case ClientMessages.PING:
+                    this.handlePing(connection);
+                    break;
 
                 default:
                     console.log('Unknown message type:', message.type);
@@ -134,6 +137,10 @@ export class MessageHandler {
         if (connection.playerId) {
             this.roomManager.handleDisconnect(connection.playerId);
         }
+    }
+
+    handlePing(connection) {
+        connection.send(MessageBuilder.pong());
     }
 
     sendError(connection, message) {

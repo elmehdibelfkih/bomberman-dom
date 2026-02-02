@@ -47,6 +47,7 @@ export class Game {
         for (const player of this.players.values()) {
             await player.initPlayer();
         }
+        this.ui.initPingDisplay();
         return
     }
 
@@ -84,6 +85,7 @@ export class Game {
             Map.resetInstance();
         }
         if (this.ui) {
+            this.ui.destroyPingDisplay();
             this.ui = null;
             UI.resetInstance();
         }
