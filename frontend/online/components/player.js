@@ -56,7 +56,6 @@ export class Player {
     }
 
     async initClassData() {
-
         this.state.movement = false
         this.reRender = false
         this.renderExp = false
@@ -120,8 +119,6 @@ export class Player {
     }
 
     async reconcileWithServer(serverData) {
-        console.log("reconcileWithServer server data:", serverData);
-
         if (!this.isLocal) return;
         // Remove acknowledged moves
         this.pendingMoves = this.pendingMoves.filter(m => m.sequenceNumber > serverData.sequenceNumber);
@@ -133,6 +130,7 @@ export class Player {
 
         // If error is significant, correct position
         if (error > 5) {
+            // todo: fix that
             console.log("hani kayan ghalat");
 
             this.x = serverX;
@@ -196,12 +194,13 @@ export class Player {
         this.left()
 
         if (this.putBomb && this.canPutBomb && this.state.bombCount <= this.state.maxBombs) {
-            // if (this.state.bombCount <= this.state.maxBombs) {
-            this.game.map.addBomb(this, this.x + (this.getPlayerWidth() / 2), this.y + (this.getPlayerHeight() / 2), timestamp);
+            // this.game.map.addBomb(this, this.x + (this.getPlayerWidth() / 2), this.y + (this.getPlayerHeight() / 2), timestamp);
             this.putBomb = false;
             this.canPutBomb = false;
-            this.incrementBombCount();
-            // }
+            // this.incrementBombCount();
+            // console.log(this.x + (this.getPlayerWidth() / 2), this.y + (this.getPlayerHeight() / 2));
+
+            this.networkManager.sendPlaceBomb()
         }
 
         if (!this.state.movement && this.state.direction.includes("walking")) {
@@ -350,7 +349,7 @@ export class Player {
         for (const loot of this.game.map.loot) {
             const blockSize = this.game.map.mapData.block_size;
             if (this.isColliding(loot.x, loot.y, blockSize, blockSize)) {
-                loot.removeitfromDOM()
+                // loot.removeitfromDOM()
                 loot.removeitfromgrid()
                 loot.makeAction()
                 this.game.map.loot = this.game.map.loot.filter(b => b !== loot);

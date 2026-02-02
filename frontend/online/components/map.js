@@ -188,8 +188,9 @@ export class Map {
 
     isFreeSpaceInGrid = (x, y) => this.gridArray[y][x] !== consts.BLOCK && this.gridArray[y][x] !== consts.WALL;
 
-    addBomb(player, x, y, timestamp) {
-        this.bombs.push(new Bomb(this.game, player, x, y, timestamp));
+    addBomb(playerId, xMap, yMap) {
+        let player = this.game.players.get(playerId)
+        this.bombs.push(new Bomb(this.game, player, xMap, yMap));
     }
 
     addSpeedBonus(xMap, yMap, node) {

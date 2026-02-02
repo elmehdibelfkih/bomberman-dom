@@ -25,7 +25,6 @@ export class Game {
         this.networkManager = NetworkManager.getInstance();
 
         this.state = State.getInstance(this);
-        // this.scoreboard = Scoreboard.getInstance(this)
         this.map = gameMap.getInstance(this, gameData.mapData)
 
         this.players = new Map();
@@ -112,9 +111,5 @@ export class Game {
         }
         this.map.bombs = this.map.bombs?.filter(b => b.updateRender(timestamp) && !b.done);
         this.state.update()
-        this.checkState()
-    }
-
-    async checkState() {
     }
 }

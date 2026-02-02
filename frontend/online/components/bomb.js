@@ -2,14 +2,14 @@ import * as consts from '../utils/consts.js';
 import { dom } from '../../framework/framework/index.js';
 
 export class Bomb {
-    constructor(game, player, x, y, timestamp) {
+    constructor(game, player, xMap, yMap) {
         this.game = game
         this.player = player
         this.id = player.state.id + '_bomb_' + Date.now();
         this.done = false
-        this.xMap = Math.floor(x / this.game.map.mapData.block_size)
-        this.yMap = Math.floor(y / this.game.map.mapData.block_size)
-        this.startTime = timestamp
+        this.xMap = xMap
+        this.yMap = yMap
+        this.startTime = performance.now()
         this.flashing = true
         this.image = this.game.map.mapData.bomb
         this.explosionTime = this.game.map.mapData.explosion_time
@@ -17,8 +17,6 @@ export class Bomb {
         this.frameIndex = 0
         this.lastTime = performance.now()
         this.freeBlocks = []
-        this.x = x
-        this.y = y
         this.active = true
         this.initBomb()
     }

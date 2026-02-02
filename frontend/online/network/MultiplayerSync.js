@@ -49,9 +49,11 @@ export function setupMultiplayerSync(game, networkManager) {
 
 
     // // Handle bomb placement
-    // networkManager.on('BOMB_PLACED', (data) => {
-    //     game.bombManager.createBomb(data);
-    // });
+    networkManager.on('BOMB_PLACED', (data) => {
+        game.map.addBomb(data.playerId, data.gridX, data.gridY)
+        
+        // game.bombManager.createBomb(data);
+    });
 
     // // Handle bomb explosions
     // networkManager.on('BOMB_EXPLODED', (data) => {
