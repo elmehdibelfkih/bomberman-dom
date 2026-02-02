@@ -28,7 +28,7 @@ export function setupMultiplayerSync(game, networkManager) {
 
     // Handle player movements
     networkManager.on('PLAYER_MOVED', (data) => {
-        // console.log('Received PLAYER_MOVED:', data);
+        console.log('Received PLAYER_MOVED:', data);
         if (data.playerId === networkManager.getPlayerId()) {
             game.reconcileLocalPlayer(data);
         } else {

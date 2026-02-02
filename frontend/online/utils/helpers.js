@@ -144,51 +144,31 @@ export function getLobbyContainer() {
 }
 
 export function getControlsContainer() {
-    const controlsContainer = dom({
-        tag: 'div',
-        attributes: { class: 'Controls' },
+  const controlsContainer = dom({
+    tag: 'div',
+    attributes: { class: 'Controls' },
+    children: [
+      {
+        tag: 'button',
+        attributes: { id: 'sound' },
         children: [
-            {
-                tag: 'button',
-                attributes: { id: 'star_pause' },
-                children: [
-                    {
-                        tag: 'img',
-                        attributes: { id: 'play-icon', src: './icon/play.svg', alt: 'star', width: '16', height: '16' }
-                    }
-                ]
-            },
-            {
-                tag: 'button',
-                attributes: { id: 'ref' },
-                children: [
-                    {
-                        tag: 'img',
-                        attributes: { id: 'rotate-icon', src: './icon/rotate-ccw.svg', alt: 'star', width: '16', height: '16' }
-                    }
-                ]
-            },
-            {
-                tag: 'button',
-                attributes: { id: 'sound' },
-                children: [
-                    {
-                        tag: 'img',
-                        attributes: { id: 'volume-icon', src: './icon/volume-2.svg', alt: 'voice', width: '16', height: '16' }
-                    }
-                ]
-            }
+          {
+            tag: 'img',
+            attributes: { id: 'volume-icon', src: './icon/volume-2.svg', alt: 'voice', width: '16', height: '16' }
+          }
         ]
-    });
-    return controlsContainer;
+      }
+    ]
+  });
+  return controlsContainer;
 }
 
 export function showModal(title, message, onConfirm, onCancel) {
-    const modalContainer = dom({
-        tag: 'div',
-        attributes: {
-            class: 'modal-container',
-            style: `
+  const modalContainer = dom({
+    tag: 'div',
+    attributes: {
+      class: 'modal-container',
+      style: `
                 position: fixed;
                 top: 0;
                 left: 0;
@@ -200,13 +180,13 @@ export function showModal(title, message, onConfirm, onCancel) {
                 align-items: center;
                 z-index: 1000;
             `
-        },
-        children: [
-            {
-                tag: 'div',
-                attributes: {
-                    class: 'modal-content',
-                    style: `
+    },
+    children: [
+      {
+        tag: 'div',
+        attributes: {
+          class: 'modal-content',
+          style: `
                         background-color: #333;
                         color: white;
                         padding: 2rem;
@@ -216,66 +196,66 @@ export function showModal(title, message, onConfirm, onCancel) {
                         border: 1px solid #444;
                         box-shadow: 0 5px 15px rgba(0,0,0,0.5);
                     `
-                },
-                children: [
-                    {
-                        tag: 'h2',
-                        attributes: {
-                            style: `
+        },
+        children: [
+          {
+            tag: 'h2',
+            attributes: {
+              style: `
                                 margin-top: 0;
                                 color: #ff4757;
                             `
-                        },
-                        children: [title]
-                    },
-                    {
-                        tag: 'p',
-                        attributes: {
-                             style: `
+            },
+            children: [title]
+          },
+          {
+            tag: 'p',
+            attributes: {
+              style: `
                                 margin-bottom: 2rem;
                             `
-                        },
-                        children: [message]
-                    },
-                    {
-                        tag: 'div',
-                        attributes: {
-                            class: 'modal-buttons',
-                            style: `
+            },
+            children: [message]
+          },
+          {
+            tag: 'div',
+            attributes: {
+              class: 'modal-buttons',
+              style: `
                                 display: flex;
                                 justify-content: center;
                                 gap: 1rem;
                             `
-                        },
-                        children: [
-                            {
-                                tag: 'button',
-                                attributes: { class: 'menu-btn' },
-                                children: ['Yes'],
-                                listeners: {
-                                    click: () => {
-                                        if (onConfirm) onConfirm();
-                                        document.body.removeChild(modalContainer);
-                                    }
-                                }
-                            },
-                            {
-                                tag: 'button',
-                                attributes: { class: 'menu-btn' },
-                                children: ['No'],
-                                listeners: {
-                                    click: () => {
-                                        if (onCancel) onCancel();
-                                        document.body.removeChild(modalContainer);
-                                    }
-                                }
-                            }
-                        ]
-                    }
-                ]
-            }
+            },
+            children: [
+              {
+                tag: 'button',
+                attributes: { class: 'menu-btn' },
+                children: ['Yes'],
+                listeners: {
+                  click: () => {
+                    if (onConfirm) onConfirm();
+                    document.body.removeChild(modalContainer);
+                  }
+                }
+              },
+              {
+                tag: 'button',
+                attributes: { class: 'menu-btn' },
+                children: ['No'],
+                listeners: {
+                  click: () => {
+                    if (onCancel) onCancel();
+                    document.body.removeChild(modalContainer);
+                  }
+                }
+              }
+            ]
+          }
         ]
-    });
+      }
+    ]
+  });
 
-    document.body.appendChild(modalContainer);
+  document.body.appendChild(modalContainer);
 }
