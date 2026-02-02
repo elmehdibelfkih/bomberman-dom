@@ -22,7 +22,7 @@ export function setupMultiplayerSync(game, networkManager) {
 
     // Handle player movements
     networkManager.on('PLAYER_MOVED', (data) => {
-        console.log('Received PLAYER_MOVED:', data);
+        // console.log('Received PLAYER_MOVED:', data);
         if (data.playerId === networkManager.getPlayerId()) {
             game.reconcileLocalPlayer(data);
         } else {
@@ -30,16 +30,16 @@ export function setupMultiplayerSync(game, networkManager) {
         }
     });
 
-    networkManager.on('PLAYER_STOPPED', (data) => {
-        console.log('Received PLAYER_STOPED:', data);
-        const player = game.players.get(data.playerId);
-        if (player) {
-            player.state.movement = false;
-            if (player.state.direction && player.state.direction.includes("walking")) {
-                player.state.direction = player.state.direction.replace("walking", '');
-            }
-        }
-    });
+    // networkManager.on('PLAYER_STOPPED', (data) => {
+    //     console.log('Received PLAYER_STOPED:', data);
+    //     const player = game.players.get(data.playerId);
+    //     if (player) {
+    //         player.state.movement = false;
+    //         if (player.state.direction && player.state.direction.includes("walking")) {
+    //             player.state.direction = player.state.direction.replace("walking", '');
+    //         }
+    //     }
+    // });
 
 
     // // Handle bomb placement

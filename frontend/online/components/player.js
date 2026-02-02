@@ -120,8 +120,9 @@ export class Player {
     }
 
     async reconcileWithServer(serverData) {
+        console.log("reconcileWithServer server data:", serverData);
+        
         if (!this.isLocal) return;
-
         // Remove acknowledged moves
         this.pendingMoves = this.pendingMoves.filter(m => m.sequenceNumber > serverData.sequenceNumber);
 
@@ -132,16 +133,11 @@ export class Player {
 
         // If error is significant, correct position
         if (error > 5) {
+            console.log("hani kayan ghalat");
+            
             this.x = serverX;
             this.y = serverY;
         }
-
-        // Update stats from server
-        this.state.speed = serverData.speed || this.state.speed;
-        this.state.bombCount = serverData.bombCount || this.state.bombCount;
-        this.state.bombRange = serverData.bombRange || this.state.bombRange;
-        this.state.isDead = serverData.alive !== undefined ? !serverData.alive : this.state.isDead;
-        this.state.dying = this.state.isDead;
     }
 
     async updateRender(timestamp) {
