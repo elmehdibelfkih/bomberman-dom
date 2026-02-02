@@ -11,6 +11,7 @@ export class AuthoritativeGameState {
         this.powerUpSpawnQueue = [];
         this.nextPowerUpId = 1;
         this.lastProcessedSequenceNumber = new Map();
+        this.activeExplosions = new Map();
     }
 
     correctPlayerPosition(playerId, x) {
@@ -83,7 +84,7 @@ export class AuthoritativeGameState {
                 }
             }
         }
-        
+
         player.x = newX;
         player.y = newY;
         player.gridX = Math.floor(newX / GAME_CONFIG.BLOCK_SIZE);
@@ -98,7 +99,33 @@ export class AuthoritativeGameState {
         );
 
         this.checkPowerUpCollection(playerId, player.gridX, player.gridY);
+        this.checkExplosionDamage(playerId, player.gridX, player.gridY);
         return true;
+    }
+
+    checkExplosionDamage(playerId, playerX, playerY) {
+        const player = this.gameEngine.entities.players.get(playerId)
+
+        for ([explosionID, explosion] of this.activeExplosions.entries()) {
+            // check if player is in the range of bomb explosion
+            const inRange = explosion.cells.some(cell => {
+                cell.gridX === playerX && cell.gridY === playerY;
+            })
+
+            if (inRange && !explosion.damagedPlayers.has(playerId)) {
+                explosion.damagedPlayers.add(playerId)
+                player.lives--
+
+                if (player.lives == 0) {
+                    player.alive = false
+                    this.gameRoom.broadcast(MessageBuilder.playerDied(player.playerId))
+                } else {
+                    this.gameRoom.broadcast(MessageBuilder.playerDamaged(player.playerId, player.lives))
+                }
+
+                this.checkWinCondition();
+            }
+        }
     }
 
 
@@ -253,9 +280,20 @@ export class AuthoritativeGameState {
 
         this.gameEngine.entities.bombs.delete(bombId);
 
+        const explosionId = `explosion_${bombId}`
+        this.activeExplosions.set(explosionId, {
+            cells: explosions,
+            startTime: Date.now(),
+            damagedPlayers: new Set()
+        })
+
         this.gameRoom.broadcast(
             MessageBuilder.bombExploded(bombId, explosions, destroyedBlocks, damagedPlayers, spawnedPowerUp)
         );
+
+        setTimeout(() => {
+            this.activeExplosions.delete(explosionId)
+        }, GAME_CONFIG.EXPLOSION_DURATION);
 
         this.checkWinCondition();
     }
@@ -415,7 +453,7 @@ export class AuthoritativeGameState {
     isFreeSpaceInGrid(gridX, gridY) {
         const gridHeight = this.gameEngine.mapData.initial_grid.length;
         const gridWidth = this.gameEngine.mapData.initial_grid[0].length;
-    
+
         if (gridX < 0 || gridX >= gridWidth || gridY < 0 || gridY >= gridHeight) {
             return false;
         }
