@@ -13,7 +13,8 @@ export class Bomb {
         this.flashing = true
         this.image = this.game.map.mapData.bomb
         this.explosionTime = this.game.map.mapData.explosion_time
-        this.explosionImg = this.game.map.mapData.electric_shock_img
+        this.explosionImg = "./assets/images/shock/Explosion_0.png"
+        // this.explosionImg = this.game.map.mapData.electric_shock_img "/game/assets/images/shock/Explosion_0.png"
         this.frameIndex = 0
         this.lastTime = performance.now()
         this.freeBlocks = []
