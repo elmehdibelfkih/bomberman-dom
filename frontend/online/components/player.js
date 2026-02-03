@@ -141,7 +141,7 @@ export class Player {
     async updateRender(timestamp) {
         this.playerDying(timestamp)
         this.movePlayer(timestamp)
-        this.checkLoot()
+        // this.checkLoot()
         this.render()
     }
 
@@ -180,8 +180,6 @@ export class Player {
                 this.game.map.grid.removeChild(this.exp)
                 this.lastTimeDying = null
                 this.reRender = true
-                this.game.state.setLives(-1)
-                this.game.scoreboard.updateLives()
             }
         }
     }

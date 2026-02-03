@@ -12,6 +12,7 @@ export class AuthoritativeGameState {
         this.nextPowerUpId = 1;
         this.lastProcessedSequenceNumber = new Map();
         this.activeExplosions = new Map();
+        this.bombCheckLoops = new Map(); // Track damage check loops for each bomb
     }
 
     correctPlayerPosition(playerId, x) {
@@ -99,23 +100,24 @@ export class AuthoritativeGameState {
     }
 
     checkExplosionDamage(playerId, playerX, playerY) {
-        const player = this.gameEngine.entities.players.get(playerId)
+        // Damage checking is now handled in the continuous loop during bomb explosion (startBombDamageCheckLoop)
+        // This method is kept for backwards compatibility but the main damage logic is in the explosion loop
+        const player = this.gameEngine.entities.players.get(playerId);
 
-        for ([explosionId, explosion] of this.activeExplosions.entries()) {
-            // check if player is in the range of bomb explosion
-            const inRange = explosion.cells.some(cell => {
-                cell.gridX === playerX && cell.gridY === playerY;
-            })
+        for (const [explosionId, explosion] of this.activeExplosions.entries()) {
+            const inRange = explosion.cells.some(cell => 
+                cell.gridX === playerX && cell.gridY === playerY
+            );
 
             if (inRange && !explosion.damagedPlayers.has(playerId)) {
-                explosion.damagedPlayers.add(playerId)
-                player.lives--
+                explosion.damagedPlayers.add(playerId);
+                player.lives--;
 
-                if (player.lives == 0) {
-                    player.alive = false
-                    this.gameRoom.broadcast(MessageBuilder.playerDied(player.playerId))
+                if (player.lives <= 0) {
+                    player.alive = false;
+                    this.gameRoom.broadcast(MessageBuilder.playerDied(player.playerId));
                 } else {
-                    this.gameRoom.broadcast(MessageBuilder.playerDamaged(player.playerId, player.lives))
+                    this.gameRoom.broadcast(MessageBuilder.playerDamaged(player.playerId, player.lives));
                 }
 
                 this.checkWinCondition();
@@ -146,13 +148,15 @@ export class AuthoritativeGameState {
 
         this.gameEngine.entities.bombs.set(bombId, bomb);
 
+        // Broadcast BOMB_PLACED immediately so frontend starts flashing animation
         this.gameRoom.broadcast(
             MessageBuilder.bombPlaced(bombId, playerId, bomb.gridX, bomb.gridY, player.bombRange)
         );
 
+        // Wait 1 second (flashing time), then start the damage check loop
         setTimeout(() => {
-            this.processBombExplosion(bombId);
-        }, GAME_CONFIG.BOMB_TIMER);
+            this.startBombDamageCheckLoop(bombId);
+        }, 1000);
 
         return true;
     }
@@ -286,7 +290,7 @@ export class AuthoritativeGameState {
         const damagedPlayers = [];
         let spawnedPowerUp = null;
 
-        // Process explosions
+        // Process block destruction
         explosions.forEach(explosion => {
             if (this.gameEngine.mapData.initial_grid[explosion.gridY] &&
                 this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] === BLOCK) {
@@ -298,43 +302,140 @@ export class AuthoritativeGameState {
                     spawnedPowerUp = this.spawnPowerUp(explosion.gridX, explosion.gridY);
                 }
             }
+        });
 
+        this.gameEngine.entities.bombs.delete(bombId);
+
+        const explosionId = `explosion_${bombId}`;
+        const explosionData = {
+            bombId,
+            cells: explosions,
+            startTime: Date.now(),
+            damagedPlayers: new Set()
+        };
+
+        this.activeExplosions.set(explosionId, explosionData);
+
+        // Stop the damage check loop if it was still running
+        if (this.bombCheckLoops.has(bombId)) {
+            clearInterval(this.bombCheckLoops.get(bombId));
+            this.bombCheckLoops.delete(bombId);
+        }
+
+        this.gameRoom.broadcast(
+            MessageBuilder.bombExploded(bombId, explosions, destroyedBlocks, damagedPlayers, spawnedPowerUp)
+        );
+
+        // Clean up explosion data after EXPLOSION_DURATION
+        setTimeout(() => {
+            this.activeExplosions.delete(explosionId);
+        }, GAME_CONFIG.EXPLOSION_DURATION);
+
+        this.checkWinCondition();
+    }
+
+    /**
+     * Start a continuous loop to check for player damage from bomb explosions
+     * This loop runs during the explosion phase and immediately damages players in danger zones
+     * Loop duration: explosion_time from map configuration
+     */
+    startBombDamageCheckLoop(bombId) {
+        const bomb = this.gameEngine.entities.bombs.get(bombId);
+        if (!bomb) return;
+
+        const explosions = this.calculateExplosions(bomb);
+        const explosionId = `explosion_${bombId}`;
+
+        // Get explosion_time from map data (e.g., 2000ms)
+        const explosionTime = this.gameEngine.mapData.explosion_time || GAME_CONFIG.EXPLOSION_DURATION;
+
+        // Calculate destruction and power-ups before creating the explosion data
+        const destroyedBlocks = [];
+        let spawnedPowerUp = null;
+
+        explosions.forEach(explosion => {
+            if (this.gameEngine.mapData.initial_grid[explosion.gridY] &&
+                this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] === BLOCK) {
+
+                this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] = FLOOR;
+                destroyedBlocks.push({ gridX: explosion.gridX, gridY: explosion.gridY });
+
+                if (Math.random() < GAME_CONFIG.POWERUP_SPAWN_CHANCE) {
+                    spawnedPowerUp = this.spawnPowerUp(explosion.gridX, explosion.gridY);
+                }
+            }
+        });
+
+        this.gameEngine.entities.bombs.delete(bombId);
+
+        // Create explosion data to track damage
+        const explosionData = {
+            bombId,
+            cells: explosions,
+            startTime: Date.now(),
+            damagedPlayers: new Set()
+        };
+
+        this.activeExplosions.set(explosionId, explosionData);
+
+        // Broadcast bomb explosion with visual effects and destroyed blocks
+        this.gameRoom.broadcast(
+            MessageBuilder.bombExploded(bombId, explosions, destroyedBlocks, [], spawnedPowerUp)
+        );
+
+        // Helper function to check and damage players in danger zones
+        const checkAndDamagePlayersInZone = () => {
             this.gameEngine.entities.players.forEach(player => {
-                if (player.gridX === explosion.gridX && player.gridY === explosion.gridY && player.alive) {
-                    player.lives--;
-                    damagedPlayers.push({
-                        playerId: player.playerId,
-                        livesRemaining: player.lives
-                    });
+                if (!player.alive) return;
 
+                const inDangerZone = explosionData.cells.some(cell => 
+                    player.gridX === cell.gridX && player.gridY === cell.gridY
+                );
+
+                if (inDangerZone && !explosionData.damagedPlayers.has(player.playerId)) {
+                    // Player is in danger zone and hasn't been damaged yet
+                    explosionData.damagedPlayers.add(player.playerId);
+                    player.lives--;
+
+                    // Broadcast damage immediately
                     if (player.lives <= 0) {
                         player.alive = false;
                         this.gameRoom.broadcast(MessageBuilder.playerDied(player.playerId));
                     } else {
                         this.gameRoom.broadcast(MessageBuilder.playerDamaged(player.playerId, player.lives));
                     }
+
+                    this.checkWinCondition();
                 }
             });
-        });
+        };
 
-        this.gameEngine.entities.bombs.delete(bombId);
+        // Perform initial damage check immediately when explosion starts
+        checkAndDamagePlayersInZone();
 
-        const explosionId = `explosion_${bombId}`
-        this.activeExplosions.set(explosionId, {
-            cells: explosions,
-            startTime: Date.now(),
-            damagedPlayers: new Set()
-        })
+        // Start continuous damage check loop with requestAnimationFrame-like behavior
+        // Check every 16ms (approximately 60 FPS) for players in danger zones
+        const damageCheckInterval = setInterval(() => {
+            if (!this.activeExplosions.has(explosionId)) {
+                clearInterval(damageCheckInterval);
+                this.bombCheckLoops.delete(bombId);
+                return;
+            }
 
-        this.gameRoom.broadcast(
-            MessageBuilder.bombExploded(bombId, explosions, destroyedBlocks, damagedPlayers, spawnedPowerUp)
-        );
+            // Check all players for collision with explosion cells
+            checkAndDamagePlayersInZone();
+        }, 16); // ~60 FPS update rate
 
+        this.bombCheckLoops.set(bombId, damageCheckInterval);
+
+        // Clean up explosion data and stop the loop after explosionTime duration
         setTimeout(() => {
-            this.activeExplosions.delete(explosionId)
-        }, GAME_CONFIG.EXPLOSION_DURATION);
-
-        this.checkWinCondition();
+            this.activeExplosions.delete(explosionId);
+            if (this.bombCheckLoops.has(bombId)) {
+                clearInterval(this.bombCheckLoops.get(bombId));
+                this.bombCheckLoops.delete(bombId);
+            }
+        }, explosionTime);
     }
 
     spawnPowerUp(gridX, gridY) {
