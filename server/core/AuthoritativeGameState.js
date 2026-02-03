@@ -106,7 +106,7 @@ export class AuthoritativeGameState {
     checkExplosionDamage(playerId, playerX, playerY) {
         const player = this.gameEngine.entities.players.get(playerId)
 
-        for ([explosionId, explosion] of this.activeExplosions.entries()) {
+        for (const [explosionId, explosion] of this.activeExplosions.entries()) {
             // check if player is in the range of bomb explosion
             const inRange = explosion.cells.some(cell => {
                 cell.gridX === playerX && cell.gridY === playerY;
@@ -337,7 +337,7 @@ export class AuthoritativeGameState {
 
         setTimeout(() => {
             this.activeExplosions.delete(explosionId)
-        }, GAME_CONFIG.EXPLOSION_DURATION);
+        }, this.gameEngine.mapData.explosion_time + GAME_CONFIG.EXPLOSION_DURATION);
 
         this.checkWinCondition();
     }

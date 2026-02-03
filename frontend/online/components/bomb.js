@@ -1,6 +1,5 @@
 import * as consts from '../utils/consts.js';
 import { dom } from '../../framework/framework/index.js';
-
 export class Bomb {
     constructor(game, player, xMap, yMap) {
         this.game = game
@@ -88,6 +87,7 @@ export class Bomb {
             }
             this.game.map.gridArray[this.yMap][this.xMap] = 0
             this.active = false
+            this.player.decrementBombCount();
             this.render()
             return
         }
@@ -154,7 +154,6 @@ export class Bomb {
         this.bomb.style.opacity = parseFloat(this.bomb.style.opacity) - 0.1;
         if (this.bomb.style.opacity <= 0) {
             this.game.map.grid.removeChild(this.bomb);
-            this.player.decrementBombCount();
             this.done = true;
         }
     }
