@@ -27,44 +27,42 @@ export function getCoordinates(map, target) {
 export function getGameContainer() {
   const gameContainer = dom({
     tag: 'div',
-    attributes: { id: 'multiplayer-game-container' },
+    attributes: { id: 'grid-container' },
     children: [
       {
         tag: 'div',
-        attributes: { id: 'players-info', class: 'players-info' },
-        children: [
-          {
-            tag: 'h3',
-            attributes: {},
-            children: ['Players']
-          }
-        ]
-      },
-      {
-        tag: 'div',
-        attributes: { id: 'game-chat', class: 'game-chat' },
-        children: [
-          {
-            tag: 'div',
-            attributes: { id: 'chat-messages-game', class: 'chat-messages-small' },
-            children: []
-          },
-          {
-            tag: 'input',
-            attributes: {
-              type: 'text',
-              id: 'chat-input-game',
-              placeholder: 'Press T to chat...',
-              maxlength: '100',
-              style: 'display: none;'
-            },
-            children: []
-          }
-        ]
-      },
+        attributes: { id: 'grid' },
+        children: []
+      }
     ]
   });
-  return gameContainer
+  return gameContainer;
+}
+
+export function getGameChatContainer() {
+  const chatContainer = dom({
+    tag: 'div',
+    attributes: { id: 'game-chat', class: 'game-chat' },
+    children: [
+      {
+        tag: 'div',
+        attributes: { id: 'chat-messages-game', class: 'chat-messages-small' },
+        children: []
+      },
+      {
+        tag: 'input',
+        attributes: {
+          type: 'text',
+          id: 'chat-input-game',
+          placeholder: 'Press T to chat...',
+          maxlength: '100',
+          style: 'display: none;'
+        },
+        children: []
+      }
+    ]
+  });
+  return chatContainer;
 }
 
 export function getLobbyContainer() {

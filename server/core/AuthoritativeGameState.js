@@ -137,8 +137,8 @@ export class AuthoritativeGameState {
         const bomb = {
             bombId,
             playerId,
-            gridX: player.gridX,
-            gridY: player.gridY,
+            gridX: Math.floor((player.x + 14) / 68),
+            gridY: Math.floor((player.y + 42) / 68),
             range: player.bombRange,
             timer: GAME_CONFIG.BOMB_TIMER,
             createdAt: Date.now()
@@ -147,7 +147,7 @@ export class AuthoritativeGameState {
         this.gameEngine.entities.bombs.set(bombId, bomb);
 
         this.gameRoom.broadcast(
-            MessageBuilder.bombPlaced(bombId, playerId, player.gridX, player.gridY, player.bombRange)
+            MessageBuilder.bombPlaced(bombId, playerId, bomb.gridX, bomb.gridY, player.bombRange)
         );
 
         setTimeout(() => {

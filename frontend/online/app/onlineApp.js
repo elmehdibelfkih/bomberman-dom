@@ -1,8 +1,9 @@
 import { Router, dom, usePathname } from "../../framework/framework/index.js";
 import { Game  } from "../engine/core.js";
+import { UI } from "../components/ui.js";
 import { createEffect } from "../../framework/framework/state/signal.js";
 import { NetworkManager } from '../network/networkManager.js';
-import { getGameContainer, getLobbyContainer, getControlsContainer, showModal } from "../utils/helpers.js";
+import { getGameContainer, getLobbyContainer, getControlsContainer, showModal, getGameChatContainer } from "../utils/helpers.js";
 // import { NetworkStateSynchronizer } from '../game/network/NetworkStateSynchronizer.js';
 
 export class OnlineApp {
@@ -12,6 +13,7 @@ export class OnlineApp {
         this.pathname = usePathname();
         this.currentPage = null;
         this.game = null;
+        this.ui = null;
         this.eventListeners = [];
         this.networkManager = NetworkManager.getInstance();
         this.lobbyContainer = null; // Add this
@@ -309,16 +311,41 @@ export class OnlineApp {
 
     async startMultiplayerGame() {
         document.body.innerHTML = '';
-        document.body.appendChild(getGameContainer());
-        document.body.appendChild(getControlsContainer());
+
+        const headerContainer = dom({
+            tag: 'div',
+            attributes: { id: 'header-container' },
+            children: [
+                {
+                    tag: 'div',
+                    attributes: { id: 'players-info', class: 'players-info' },
+                    children: [
+                        {
+                            tag: 'h3',
+                            attributes: {},
+                            children: ['Players']
+                        }
+                    ]
+                }
+            ]
+        });
+        headerContainer.appendChild(getControlsContainer());
+
+        const gameContainer = getGameContainer();
+        const chatContainer = getGameChatContainer();
+
+        document.body.appendChild(headerContainer);
+        document.body.appendChild(gameContainer);
+        document.body.appendChild(chatContainer);
+
 
         this.game = Game.getInstance(this.gameData);
         await this.game.intiElements();
         
-        // while (!this.game.player.playerCoordinate) {
-            await new Promise(r => setTimeout(r, 50));
-        // }
-        this.game.run();
+        // Initialize UI with players data
+        this.ui = UI.getInstance(this.game);
+        this.ui.renderPlayers(this.gameData.players);
+        this.ui.initPingDisplay();
 
         // the multi player game engine
         // handle the game loop
@@ -329,7 +356,42 @@ export class OnlineApp {
 
         // // UI place holders
 
+        await new Promise(r => setTimeout(r, 50));
+        this.game.run();
+
         this.setupGameChat();
+        this.setupPlayerUpdates();
+    }
+
+    setupPlayerUpdates() {
+        // Listen for player state updates
+        const playerUpdatedHandler = (data) => {
+            if (this.ui) {
+                // data should contain playerId and updated player stats
+                this.ui.updatePlayerState(data.playerId, {
+                    lives: data.lives,
+                    bombCount: data.bombCount,
+                    bombRange: data.bombRange,
+                    speed: data.speed,
+                    alive: data.alive
+                });
+            }
+        };
+
+        const playerStateHandler = (data) => {
+            // Handle full player state update (all players)
+            if (this.ui && data.players) {
+                this.ui.updateAllPlayers(data.players);
+            }
+        };
+
+        this.networkManager.on('PLAYER_UPDATED', playerUpdatedHandler);
+        this.networkManager.on('PLAYER_STATE', playerStateHandler);
+
+        this.eventListeners.push(
+            { network: 'PLAYER_UPDATED', handler: playerUpdatedHandler },
+            { network: 'PLAYER_STATE', handler: playerStateHandler }
+        );
     }
 
     setupGameChat() {
@@ -424,6 +486,13 @@ export class OnlineApp {
         // Stop game loop
         if (this.game) {
             this.game.stop();
+        }
+
+        // Clean up UI
+        if (this.ui) {
+            this.ui.destroyPingDisplay();
+            UI.resetInstance();
+            this.ui = null;
         }
 
         // Disconnect from network

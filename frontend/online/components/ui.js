@@ -1,4 +1,5 @@
 import { NetworkManager } from '../network/networkManager.js';
+import { dom } from '../../framework/framework/index.js';
 
 export class UI {
     constructor(game) {
@@ -6,15 +7,209 @@ export class UI {
         this.game = game;
         this.networkManager = NetworkManager.getInstance();
         this.pingInterval = null;
+        this.playerElements = new Map();
+    }
+
+    /**
+     * Render players information on the UI using the framework
+     * @param {Array} players - Array of player objects containing player data
+     */
+    renderPlayers(players) {
+        const playersInfo = document.getElementById('players-info');
+        if (!playersInfo) return;
+
+        // Clear existing player cards (keep the h3 title and ping display)
+        const existingCards = playersInfo.querySelectorAll('.player-card');
+        existingCards.forEach(card => card.remove());
+
+        // Create and append player cards
+        players.forEach(player => {
+            const playerCard = this.createPlayerCard(player);
+            playersInfo.appendChild(playerCard);
+            this.playerElements.set(player.playerId, playerCard);
+        });
+    }
+
+    /**
+     * Create a player card element using the framework
+     * @param {Object} player - Player object with stats
+     * @returns {HTMLElement} Player card element
+     */
+    createPlayerCard(player) {
+        const playerCard = dom({
+            tag: 'div',
+            attributes: {
+                class: `player-card ${!player.alive ? 'dead' : ''}`,
+                'data-player-id': player.playerId,
+                'data-alive': player.alive
+            },
+            children: [
+                {
+                    tag: 'div',
+                    attributes: { class: 'player-nickname' },
+                    children: [player.nickname]
+                },
+                {
+                    tag: 'div',
+                    attributes: { class: 'player-stats' },
+                    children: [
+                        {
+                            tag: 'div',
+                            attributes: { class: 'player-stat lives-stat' },
+                            children: [
+                                {
+                                    tag: 'span',
+                                    attributes: { class: 'stat-icon' },
+                                    children: ['❤️']
+                                },
+                                {
+                                    tag: 'span',
+                                    attributes: { class: 'stat-value lives-value' },
+                                    children: [player.lives.toString()]
+                                }
+                            ]
+                        },
+                        {
+                            tag: 'div',
+                            attributes: { class: 'player-stat bomb-stat' },
+                            children: [
+                                {
+                                    tag: 'span',
+                                    attributes: { class: 'stat-icon' },
+                                    children: ['💣']
+                                },
+                                {
+                                    tag: 'span',
+                                    attributes: { class: 'stat-value bomb-value' },
+                                    children: [player.bombCount.toString()]
+                                }
+                            ]
+                        },
+                        {
+                            tag: 'div',
+                            attributes: { class: 'player-stat range-stat' },
+                            children: [
+                                {
+                                    tag: 'span',
+                                    attributes: { class: 'stat-icon' },
+                                    children: ['📻']
+                                },
+                                {
+                                    tag: 'span',
+                                    attributes: { class: 'stat-value range-value' },
+                                    children: [player.bombRange.toString()]
+                                }
+                            ]
+                        },
+                        {
+                            tag: 'div',
+                            attributes: { class: 'player-stat speed-stat' },
+                            children: [
+                                {
+                                    tag: 'span',
+                                    attributes: { class: 'stat-icon' },
+                                    children: ['⚡']
+                                },
+                                {
+                                    tag: 'span',
+                                    attributes: { class: 'stat-value speed-value' },
+                                    children: [player.speed.toString()]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        });
+
+        return playerCard;
+    }
+
+    /**
+     * Update the state of a specific player
+     * @param {string} playerId - ID of the player to update
+     * @param {Object} updates - Object containing the stats to update
+     */
+    updatePlayerState(playerId, updates) {
+        const playerCard = this.playerElements.get(playerId);
+        if (!playerCard) return;
+
+        // Update alive status
+        if (updates.hasOwnProperty('alive')) {
+            playerCard.dataset.alive = updates.alive;
+            if (!updates.alive) {
+                playerCard.classList.add('dead');
+            } else {
+                playerCard.classList.remove('dead');
+            }
+        }
+
+        // Update lives
+        if (updates.hasOwnProperty('lives')) {
+            const livesEl = playerCard.querySelector('.lives-value');
+            if (livesEl) livesEl.textContent = updates.lives;
+        }
+
+        // Update bomb count
+        if (updates.hasOwnProperty('bombCount')) {
+            const bombEl = playerCard.querySelector('.bomb-value');
+            if (bombEl) bombEl.textContent = updates.bombCount;
+        }
+
+        // Update bomb range
+        if (updates.hasOwnProperty('bombRange')) {
+            const rangeEl = playerCard.querySelector('.range-value');
+            if (rangeEl) rangeEl.textContent = updates.bombRange;
+        }
+
+        // Update speed
+        if (updates.hasOwnProperty('speed')) {
+            const speedEl = playerCard.querySelector('.speed-value');
+            if (speedEl) speedEl.textContent = updates.speed;
+        }
+    }
+
+    /**
+     * Update all players at once
+     * @param {Array} players - Array of player objects with updated data
+     */
+    updateAllPlayers(players) {
+        players.forEach(player => {
+            const existingCard = this.playerElements.get(player.playerId);
+            if (existingCard) {
+                // Update individual stats
+                this.updatePlayerState(player.playerId, {
+                    alive: player.alive,
+                    lives: player.lives,
+                    bombCount: player.bombCount,
+                    bombRange: player.bombRange,
+                    speed: player.speed
+                });
+            } else {
+                // Create new card if player doesn't exist yet
+                const playerCard = this.createPlayerCard(player);
+                const playersInfo = document.getElementById('players-info');
+                if (playersInfo) {
+                    playersInfo.appendChild(playerCard);
+                    this.playerElements.set(player.playerId, playerCard);
+                }
+            }
+        });
     }
 
     initPingDisplay() {
-        const playersInfo = document.querySelector('.players-info');
+        const playersInfo = document.getElementById('players-info');
         if (playersInfo) {
-            const pingDisplay = document.createElement('div');
-            pingDisplay.id = 'ping-display';
+            // Check if ping display already exists
+            let pingDisplay = document.getElementById('ping-display');
+            if (!pingDisplay) {
+                pingDisplay = document.createElement('div');
+                pingDisplay.id = 'ping-display';
+                pingDisplay.className = 'ping-display';
+                playersInfo.appendChild(pingDisplay);
+            }
+
             pingDisplay.textContent = 'Ping: ...';
-            playersInfo.appendChild(pingDisplay);
 
             this.pingInterval = setInterval(() => {
                 pingDisplay.textContent = `Ping: ${this.networkManager.getPing()}ms`;
