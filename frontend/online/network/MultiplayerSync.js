@@ -72,9 +72,12 @@ export function setupMultiplayerSync(game, networkManager) {
     // });
 
     // // Handle player damage
-    // networkManager.on('PLAYER_DAMAGED', (data) => {
-    //     game.playerManager.damagePlayer(data.playerId, data.livesRemaining);
-    // });
+    networkManager.on('PLAYER_DAMAGED', (data) => {
+        console.log(data);
+        game.players.get(data.playerId).kill()
+        
+        // game.playerManager.damagePlayer(data.playerId, data.livesRemaining);
+    });
 
     // // Handle player death
     // networkManager.on('PLAYER_DIED', (data) => {

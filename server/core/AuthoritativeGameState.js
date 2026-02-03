@@ -52,11 +52,6 @@ export class AuthoritativeGameState {
         if (this.isValidPosition(intendedX, intendedY, direction, playerId)) {
             newX = intendedX;
             newY = intendedY;
-            // if (direction === 'UP' || direction === 'DOWN') {
-            //     if (!this.isValidPosition(newX, newY, direction, playerId) || !this.isValidPosition(newX, newY - moveSpeed, direction, playerId)) {
-            //         newX -= 7;
-            //     }
-            // }
         } else {
             // Cornering logic
             if (direction === 'UP' || direction === 'DOWN') {
