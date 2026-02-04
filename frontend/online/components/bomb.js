@@ -2,8 +2,9 @@ import * as consts from '../utils/consts.js';
 import { dom } from '../../framework/framework/index.js';
 
 export class Bomb {
-    constructor(game, player, xMap, yMap) {
+    constructor(game, player, xMap, yMap, range = player.getBombRange()) {
         this.game = game
+        this.range = range
         this.player = player
         this.id = player.state.id + '_bomb_' + Date.now();
         this.done = false
@@ -14,6 +15,7 @@ export class Bomb {
         this.image = this.game.map.mapData.bomb
         this.explosionTime = this.game.map.mapData.explosion_time
         this.explosionImg = this.game.map.mapData.electric_shock_img
+        this.explosionImg2 = this.game.map.mapData.electric_shock2_img
         this.frameIndex = 0
         this.lastTime = performance.now()
         this.freeBlocks = []
@@ -50,10 +52,24 @@ export class Bomb {
 
         this.game.map.grid.appendChild(this.bomb);
         this.game.map.gridArray[this.yMap][this.xMap] = consts.BOMB;
-        this.game.map.gridArray[this.yMap][this.xMap - 1] !== consts.WALL ? this.freeBlocks.push(1) : 0;
-        this.game.map.gridArray[this.yMap][this.xMap + 1] !== consts.WALL ? this.freeBlocks.push(3) : 0;
-        this.game.map.gridArray[this.yMap - 1][this.xMap] !== consts.WALL ? this.freeBlocks.push(2) : 0;
-        this.game.map.gridArray[this.yMap + 1][this.xMap] !== consts.WALL ? this.freeBlocks.push(0) : 0;
+        this.game.map.gridArray[this.yMap][this.xMap - 1] !== consts.WALL ? this.freeBlocks.push('LEFT') : 0;
+        this.game.map.gridArray[this.yMap][this.xMap + 1] !== consts.WALL ? this.freeBlocks.push('RIGHT') : 0;
+        this.game.map.gridArray[this.yMap - 1][this.xMap] !== consts.WALL ? this.freeBlocks.push('UP') : 0;
+        this.game.map.gridArray[this.yMap + 1][this.xMap] !== consts.WALL ? this.freeBlocks.push('DOWN') : 0;
+
+        // check the second 
+
+        if (this.range == 2) {
+            this.game.map.gridArray[this.yMap]?.[this.xMap - 2] !== consts.WALL && this.game.map.gridArray[this.yMap]?.[this.xMap - 2] != undefined ? this.LEFT = true : 0;
+            this.game.map.gridArray[this.yMap]?.[this.xMap + 2] !== consts.WALL && this.game.map.gridArray[this.yMap]?.[this.xMap + 2] != undefined ? this.RIGHT = true : 0;
+            this.game.map.gridArray[this.yMap - 2]?.[this.xMap] !== consts.WALL && this.game.map.gridArray[this.yMap - 2]?.[this.xMap] != undefined ? this.UP = true : 0;
+            this.game.map.gridArray[this.yMap + 2]?.[this.xMap] !== consts.WALL && this.game.map.gridArray[this.yMap + 2]?.[this.xMap] != undefined ? this.DOWN = true : 0;
+            console.log("UP +>", this.UP);
+            console.log("DOWN +>", this.DOWN);
+            console.log("LEFT +>", this.LEFT);
+            console.log("RIGHT +>", this.RIGHT);
+        }
+
         this.electricShock = new Audio(this.game.map.mapData.shock_sound);
     }
 
@@ -81,6 +97,7 @@ export class Bomb {
         }
         const delta = timestamp - this.lastTime;
 
+        // disappearing time
         if (timestamp - this.startTime >= this.explosionTime + 1000) {
             if (delta >= 50) {
                 this.disappearing = true
@@ -91,6 +108,8 @@ export class Bomb {
             this.render()
             return
         }
+
+        // explosion time
         if (timestamp - this.startTime >= this.explosionTime) {
             if (!this.blowingUpBlock) {
                 this.game.map.isBlock(this.xMap - 1, this.yMap) ? (this.game.map.blowingUpBlock(this.xMap - 1, this.yMap), this.blowingUpBlock = true) : 0
@@ -104,6 +123,7 @@ export class Bomb {
             if (delta >= 20) {
                 this.frameIndex = (this.frameIndex + 1) % 4;
                 this.explosionImg = this.explosionImg.replace(this.frameIndex + ".png", ((this.frameIndex + 1) % 4) + ".png")
+                if (this.range == 2) this.explosionImg2 = this.explosionImg2.replace(this.frameIndex + ".png", ((this.frameIndex + 1) % 4) + ".png")
                 this.lastTime = timestamp;
             }
             this.explosion = true
@@ -131,23 +151,53 @@ export class Bomb {
 
     async makeExplosion() {
         if (!this.exp) {
-            this.exp = []
-            for (let i = 0; i < 4; i++) {
-                if (!this.freeBlocks.includes(i)) continue
+            this.exp = new Map();
+            const directionStyles = {
+                'DOWN': this.DOWN ? 'translate(-68px, 43px)' : 'translate(-68px, 34px)',
+                'LEFT': this.LEFT ? 'rotate(90deg) translate(-51px, 144px)' : 'rotate(90deg) translate(-17px, 119px)',
+                'UP': this.UP ? 'rotate(180deg) translate(68px, 144px)' : 'rotate(180deg) translate(68px, 68px)',
+                'RIGHT': this.RIGHT ? 'rotate(270deg) translate(44px, 17px)' : 'rotate(270deg) translate(17px, -17px)'
+            };
+
+            for (const direction of this.freeBlocks) {
                 const expImg = dom({
                     tag: 'img',
                     attributes: {
                         style: `
                             position: absolute;
-                            transform: ${i === 0 ? 'translate(-68px, 34px)' : i === 1 ? 'rotate(90deg) translate(-17px, 119px)' : i === 2 ? 'rotate(180deg) translate(68px, 68px)' : 'rotate(270deg) translate(17px, -17px)'};
+                            transform: ${directionStyles[direction]};
                         `
                     }
-                })
-                this.exp[i] = expImg;
-                this.bomb.appendChild(expImg)
+                });
+                this.exp.set(direction, expImg);
+                this.bomb.appendChild(expImg);
             }
         }
-        this.exp?.forEach(b => b ? b.src = this.explosionImg : 0);
+        this.exp?.forEach((b, key) => {
+            if (b) {
+                if (key === 'DOWN' && this.DOWN) {
+                    b.src = this.explosionImg2;
+                    console.log("DOWN", this.explosionImg2);
+                    
+                }
+                else if (key === 'UP' && this.UP) {
+                    b.src = this.explosionImg2;
+                    console.log("UP", this.explosionImg2);
+                    
+                }
+                else if (key === 'LEFT' && this.LEFT) {
+                    b.src = this.explosionImg2;
+                    console.log("LEFT", this.explosionImg2);
+                    
+                }
+                else if (key === 'RIGHT' && this.RIGHT) {
+                    b.src = this.explosionImg2;
+                    console.log("RIGHT", this.explosionImg2);
+                    
+                }
+                else b.src = this.explosionImg;
+            }
+        });
     }
 
     async makeDisappearing() {

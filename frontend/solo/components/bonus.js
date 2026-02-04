@@ -43,10 +43,10 @@ export class Bonus {
     }
 
     addSpeed() {
-        this.game.state.setPlayerspped(6)
+        this.game.state.setPlayerSpeed(6)
         this.audio.currentTime = 0
         const id = setTimeout(() => {
-            this.game.state.setPlayerspped(4)
+            this.game.state.setPlayerSpeed(4)
         }, 2000)
         this.activeTiming.push(id)
     }
