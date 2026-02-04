@@ -64,10 +64,6 @@ export class Bomb {
             this.game.map.gridArray[this.yMap]?.[this.xMap + 2] !== consts.WALL && this.game.map.gridArray[this.yMap]?.[this.xMap + 2] != undefined ? this.RIGHT = true : 0;
             this.game.map.gridArray[this.yMap - 2]?.[this.xMap] !== consts.WALL && this.game.map.gridArray[this.yMap - 2]?.[this.xMap] != undefined ? this.UP = true : 0;
             this.game.map.gridArray[this.yMap + 2]?.[this.xMap] !== consts.WALL && this.game.map.gridArray[this.yMap + 2]?.[this.xMap] != undefined ? this.DOWN = true : 0;
-            console.log("UP +>", this.UP);
-            console.log("DOWN +>", this.DOWN);
-            console.log("LEFT +>", this.LEFT);
-            console.log("RIGHT +>", this.RIGHT);
         }
 
         this.electricShock = new Audio(this.game.map.mapData.shock_sound);
