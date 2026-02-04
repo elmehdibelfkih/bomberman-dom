@@ -26,7 +26,8 @@ export class NetworkManager {
             this.ws.onerror = (error) => reject(error);
             
             this.ws.onmessage = (event) => {
-                console.log(event)
+                // Avoid spamming console which can hurt FPS
+                // console.log(event)
                 const message = JSON.parse(event.data);
                 this.messageHandler?.handle(message);
             };

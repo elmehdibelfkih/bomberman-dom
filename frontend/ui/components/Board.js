@@ -4,12 +4,9 @@ import { CLIENT_CONFIG } from '../../config/client-config.js';
 // Stable minimal Board implementation with same external API.
 export const Board = ({ mapData = { initial_grid: [[]] }, players = [], yourPlayerId } = {}) => {
     const cellSize = (CLIENT_CONFIG && CLIENT_CONFIG.CELL_SIZE) || 32;
-    // Visual scale factor for slightly larger board
-    const SCALE = 1.1; // ~10% larger
-    const scaledCell = Math.round(cellSize * SCALE);
     const grid = (mapData && mapData.initial_grid) || [[]];
 
-    const boardEl = dom({ tag: 'div', attributes: { class: 'board', style: `position: relative; width: ${grid[0].length * scaledCell}px; height: ${grid.length * scaledCell}px; background: #071;` } });
+    const boardEl = dom({ tag: 'div', attributes: { class: 'board', style: `position: relative; width: ${grid[0].length * cellSize}px; height: ${grid.length * cellSize}px; background: #071;` } });
 
     // inject simple CSS animation for bombs (keeps this component self-contained)
     const styleId = 'board-bomb-styles';
@@ -36,7 +33,7 @@ export const Board = ({ mapData = { initial_grid: [[]] }, players = [], yourPlay
             else if (val === 2) { color = '#6d4c41'; border = '1px solid rgba(0,0,0,0.5)'; }
 
             const id = `tile-${x}-${y}`;
-            const tile = dom({ tag: 'div', attributes: { id, class: `cell cell-${val}`, style: `position:absolute; left:${x*scaledCell}px; top:${y*scaledCell}px; width:${scaledCell}px; height:${scaledCell}px; background:${color}; border:${border}; box-sizing:border-box;` } });
+            const tile = dom({ tag: 'div', attributes: { id, class: `cell cell-${val}`, style: `position:absolute; left:${x*cellSize}px; top:${y*cellSize}px; width:${cellSize}px; height:${cellSize}px; background:${color}; border:${border}; box-sizing:border-box;` } });
             tilesContainer.appendChild(tile);
         }
     }
@@ -52,8 +49,8 @@ export const Board = ({ mapData = { initial_grid: [[]] }, players = [], yourPlay
 
     function updatePlayers(newPlayers = []) {
         // Use consistent player size (70% of block size to match server collision)
-        const playerSize = Math.round(scaledCell * 0.7);
-        const offset = Math.round((scaledCell - playerSize) / 2);
+        const playerSize = Math.round(cellSize * 0.7);
+        const offset = Math.round((cellSize - playerSize) / 2);
 
         newPlayers.forEach(p => {
             const id = `player-${p.playerId}`;
@@ -64,7 +61,7 @@ export const Board = ({ mapData = { initial_grid: [[]] }, players = [], yourPlay
                     attributes: { 
                         id, 
                         class: p.playerId === yourPlayerId ? 'player local-player' : 'player remote-player', 
-                        style: `position:absolute; width:${playerSize}px; height:${playerSize}px; border-radius:50%; background:${p.playerId === yourPlayerId ? '#0c6' : '#36f'}; z-index:10; transition: all 0.05s linear;` 
+                        style: `position:absolute; width:${playerSize}px; height:${playerSize}px; border-radius:50%; background:${p.playerId === yourPlayerId ? '#0c6' : '#36f'}; z-index:10;` 
                     } 
                 });
                 playersContainer.appendChild(el);
@@ -73,8 +70,8 @@ export const Board = ({ mapData = { initial_grid: [[]] }, players = [], yourPlay
             // Use server's pixel coordinates directly for smooth movement
             const px = (typeof p.x === 'number' ? Math.round(p.x) : ((p.gridX || 0) * cellSize));
             const py = (typeof p.y === 'number' ? Math.round(p.y) : ((p.gridY || 0) * cellSize));
-            const left = Math.round(px * SCALE) + offset;
-            const top = Math.round(py * SCALE) + offset;
+            const left = px + offset;
+            const top = py + offset;
             
             el.style.left = `${left}px`;
             el.style.top = `${top}px`;
@@ -86,9 +83,9 @@ export const Board = ({ mapData = { initial_grid: [[]] }, players = [], yourPlay
         bombsContainer.innerHTML = '';
         bombs.forEach(b => {
             const id = `bomb-${b.bombId}`;
-            const size = Math.round(scaledCell * 0.5);
-            const leftPx = b.gridX * scaledCell + Math.round((scaledCell - size) / 2);
-            const topPx = b.gridY * scaledCell + Math.round((scaledCell - size) / 2);
+            const size = Math.round(cellSize * 0.5);
+            const leftPx = b.gridX * cellSize + Math.round((cellSize - size) / 2);
+            const topPx = b.gridY * cellSize + Math.round((cellSize - size) / 2);
 
             const el = dom({ tag: 'div', attributes: { id, class: 'bomb', style: `position:absolute; left:${leftPx}px; top:${topPx}px; width:${size}px; height:${size}px; border-radius:50%; background:#222; display:flex; align-items:center; justify-content:center; animation: bomb-pulse 800ms ease-in-out infinite; overflow:hidden;` }, children: [] });
 
@@ -134,9 +131,9 @@ export const Board = ({ mapData = { initial_grid: [[]] }, players = [], yourPlay
 
     function playExplosions(explosions = [], duration = 1000) {
         explosions.forEach(e => {
-            const size = scaledCell;
-            const leftPx = e.gridX * scaledCell;
-            const topPx = e.gridY * scaledCell;
+            const size = cellSize;
+            const leftPx = e.gridX * cellSize;
+            const topPx = e.gridY * cellSize;
 
             const el = dom({ tag: 'div', attributes: { class: 'explosion', style: `position:absolute; left:${leftPx}px; top:${topPx}px; width:${size}px; height:${size}px; pointer-events:none; z-index:20; display:flex; align-items:center; justify-content:center;` } });
             const inner = dom({ tag: 'div', attributes: { style: `width:70%; height:70%; border-radius:50%; background: radial-gradient(circle at 30% 30%, #fff 0%, rgba(255,200,0,0.95) 30%, rgba(255,100,0,0.9) 60%, rgba(255,0,0,0.6) 100%); animation: explosion-fade ${duration}ms ease-out forwards;` } });
@@ -152,9 +149,9 @@ export const Board = ({ mapData = { initial_grid: [[]] }, players = [], yourPlay
     function updatePowerups(powerups = []) {
         powerupsContainer.innerHTML = '';
         powerups.forEach(p => {
-            const size = Math.round(scaledCell * 0.45);
-            const leftPx = p.gridX * scaledCell + Math.round((scaledCell - size) / 2);
-            const topPx = p.gridY * scaledCell + Math.round((scaledCell - size) / 2);
+            const size = Math.round(cellSize * 0.45);
+            const leftPx = p.gridX * cellSize + Math.round((cellSize - size) / 2);
+            const topPx = p.gridY * cellSize + Math.round((cellSize - size) / 2);
 
             let color = '#ff0';
             let label = '';

@@ -252,6 +252,12 @@ export class App {
             // update player stats locally
             if (msg.playerId && msg.newStats) {
                 this.gameState.updatePlayer(msg.playerId, msg.newStats);
+
+                // If local player speed changed, update input cooldown scaling
+                if (msg.playerId === this.gameState.localPlayerId && msg.newStats.speed && typeof window !== 'undefined' && typeof window.__updateLocalSpeed === 'function') {
+                    window.__updateLocalSpeed(msg.playerId, msg.newStats.speed);
+                }
+
                 if (this._gamePage && this._gamePage.updatePlayers) {
                     const playersArray = Array.from(this.gameState.players.values());
                     this._gamePage.updatePlayers(playersArray);

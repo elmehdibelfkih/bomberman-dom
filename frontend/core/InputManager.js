@@ -1,5 +1,6 @@
 import { NetworkManager } from '../network/NetworkManager.js';
 import { ClientMessages } from '../../shared/message-types.js';
+import { CLIENT_CONFIG } from '../config/client-config.js';
 
 export class InputManager {
     constructor(gameEngine) {
@@ -9,11 +10,47 @@ export class InputManager {
         this._seq = 0;
         this.gameEngine = gameEngine;
         this.mapData = null;
+        this.movementLockUntil = 0; // timestamp (ms) to throttle per-press movement
+        this.playerSpeed = 1; // default speed multiplier from server (1..5)
+        this.baseCooldownMs = 120; // base cooldown per step at speed=1
+
+        // Expose a global hook so network layer can update speed without tight coupling
+        // window.__updateLocalSpeed(playerId, speed)
+        if (typeof window !== 'undefined') {
+            window.__updateLocalSpeed = (playerId, speed) => {
+                const localId = this._getLocalPlayerIdFromDOM();
+                if (!localId) return;
+                if (String(playerId) !== String(localId)) return;
+                this.setLocalPlayerSpeed(speed);
+            };
+        }
     }
 
     init() {
         window.addEventListener('keydown', (e) => this.handleKeyDown(e));
         window.addEventListener('keyup', (e) => this.handleKeyUp(e));
+    }
+
+    setLocalPlayerSpeed(speed) {
+        const s = Number(speed);
+        if (!Number.isFinite(s)) return;
+        // clamp 1..5 as per server logic
+        this.playerSpeed = Math.max(1, Math.min(5, Math.round(s)));
+    }
+
+    _getEffectiveCooldownMs() {
+        // Faster speed -> smaller cooldown between steps
+        // factor: 1 + (speed-1)*0.5 => 1,1.5,2.0,2.5,3.0
+        const factor = 1 + (this.playerSpeed - 1) * 0.5;
+        const ms = Math.round(this.baseCooldownMs / factor);
+        return Math.max(40, ms); // cap at 40ms min to avoid flooding
+    }
+
+    _getLocalPlayerIdFromDOM() {
+        const el = document.querySelector('.local-player');
+        if (!el || !el.id) return null;
+        const m = el.id.match(/^player-(.+)$/);
+        return m ? m[1] : null;
     }
 
     nextSequence() {
@@ -27,6 +64,9 @@ export class InputManager {
         const activeTag = document.activeElement && document.activeElement.tagName && document.activeElement.tagName.toLowerCase();
         if (activeTag === 'input' || activeTag === 'textarea') return;
 
+        // Ignore OS/browser key auto-repeat; we want single-step per physical press
+        if (e.repeat) return;
+
         // Place bomb on Space (don't treat as a held key)
         if (e.code === 'Space' || key === ' ' || key === 'Spacebar') {
             e.preventDefault();
@@ -34,6 +74,10 @@ export class InputManager {
             this.network.send({ type: ClientMessages.PLACE_BOMB, sequenceNumber: seq });
             return;
         }
+
+        // Prevent multiple moves: honor a short cooldown window
+        const now = performance.now();
+        if (now < this.movementLockUntil) return;
 
         // Prevent key repeat - only move on first keydown
         if (this.keys.get(key)) return;
@@ -46,6 +90,9 @@ export class InputManager {
             
             const seq = this.nextSequence();
             this.network.send({ type: ClientMessages.MOVE, direction: dir, sequenceNumber: seq });
+
+            // Lock for a short period to ensure single step per press, scaled by speed
+            this.movementLockUntil = now + this._getEffectiveCooldownMs();
         }
 
         this.notifyListeners('keydown', key);
@@ -102,7 +149,7 @@ export class InputManager {
         const localPlayerElement = document.querySelector('.local-player');
         if (!localPlayerElement) return;
         
-        const BLOCK_SIZE = 32;
+        const BLOCK_SIZE = (CLIENT_CONFIG && CLIENT_CONFIG.CELL_SIZE) || 32;
         let dx = 0, dy = 0;
         switch (direction) {
             case 'UP': dy = -BLOCK_SIZE; break;
@@ -129,7 +176,7 @@ export class InputManager {
     canMoveTo(x, y) {
         if (!this.mapData || !this.mapData.initial_grid) return true;
         
-        const BLOCK_SIZE = 32;
+        const BLOCK_SIZE = (CLIENT_CONFIG && CLIENT_CONFIG.CELL_SIZE) || 32;
         const playerSize = Math.round(BLOCK_SIZE * 0.7); // 70% of block size
         
         // Check bounds

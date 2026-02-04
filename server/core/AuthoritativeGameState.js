@@ -28,8 +28,68 @@ export class AuthoritativeGameState {
         player.direction = direction;
         player.isMoving = true;
 
+        // Single-tile step movement: compute a one-block displacement and apply if free
+        const step = GAME_CONFIG.BLOCK_SIZE;
+        let dx = 0, dy = 0;
+        switch (direction) {
+            case 'UP': dy = -step; break;
+            case 'DOWN': dy = step; break;
+            case 'LEFT': dx = -step; break;
+            case 'RIGHT': dx = step; break;
+            default: break;
+        }
+
+        const playerSize = Math.round(GAME_CONFIG.BLOCK_SIZE * 0.7);
+        const targetX = player.x + dx;
+        const targetY = player.y + dy;
+
+        let moved = false;
+        if (this.isPositionFree(targetX, targetY, player, playerSize)) {
+            player.x = targetX;
+            player.y = targetY;
+
+            const newGridX = Math.floor((player.x + playerSize/2) / GAME_CONFIG.BLOCK_SIZE);
+            const newGridY = Math.floor((player.y + playerSize/2) / GAME_CONFIG.BLOCK_SIZE);
+            player.gridX = newGridX;
+            player.gridY = newGridY;
+
+            this.gameRoom.broadcast(MessageBuilder.playerMoved(
+                player.playerId,
+                Math.round(player.x),
+                Math.round(player.y),
+                player.gridX,
+                player.gridY,
+                direction,
+                sequenceNumber
+            ));
+
+            // After a successful step, check for power-up collection on new cell
+            this.checkPowerUpCollection(player.playerId, player.gridX, player.gridY);
+            moved = true;
+        }
+
+        // Immediately stop movement intent to enforce single-step
+        player.direction = direction;
+        player.isMoving = false;
+
         this.lastProcessedSequenceNumber.set(playerId, sequenceNumber);
 
+        // Notify clients that movement is stopped after the step
+        this.gameRoom.broadcast(MessageBuilder.playerStopped(player.playerId, sequenceNumber));
+
+        return moved;
+    }
+
+    validatePlayerStop(playerId, sequenceNumber) {
+        const lastSequenceNumber = this.lastProcessedSequenceNumber.get(playerId) || 0;
+        if (sequenceNumber <= lastSequenceNumber) return false;
+
+        const player = this.gameEngine.entities.players.get(playerId);
+        if (!player) return false;
+
+        player.isMoving = false;
+        this.lastProcessedSequenceNumber.set(playerId, sequenceNumber);
+        this.gameRoom.broadcast(MessageBuilder.playerStopped(playerId, sequenceNumber));
         return true;
     }
 
