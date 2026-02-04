@@ -1,7 +1,6 @@
-import { Logger } from '../utils/Logger.js';
 import { MessageBuilder } from '../network/MessageBuilder.js';
 import { GAME_CONFIG } from '../../shared/game-config.js';
-import { BLOCK, BOMB, FLOOR, POWERUP_BLOCK_PASS, POWERUP_BOMB, POWERUP_BOMB_PASS, POWERUP_FLAME, POWERUP_EXTRA_LIFE, POWERUP_SPEED, WALL } from '../../shared/constants.js';
+import { BLOCK, FLOOR, POWERUP_BOMB, POWERUP_FLAME, POWERUP_SPEED, WALL } from '../../shared/constants.js';
 
 export class AuthoritativeGameState {
     constructor(gameRoom, gameEngine) {
@@ -101,7 +100,7 @@ export class AuthoritativeGameState {
     checkExplosionDamage(playerId, playerX, playerY) {
         const player = this.gameEngine.entities.players.get(playerId)
 
-        for ([explosionId, explosion] of this.activeExplosions.entries()) {
+        for (cosnt[explosionId, explosion] of this.activeExplosions.entries()) {
             // check if player is in the range of bomb explosion
             const inRange = explosion.cells.some(cell => {
                 cell.gridX === playerX && cell.gridY === playerY;
@@ -338,7 +337,7 @@ export class AuthoritativeGameState {
     }
 
     spawnPowerUp(gridX, gridY) {
-        const powerUpTypes = [POWERUP_SPEED, POWERUP_BOMB, POWERUP_FLAME, POWERUP_BOMB_PASS];
+        const powerUpTypes = [POWERUP_SPEED, POWERUP_BOMB, POWERUP_FLAME];
         const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
 
         const powerUpId = `powerup_${this.nextPowerUpId++}`;
@@ -367,9 +366,7 @@ export class AuthoritativeGameState {
 
                 const newStats = this.applyPowerUp(player, powerUp.type);
 
-                if (powerUp.type !== POWERUP_EXTRA_LIFE) {
-                    this.powerUpSchedule(player, powerUp.type)
-                }
+                this.powerUpSchedule(player, powerUp.type)
 
                 this.gameEngine.entities.powerups.delete(powerUpId);
 
@@ -406,12 +403,6 @@ export class AuthoritativeGameState {
             case POWERUP_FLAME:
                 player.bombRange--
                 break;
-            case POWERUP_BOMB_PASS:
-                player.bombPass--
-                break
-            case POWERUP_BLOCK_PASS:
-                player.blockPass--
-                break
         }
     }
 
@@ -425,14 +416,6 @@ export class AuthoritativeGameState {
                 break;
             case POWERUP_FLAME:
                 player.bombRange = Math.min(player.bombRange + 1, GAME_CONFIG.PLAYER_MAX_STATS.BOMB_RANGE);
-            case POWERUP_BOMB_PASS:
-                player.bombPass = Math.min(player.bombPass + 1, GAME_CONFIG.PLAYER_MAX_STATS.BOMB_PASS)
-                break;
-            case POWERUP_BLOCK_PASS:
-                player.blockPass = Math.min(player.blockPass + 1, GAME_CONFIG.PLAYER_MAX_STATS.BLOCK_PASS)
-                break;
-            case POWERUP_EXTRA_LIFE:
-                player.lives = Math.min(player.lives + 1, GAME_CONFIG.PLAYER_MAX_STATS.LIVES)
                 break;
         }
 

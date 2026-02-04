@@ -1,17 +1,11 @@
 import * as consts from '../utils/consts.js';
 import { dom, eventManager } from '../../framework/framework/index.js';
 import { Bomb } from "./bomb.js";
-import { Bonus } from './bonus.js';
 
 export class Map {
 
     constructor(game, mapData) {
         this.mapData = mapData;
-
-        this.bonusArray = [];
-        this.bonusArray.push(this.addTimeBonus.bind(this));
-        this.bonusArray.push(this.addSpeedBonus.bind(this));
-        this.bonusArray.push(this.addHeartBonus.bind(this));
         this.game = game;
         this.grid = null;
         this.gridArray = null;
@@ -19,13 +13,10 @@ export class Map {
         this.mustrender = false;
         this.updateLevel = false;
         this.bombs = [];
-        this.loot = [];
-        this.blocksToBlowing = [];
         this.tiles = [];
         this.blockElements = [];
         this.container = null;
     }
-
     static getInstance = (game, mapData) => {
         if (!Map.instance || mapData) {
             Map.instance = new Map(game, mapData);
@@ -147,7 +138,6 @@ export class Map {
             childrenConfigs.push(blockImgConfig);
         }
 
-
         return childrenConfigs;
     }
 
@@ -158,10 +148,41 @@ export class Map {
         if (tile && img) {
             tile.removeChild(img);
         }
-        const randomIndex = Math.floor(Math.random() * this.bonusArray.length);
-        if (tile) {
-            this.bonusArray[randomIndex](x, y, tile);
-        }
+        // No local powerup spawning in multiplayer - server handles this
+    }
+
+    spawnPowerUp(powerupId, powerupType, gridX, gridY) {
+        if (!this.grid) return;
+
+        const tiles = Array.from(this.grid.children);
+        const tile = tiles.find(t =>
+            t.dataset.rowIndex === String(gridX) &&
+            t.dataset.colIndex === String(gridY)
+        );
+        if (!tile) return;
+
+        const powerupImages = {
+            8: this.mapData.bomb_img,
+            9: this.mapData.flame_img,
+            10: this.mapData.speed_img,
+        };
+
+        const powerup = dom({
+            tag: 'img',
+            attributes: {
+                src: powerupImages[powerupType],
+                id: powerupId,
+                class: 'powerup',
+                style: `
+                    width: 30px;
+                    height: 40px;
+                    position: absolute;
+                    transform: translate(20px, 10px);
+                `
+            }
+        });
+
+        tile.appendChild(powerup);
     }
 
     canPlayerMoveTo(player, x, y) {
@@ -191,84 +212,6 @@ export class Map {
     addBomb(playerId, xMap, yMap) {
         let player = this.game.players.get(playerId)
         this.bombs.push(new Bomb(this.game, player, xMap, yMap));
-    }
-
-    addSpeedBonus(xMap, yMap, node) {
-        if (!node) return;
-        const x = xMap * this.mapData.block_size;
-        const y = yMap * this.mapData.block_size;
-        const bonus = dom({
-            tag: 'img',
-            attributes: {
-                src: this.mapData.speed_img,
-                class: 'speed-bonus',
-                id: xMap.toString() + yMap.toString() + "T",
-                style: `
-                    width: 30px;
-                    height: 40px;
-                    position: absolute;
-                    transform: translate(20px, 10px);
-                `
-            }
-        });
-
-        const speedBonus = new Bonus(this.game, x, y, this.mapData, bonus.id, 'speed');
-        speedBonus.originalWidth = 30;
-        speedBonus.originalHeight = 40;
-        this.loot.push(speedBonus);
-        node.appendChild(bonus);
-    }
-
-    addTimeBonus(xMap, yMap, node) {
-        if (!node) return;
-        const x = xMap * this.mapData.block_size;
-        const y = yMap * this.mapData.block_size;
-        const bonus = dom({
-            tag: 'img',
-            attributes: {
-                src: this.mapData.time_img,
-                class: 'time-bonus',
-                id: xMap.toString() + yMap.toString() + "T",
-                style: `
-                    width: 35px;
-                    height: 50px;
-                    position: absolute;
-                    transform: translate(15px, 10px);
-                `
-            }
-        });
-
-        const timeBonus = new Bonus(this.game, x, y, this.mapData, bonus.id, 'time');
-        timeBonus.originalWidth = 35;
-        timeBonus.originalHeight = 50;
-        this.loot.push(timeBonus);
-        node.appendChild(bonus);
-    }
-
-    addHeartBonus(xMap, yMap, node) {
-        if (!node) return;
-        const x = xMap * this.mapData.block_size;
-        const y = yMap * this.mapData.block_size;
-        const bonus = dom({
-            tag: 'img',
-            attributes: {
-                src: this.mapData.heart_img,
-                class: 'heart-bonus',
-                id: xMap.toString() + yMap.toString() + "T",
-                style: `
-                    width: 30px;
-                    height: 40px;
-                    position: absolute;
-                    transform: translate(20px, 10px);
-                `
-            }
-        });
-
-        const heartBonus = new Bonus(this.game, x, y, this.mapData, bonus.id, 'heart');
-        heartBonus.originalWidth = 30;
-        heartBonus.originalHeight = 40;
-        this.loot.push(heartBonus);
-        node.appendChild(bonus);
     }
 
     initAudios() {

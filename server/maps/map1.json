@@ -38,6 +38,8 @@
   "time_img": "./assets/images/loot/time.png",
   "speed_img": "./assets/images/loot/speed.png",
   "heart_img": "./assets/images/loot/heart.png",
+  "bomb_img": "./assets/images/loot/bomb.png",
+  "flame_img": "./assets/images/loot/flame.png",
 
   "time_sound": "./assets/audios/timesounde.mp3",
   "speed_sound": "./assets/audios/CoinGet.mp3",

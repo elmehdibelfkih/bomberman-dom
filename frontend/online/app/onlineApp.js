@@ -1,5 +1,5 @@
 import { Router, dom, usePathname } from "../../framework/framework/index.js";
-import { Game  } from "../engine/core.js";
+import { Game } from "../engine/core.js";
 import { UI } from "../components/ui.js";
 import { createEffect } from "../../framework/framework/state/signal.js";
 import { NetworkManager } from '../network/networkManager.js';
@@ -341,7 +341,7 @@ export class OnlineApp {
 
         this.game = Game.getInstance(this.gameData);
         await this.game.intiElements();
-        
+
         // Initialize UI with players data
         this.ui = UI.getInstance(this.game);
         this.ui.renderPlayers(this.gameData.players);
@@ -360,7 +360,57 @@ export class OnlineApp {
         this.game.run();
 
         this.setupGameChat();
+        this.setupGameHandlers();
         this.setupPlayerUpdates();
+    }
+
+    setupGameHandlers() {
+        this.networkManager.on('BOMB_EXPLODED', (data) => {
+            if (!this.game) return;
+
+            const bombIndex = this.game.map.bombs.findIndex(b =>
+                b.player.state.id === data.playerId &&
+                b.xMap === data.explosions[0]?.gridX &&
+                b.yMap === data.explosions[0]?.gridY
+            );
+
+            if (bombIndex !== -1) {
+                const bomb = this.game.map.bombs[bombIndex];
+                bomb.cleanDOM();
+                this.game.map.bombs.splice(bombIndex, 1);
+            }
+
+            if (data.destroyedBlocks) {
+                data.destroyedBlocks.forEach(block => {
+                    this.game.map.blowingUpBlock(block.gridX, block.gridY);
+                });
+            }
+
+            if (data.spawnedPowerup) {
+                this.game.map.spawnPowerUp(
+                    data.spawnedPowerup.powerUpId,
+                    data.spawnedPowerup.type,
+                    data.spawnedPowerup.gridX,
+                    data.spawnedPowerup.gridY
+                );
+            }
+        });
+
+        this.networkManager.on('POWERUP_COLLECTED', (data) => {
+            if (!this.game) return;
+
+            const powerupElement = document.getElementById(data.powerupId);
+            if (powerupElement) {
+                powerupElement.remove();
+            }
+
+            const player = this.game.players.get(data.playerId);
+            if (player && data.newStats) {
+                player.state.speed = data.newStats.speed;
+                player.state.maxBombs = data.newStats.maxBombs;
+                player.state.bombRange = data.newStats.bombRange;
+            }
+        });
     }
 
     setupPlayerUpdates() {

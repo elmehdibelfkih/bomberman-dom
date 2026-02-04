@@ -48,44 +48,33 @@ export function setupMultiplayerSync(game, networkManager) {
     // });
 
 
-    // // Handle bomb placement
+    // Handle bomb placement
     networkManager.on('BOMB_PLACED', (data) => {
-        game.map.addBomb(data.playerId, data.gridX, data.gridY)
-        
-        // game.bombManager.createBomb(data);
+        game.map.addBomb(data.playerId, data.gridX, data.gridY);
     });
 
-    // // Handle bomb explosions
-    // networkManager.on('BOMB_EXPLODED', (data) => {
-    //     game.bombManager.handleExplosion(data);
-    // });
+    // BOMB_EXPLODED is handled in onlineApp.js
+    // POWERUP_SPAWNED is handled in onlineApp.js via BOMB_EXPLODED
+    // POWERUP_COLLECTED is handled in onlineApp.js
 
-    // // Handle power-up spawn
-    // networkManager.on('POWERUP_SPAWNED', (data) => {
-    //     game.powerUpManager.spawnPowerUp(data);
-    // });
-
-    // // Handle power-up collection
-    // networkManager.on('POWERUP_COLLECTED', (data) => {
-    //     game.powerUpManager.removePowerUp(data.powerupId);
-    //     game.playerManager.handlePowerUpCollection(data.playerId, data.powerupType, data.newStats);
-    // });
-
-    // // Handle player damage
+    // Handle player damage
     networkManager.on('PLAYER_DAMAGED', (data) => {
-        console.log(data);
-        game.players.get(data.playerId).kill()
-        
-        // game.playerManager.damagePlayer(data.playerId, data.livesRemaining);
+        const player = game.players.get(data.playerId);
+        if (player) {
+            player.kill();
+        }
     });
 
-    // // Handle player death
-    // networkManager.on('PLAYER_DIED', (data) => {
-    //     game.playerManager.killPlayer(data.playerId);
-    // });
+    // Handle player death
+    networkManager.on('PLAYER_DIED', (data) => {
+        const player = game.players.get(data.playerId);
+        if (player) {
+            player.kill();
+        }
+    });
 
-    // // Handle game over
-    // networkManager.on('GAME_OVER', (data) => {
-    //     game.playerManager.handleGameOver(data.winner);
-    // });
+    // Handle game over
+    networkManager.on('GAME_OVER', (data) => {
+        console.log('Game Over! Winner:', data.winner);
+    });
 }

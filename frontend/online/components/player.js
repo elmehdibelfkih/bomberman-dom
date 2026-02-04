@@ -141,7 +141,6 @@ export class Player {
     async updateRender(timestamp) {
         this.playerDying(timestamp)
         this.movePlayer(timestamp)
-        this.checkLoot()
         this.render()
     }
 
@@ -180,8 +179,6 @@ export class Player {
                 this.game.map.grid.removeChild(this.exp)
                 this.lastTimeDying = null
                 this.reRender = true
-                this.game.state.setLives(-1)
-                this.game.scoreboard.updateLives()
             }
         }
     }
@@ -343,18 +340,6 @@ export class Player {
             this.y + this.getPlayerHeight() <= y ||
             this.y >= y + height
         );
-    }
-
-    async checkLoot() {
-        for (const loot of this.game.map.loot) {
-            const blockSize = this.game.map.mapData.block_size;
-            if (this.isColliding(loot.x, loot.y, blockSize, blockSize)) {
-                // loot.removeitfromDOM()
-                loot.removeitfromgrid()
-                loot.makeAction()
-                this.game.map.loot = this.game.map.loot.filter(b => b !== loot);
-            }
-        }
     }
 
 
