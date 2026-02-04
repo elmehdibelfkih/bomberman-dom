@@ -108,10 +108,29 @@ export class Bomb {
         // explosion time
         if (timestamp - this.startTime >= this.explosionTime) {
             if (!this.blowingUpBlock) {
-                this.game.map.isBlock(this.xMap - 1, this.yMap) ? (this.game.map.blowingUpBlock(this.xMap - 1, this.yMap), this.blowingUpBlock = true) : 0
-                this.game.map.isBlock(this.xMap + 1, this.yMap) ? (this.game.map.blowingUpBlock(this.xMap + 1, this.yMap), this.blowingUpBlock = true) : 0
-                this.game.map.isBlock(this.xMap, this.yMap - 1) ? (this.game.map.blowingUpBlock(this.xMap, this.yMap - 1), this.blowingUpBlock = true) : 0
-                this.game.map.isBlock(this.xMap, this.yMap + 1) ? (this.game.map.blowingUpBlock(this.xMap, this.yMap + 1), this.blowingUpBlock = true) : 0
+                this.game.map.isBlock(this.xMap - 1, this.yMap) ? this.game.map.blowingUpBlock(this.xMap - 1, this.yMap) : 0
+                this.game.map.isBlock(this.xMap + 1, this.yMap) ? this.game.map.blowingUpBlock(this.xMap + 1, this.yMap) : 0
+                this.game.map.isBlock(this.xMap, this.yMap - 1) ? this.game.map.blowingUpBlock(this.xMap, this.yMap - 1) : 0
+                this.game.map.isBlock(this.xMap, this.yMap + 1) ? this.game.map.blowingUpBlock(this.xMap, this.yMap + 1) : 0
+
+                if (this.range === 2) {
+                    if (this.game.map.isBlock(this.xMap - 1, this.yMap) && this.game.map.isBlock(this.xMap - 2, this.yMap)) {
+                        this.game.map.blowingUpBlock(this.xMap - 2, this.yMap);
+                    }
+
+                    if (this.game.map.isBlock(this.xMap + 1, this.yMap) && this.game.map.isBlock(this.xMap + 2, this.yMap)) {
+                        this.game.map.blowingUpBlock(this.xMap + 2, this.yMap);
+                    }
+
+                    if (this.game.map.isBlock(this.xMap, this.yMap - 1) && this.game.map.isBlock(this.xMap, this.yMap - 2)) {
+                        this.game.map.blowingUpBlock(this.xMap, this.yMap - 2);
+                    }
+
+                    if (this.game.map.isBlock(this.xMap, this.yMap + 1) && this.game.map.isBlock(this.xMap, this.yMap + 2)) {
+                        this.game.map.blowingUpBlock(this.xMap, this.yMap + 2);
+                    }
+                }
+
                 this.blowingUpBlock = true
             }
             this.image = this.image.replace(/\d+\.png$/, "2.png");
@@ -150,9 +169,9 @@ export class Bomb {
             this.exp = new Map();
             const directionStyles = {
                 'DOWN': this.DOWN ? 'translate(-68px, 43px)' : 'translate(-68px, 34px)',
-                'LEFT': this.LEFT ? 'rotate(90deg) translate(-51px, 144px)' : 'rotate(90deg) translate(-17px, 119px)',
+                'LEFT': this.LEFT ? 'rotate(90deg) translate(-51px, 160px)' : 'rotate(90deg) translate(-17px, 119px)',
                 'UP': this.UP ? 'rotate(180deg) translate(68px, 144px)' : 'rotate(180deg) translate(68px, 68px)',
-                'RIGHT': this.RIGHT ? 'rotate(270deg) translate(44px, 17px)' : 'rotate(270deg) translate(17px, -17px)'
+                'RIGHT': this.RIGHT ? 'rotate(270deg) translate(51px, 17px)' : 'rotate(270deg) translate(17px, -17px)'
             };
 
             for (const direction of this.freeBlocks) {
@@ -171,26 +190,7 @@ export class Bomb {
         }
         this.exp?.forEach((b, key) => {
             if (b) {
-                if (key === 'DOWN' && this.DOWN) {
-                    b.src = this.explosionImg2;
-                    console.log("DOWN", this.explosionImg2);
-                    
-                }
-                else if (key === 'UP' && this.UP) {
-                    b.src = this.explosionImg2;
-                    console.log("UP", this.explosionImg2);
-                    
-                }
-                else if (key === 'LEFT' && this.LEFT) {
-                    b.src = this.explosionImg2;
-                    console.log("LEFT", this.explosionImg2);
-                    
-                }
-                else if (key === 'RIGHT' && this.RIGHT) {
-                    b.src = this.explosionImg2;
-                    console.log("RIGHT", this.explosionImg2);
-                    
-                }
+                if ((key === 'DOWN' && this.DOWN) || (key === 'UP' && this.UP) || (key === 'LEFT' && this.LEFT) || (key === 'RIGHT' && this.RIGHT)) b.src = this.explosionImg2;
                 else b.src = this.explosionImg;
             }
         });
