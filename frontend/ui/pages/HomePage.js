@@ -7,7 +7,7 @@ export const HomePage = ({ onJoinLobby }) => {
         tag: 'input',
         attributes: {
             type: 'text',
-            placeholder: 'Enter your nickname',
+            placeholder: 'ENTER PLAYER NAME',
             class: 'input',
             oninput: (e) => { nickname = e.target.value; }
         }
@@ -23,7 +23,7 @@ export const HomePage = ({ onJoinLobby }) => {
                 }
             }
         },
-        children: ['Join Lobby']
+        children: ['◄ START GAME ►']
     });
 
     const form = dom({
@@ -37,7 +37,7 @@ export const HomePage = ({ onJoinLobby }) => {
         tag: 'div',
         attributes: { class: 'home-page' }
     });
-    page.appendChild(dom({ tag: 'h1', children: ['Bomberman'] }));
+    page.appendChild(dom({ tag: 'h1', children: ['◄ BOMBERMAN ►'] }));
     page.appendChild(form);
 
     return page;

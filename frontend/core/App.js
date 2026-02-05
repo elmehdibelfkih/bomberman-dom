@@ -200,10 +200,10 @@ export class App {
             
             // Check if it's the local player who died
             if (msg.playerId === this.gameState.localPlayerId && this._gamePage) {
-                this._gamePage.showNotification('☠️ You died! Respawning...', 3000);
+                this._gamePage.showEndMessage(`💀 You Lost!\n\nYou have been eliminated!`);
             }
             
-            // Update player display
+            // Update player display to remove dead player from map
             if (this._gamePage && this._gamePage.updatePlayers) {
                 const playersArray = Array.from(this.gameState.players.values());
                 this._gamePage.updatePlayers(playersArray);
