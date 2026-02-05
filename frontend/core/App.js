@@ -8,6 +8,8 @@ import { GamePage } from '../ui/pages/GamePage.js';
 import { InputManager } from './InputManager.js';
 import { CLIENT_CONFIG } from '../config/client-config.js';
 import { ClientMessages, ServerMessages } from '../shared/message-types.js';
+import { Router } from '../framework/router/router.js';
+import { usePathname, useNavigate } from '../framework/router/useRouter.js';
 
 export class App {
     constructor() {
@@ -15,11 +17,15 @@ export class App {
         this.messageHandler = new MessageHandler();
         this.gameState = new GameState();
         this.container = document.getElementById('app');
+        this.router = Router.instance;
+        this.navigate = useNavigate();
+        this.getPathname = usePathname();
     }
 
     async init() {
+        this.router.initRouter();
         this.setupMessageHandlers();
-        this.renderPage('home');
+        this.setupRouting();
         this.setupGlobalShortcuts();
     }
 
@@ -47,7 +53,7 @@ export class App {
         this.messageHandler.register(ServerMessages.LOBBY_JOINED, (msg) => {
             this.gameState.setLocalPlayer(msg.playerId);
             lobbyData.players = msg.players;
-            // If lobby is already rendered, update it in-place, otherwise render
+            this.navigate('/lobby');
             if (this._lobbyPage && this._lobbyPage.updatePlayers) {
                 this._lobbyPage.updatePlayers(msg.players);
                 if (this._lobbyPage.updateCountdown) this._lobbyPage.updateCountdown(msg.countdown || null);
@@ -75,7 +81,7 @@ export class App {
         });
 
         this.messageHandler.register(ServerMessages.COUNTDOWN_START, (msg) => {
-            console.log('⏰ COUNTDOWN_START:', msg);
+            console.log('COUNTDOWN_START:', msg);
             lobbyData.countdown = msg.seconds;
             if (this._lobbyPage && this._lobbyPage.updateCountdown) {
                 this._lobbyPage.updateCountdown(msg.seconds);
@@ -85,7 +91,7 @@ export class App {
         });
 
         this.messageHandler.register(ServerMessages.COUNTDOWN_TICK, (msg) => {
-            console.log('⏰ COUNTDOWN_TICK:', msg.remaining);
+            console.log('COUNTDOWN_TICK:', msg.remaining);
             lobbyData.countdown = msg.remaining;
             if (this._lobbyPage && this._lobbyPage.updateCountdown) {
                 this._lobbyPage.updateCountdown(msg.remaining);
@@ -97,26 +103,23 @@ export class App {
         this.messageHandler.register(ServerMessages.GAME_STARTED, (msg) => {
             console.log('🎮 GAME_STARTED:', msg);
             
-            // Create game engine for client-side prediction
+            this.navigate('/game');
+            
             if (!this.gameEngine) {
                 this.gameEngine = new GameEngine();
             }
             
-            // initialize input manager so client sends MOVE/STOP messages to server
             if (!this.inputManager) {
                 this.inputManager = new InputManager(this.gameEngine);
                 this.inputManager.init();
             }
             
-            // Set map data for collision detection
             this.inputManager.setMapData(msg.mapData);
 
-            // populate local game state
             this.gameState.mapData = msg.mapData;
             this.gameState.clear();
             if (Array.isArray(msg.players)) {
                 msg.players.forEach(p => {
-                    // Mark local player for client prediction
                     if (p.playerId === msg.yourPlayerId) {
                         p.isLocal = true;
                     }
@@ -303,6 +306,46 @@ export class App {
         this.networkManager.setMessageHandler(this.messageHandler);
     }
 
+
+    setupRouting() {
+        // Listen to route changes
+        this.getPathname().subscribe((pathname) => {
+            this.handleRouteChange(pathname);
+        });
+        
+        // Handle initial route
+        this.handleRouteChange(this.getPathname()());
+    }
+
+    handleRouteChange(pathname) {
+        switch (pathname) {
+            case '/':
+                this.renderPage('home');
+                break;
+            case '/lobby':
+                if (this.gameState.localPlayerId) {
+                    this.renderPage('lobby', { players: [], countdown: null });
+                } else {
+                    this.navigate('/');
+                }
+                break;
+            case '/game':
+                if (this.gameState.localPlayerId && this.gameState.mapData) {
+                    const playersArray = Array.from(this.gameState.players.values());
+                    this.renderPage('game', {
+                        mapData: this.gameState.mapData,
+                        players: playersArray,
+                        yourPlayerId: this.gameState.localPlayerId
+                    });
+                } else {
+                    this.navigate('/');
+                }
+                break;
+            default:
+                this.navigate('/');
+                break;
+        }
+    }
 
     async handleJoinLobby(nickname) {
         await this.networkManager.connect(CLIENT_CONFIG.WS_URL);
