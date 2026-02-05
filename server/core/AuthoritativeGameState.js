@@ -295,9 +295,10 @@ export class AuthoritativeGameState {
         const destroyedBlocks = [];
         const damagedPlayers = [];
         let spawnedPowerUp = null;
-
         // Process explosions
         explosions.forEach(explosion => {
+            console.log("EXPLOSION", explosions)
+            console.log(this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] === BLOCK)
             if (this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] === BLOCK) {
                 this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] = FLOOR;
                 destroyedBlocks.push({ gridX: explosion.gridX, gridY: explosion.gridY });
@@ -412,6 +413,7 @@ export class AuthoritativeGameState {
                 break;
             case POWERUP_BOMB:
                 player.maxBombs = Math.min(player.maxBombs + 1, GAME_CONFIG.PLAYER_MAX_STATS.MAX_BOMBS);
+                console.log("player.maxBombs", player.maxBombs)
                 break;
             case POWERUP_FLAME:
                 player.bombRange = Math.min(player.bombRange + 1, GAME_CONFIG.PLAYER_MAX_STATS.BOMB_RANGE);
@@ -435,22 +437,26 @@ export class AuthoritativeGameState {
             { dx: 1, dy: 0 } // right
         ];
 
-        console.log("ABDNOUR", player)
+        console.log("ABDNOUR", bomb)
 
         directions.forEach(dir => {
             for (let i = 1; i <= player.bombRange; i++) {
                 const x = bomb.gridX + (dir.dx * i);
                 const y = bomb.gridY + (dir.dy * i);
 
-                if (x < 0 || x >= GAME_CONFIG.GRID_WIDTH || y < 0 || y >= GAME_CONFIG.GRID_HEIGHT) {
+                const gridWidth = this.gameEngine.mapData.initial_grid[0].length;
+                const gridHeight = this.gameEngine.mapData.initial_grid.length;
+
+                if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) {
                     break;
                 }
 
                 const cell = this.gameEngine.mapData.initial_grid[y][x];
                 if (cell === WALL) {
-                    break
+                    break;
                 } else if (cell === BLOCK) {
                     explosions.push({ gridX: x, gridY: y });
+                    break;
                 } else {
                     explosions.push({ gridX: x, gridY: y });
                 }
