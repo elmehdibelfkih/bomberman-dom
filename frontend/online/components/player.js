@@ -193,12 +193,8 @@ export class Player {
         this.left()
 
         if (this.putBomb && this.canPutBomb && this.state.bombCount <= this.state.maxBombs) {
-            // this.game.map.addBomb(this, this.x + (this.getPlayerWidth() / 2), this.y + (this.getPlayerHeight() / 2), timestamp);
             this.putBomb = false;
             this.canPutBomb = false;
-            // this.incrementBombCount();
-            // console.log(this.x + (this.getPlayerWidth() / 2), this.y + (this.getPlayerHeight() / 2));
-
             this.networkManager.sendPlaceBomb()
         }
 
@@ -354,25 +350,15 @@ export class Player {
 
     incrementBombCount = () => { this.state.bombCount++; }
     decrementBombCount = () => { this.state.bombCount--; }
+    getBombCount = () => this.state.bombCount;
 
-    getBombCount = () => {
-        return this.state.bombCount;
-    }
-    setBombCount = (count) => this.state.bombCount = count;
-
-    getMaxBombs = () => {
-        return this.state.maxBombs;
-    }
+    getMaxBombs = () => this.state.maxBombs;
     setMaxBombs = (count) => this.state.maxBombs = count;
 
-    getBombRange = () => {
-        return this.state.bombRange;
-    }
+    getBombRange = () => this.state.bombRange;
     setBombRange = (range) => this.state.bombRange = range;
 
-    getSpeed = () => {
-        return this.state.speed;
-    }
+    getSpeed = () => this.state.speed;
     setSpeed = (speed) => this.state.speed = speed;
 
     setArrowStateKeyDown = (event) => {
@@ -390,6 +376,6 @@ export class Player {
         if (key === 'ArrowDown') this.state.ARROW_DOWN = false;
         if (key === 'ArrowRight') this.state.ARROW_RIGHT = false;
         if (key === 'ArrowLeft') this.state.ARROW_LEFT = false;
-        // if (key === ' ') this.canPutBomb = true;
+        if (key === ' ') this.canPutBomb = true;
     }
 }

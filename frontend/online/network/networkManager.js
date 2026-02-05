@@ -59,10 +59,7 @@ export class NetworkManager {
         }
     }
 
-    #handleMessage(rawData) {
-        // try {
-        console.log(rawData);
-        
+    #handleMessage(rawData) {      
         if (rawData === 'ping') return;
         const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
 
@@ -77,11 +74,6 @@ export class NetworkManager {
             const handlers = this.messageHandlers.get('*');
             handlers.forEach(handler => handler(data));
         }
-
-        // } 
-        // catch (error) {
-        //     console.error('Error handling message:', error);
-        // }
     }
 
     on(messageType, handler) {

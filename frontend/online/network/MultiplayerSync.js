@@ -21,18 +21,8 @@ export function setupMultiplayerSync(game, networkManager) {
         }
     });
 
-
-    // BOMB_EXPLODED is handled in onlineApp.js
-    // POWERUP_SPAWNED is handled in onlineApp.js via BOMB_EXPLODED
-    // POWERUP_COLLECTED is handled in onlineApp.js
-
-    // Handle player damage
-
     networkManager.on('BOMB_EXPLODED', (data) => {
-        if (!game) return;
-
-        console.log(data)
-        
+        if (!game) return;        
         const bombIndex = game.map.bombs.findIndex(b =>
             b.player.state.id === data.playerId &&
             b.xMap === data.explosions[0]?.gridX &&
@@ -75,13 +65,7 @@ export function setupMultiplayerSync(game, networkManager) {
             player.setBombRange(data.newStats.bombRange)
             player.setMaxBombs(data.newStats.maxBombs)
             player.setSpeed(data.newStats.speed)
-            console.log("BombRange: ", player.getBombRange());
-            console.log("BombCount: ", player.getMaxBombs());
-            console.log("Speed: ", player.getSpeed());
-            
-        }
-        console.log("data dyaly bonus:", data);
-        
+        }        
     });
 
     networkManager.on('PLAYER_DAMAGED', (data) => {
@@ -91,7 +75,6 @@ export function setupMultiplayerSync(game, networkManager) {
         }
     });
 
-    // Handle player death
     networkManager.on('PLAYER_DIED', (data) => {
         const player = game.players.get(data.playerId);
         if (player) {

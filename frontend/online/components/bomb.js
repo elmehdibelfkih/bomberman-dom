@@ -2,9 +2,7 @@ import * as consts from '../utils/consts.js';
 import { dom } from '../../framework/framework/index.js';
 
 export class Bomb {
-    constructor(game, player, xMap, yMap, range = player.getBombRange()) {
-        console.log("range in bomb: ", this.range, player, player.getBombRange());
-        
+    constructor(game, player, xMap, yMap, range = player.getBombRange()) {        
         this.game = game
         this.range = range
         this.player = player
