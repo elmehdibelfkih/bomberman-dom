@@ -50,7 +50,6 @@ export class AuthoritativeGameState {
 
 
         if (this.isValidPosition(intendedX, intendedY, direction, playerId)) {
-            console.log("ValidatePlayerMove", intendedX, intendedY, direction, playerId)
             newX = intendedX;
             newY = intendedY;
         } else {
@@ -210,9 +209,6 @@ export class AuthoritativeGameState {
         const gridY = Math.floor(corner.y / GAME_CONFIG.BLOCK_SIZE);
 
         if (!this.isWithinGridBounds(gridX, gridY)) {
-            console.log("isWithinGridBounds:");
-            console.log(gridX, gridY);
-            console.log(corner);
             return false;
         }
 
@@ -295,7 +291,6 @@ export class AuthoritativeGameState {
         const destroyedBlocks = [];
         const damagedPlayers = [];
         let spawnedPowerUp = null;
-
         // Process explosions
         explosions.forEach(explosion => {
             if (this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] === BLOCK) {
@@ -435,8 +430,6 @@ export class AuthoritativeGameState {
             { dx: 1, dy: 0 } // right
         ];
 
-        console.log("ABDNOUR", player)
-
         directions.forEach(dir => {
             for (let i = 1; i <= player.bombRange; i++) {
                 const x = bomb.gridX + (dir.dx * i);
@@ -448,9 +441,10 @@ export class AuthoritativeGameState {
 
                 const cell = this.gameEngine.mapData.initial_grid[y][x];
                 if (cell === WALL) {
-                    break
+                    break;
                 } else if (cell === BLOCK) {
                     explosions.push({ gridX: x, gridY: y });
+                    break;
                 } else {
                     explosions.push({ gridX: x, gridY: y });
                 }

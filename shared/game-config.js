@@ -1,5 +1,5 @@
 export const GAME_CONFIG = {
-    GRID_WIDTH: 15,
+    GRID_WIDTH: 23,
     GRID_HEIGHT: 11,
     BLOCK_SIZE: 68,
     BOMB_TIMER: 3000,
