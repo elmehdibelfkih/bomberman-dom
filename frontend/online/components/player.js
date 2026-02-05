@@ -86,6 +86,7 @@ export class Player {
             this.sequenceNumber = (this.sequenceNumber || 0) + 1;
             this.networkManager.sendPlayerStop(this.sequenceNumber)
             this.pendingMoves = [];
+            this.putBomb = false
         }
     }
 
@@ -191,6 +192,8 @@ export class Player {
         this.down()
         this.right()
         this.left()
+
+        if (this.isLocal) console.log("putBomb", this.putBomb, "canPutBomb", this.canPutBomb, "bombCount", this.state.bombCount, "maxBombs", this.state.maxBombs);
 
         if (this.putBomb && this.canPutBomb && this.state.bombCount <= this.state.maxBombs) {
             this.putBomb = false;
@@ -356,7 +359,7 @@ export class Player {
     }
     decrementBombCount = () => {
         console.log("hadi d lplayer");
-        
+
         this.state.bombCount--;
         this.game.ui.updatePlayerState(this.state.id, { bombCount: this.state.bombCount });
     }
