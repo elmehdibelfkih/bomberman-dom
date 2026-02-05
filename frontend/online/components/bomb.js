@@ -94,7 +94,7 @@ export class Bomb {
         const delta = timestamp - this.lastTime;
 
         // disappearing time
-        if (timestamp - this.startTime >= this.explosionTime + 1000) {
+        if (timestamp - this.startTime >= this.explosionTime * 2 + 1000) {
             if (delta >= 50) {
                 this.disappearing = true
                 this.lastTime = timestamp;
@@ -106,7 +106,7 @@ export class Bomb {
         }
 
         // explosion time
-        if (timestamp - this.startTime >= this.explosionTime) {
+        if (timestamp - this.startTime >= this.explosionTime) { // check for when to explode
             if (!this.blowingUpBlock) {
                 this.game.map.isBlock(this.xMap - 1, this.yMap) ? (this.game.map.blowingUpBlock(this.xMap - 1, this.yMap, false), this.blowingUpBlock = true) : 0
                 this.game.map.isBlock(this.xMap + 1, this.yMap) ? (this.game.map.blowingUpBlock(this.xMap + 1, this.yMap, false), this.blowingUpBlock = true) : 0
