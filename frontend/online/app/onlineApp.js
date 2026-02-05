@@ -75,9 +75,14 @@ export class OnlineApp {
                                 type: 'text',
                                 id: 'nickname-input',
                                 placeholder: 'Enter your nickname',
-                                maxlength: '20',
+                                maxlength: '10',
                                 autocomplete: 'off'
                             },
+                            children: []
+                        },
+                        {
+                            tag: 'div',
+                            attributes: { id: 'error-message', class: 'error-message', style: 'display: none; color: var(--accent-color); margin: 0.5rem 0; font-size: 0.8rem;' },
                             children: []
                         },
                         {
@@ -102,17 +107,50 @@ export class OnlineApp {
         setTimeout(() => {
             const input = document.getElementById('nickname-input');
             const joinBtn = document.getElementById('join-btn');
+            const errorMsg = document.getElementById('error-message');
+
+            const validateNickname = (nickname) => {
+                if (!nickname) {
+                    return 'Nickname is required';
+                }
+                if (nickname.length < 3) {
+                    return 'Nickname must be at least 3 characters';
+                }
+                if (nickname.length > 10) {
+                    return 'Nickname must be at most 10 characters';
+                }
+                if (/\s/.test(nickname)) {
+                    return 'Nickname cannot contain spaces';
+                }
+                if (!/^[a-zA-Z0-9_-]+$/.test(nickname)) {
+                    return 'Nickname can only contain letters, numbers, _ and -';
+                }
+                return null;
+            };
+
+            const showError = (message) => {
+                errorMsg.textContent = message;
+                errorMsg.style.display = 'block';
+            };
+
+            const hideError = () => {
+                errorMsg.style.display = 'none';
+            };
 
             const handleJoin = () => {
                 const nickname = input.value.trim();
-                if (nickname) {
-                    sessionStorage.setItem('playerNickname', nickname);
-                    this.networkManager.joinGame(nickname);
-                    this.router.navigate('/lobby', true);
-                } else {
-                    alert('Please enter a nickname');
+                const error = validateNickname(nickname);
+                
+                if (error) {
+                    showError(error);
                     input.focus();
+                    return;
                 }
+                
+                hideError();
+                sessionStorage.setItem('playerNickname', nickname);
+                this.networkManager.joinGame(nickname);
+                this.router.navigate('/lobby', true);
             };
 
             const joinHandler = () => handleJoin();
