@@ -148,26 +148,6 @@ export function getControlsContainer() {
         children: [
             {
                 tag: 'button',
-                attributes: { id: 'star_pause' },
-                children: [
-                    {
-                        tag: 'img',
-                        attributes: { id: 'play-icon', src: './icon/play.svg', alt: 'star', width: '16', height: '16' }
-                    }
-                ]
-            },
-            {
-                tag: 'button',
-                attributes: { id: 'ref' },
-                children: [
-                    {
-                        tag: 'img',
-                        attributes: { id: 'rotate-icon', src: './icon/rotate-ccw.svg', alt: 'star', width: '16', height: '16' }
-                    }
-                ]
-            },
-            {
-                tag: 'button',
                 attributes: { id: 'sound' },
                 children: [
                     {
