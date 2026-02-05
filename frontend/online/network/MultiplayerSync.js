@@ -63,8 +63,11 @@ export function setupMultiplayerSync(game, networkManager) {
             player.setSpeed(data.newStats.speed)
 
             const bombCountDiff = data.newStats.maxBombs - oldMaxBombs;
-            if (oldMaxBombs != 2 && bombCountDiff > 0) {
+            console.log(oldMaxBombs, bombCountDiff);
+            
+            if (oldMaxBombs != 2 ) {
                 player.incrementBombCount();
+                player.setMaxBombs(2)
             }
 
             game.ui.updatePlayerState(data.playerId, {
