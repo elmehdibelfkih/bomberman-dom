@@ -344,7 +344,6 @@ export class AuthoritativeGameState {
 
         setTimeout(() => {
             this.activeExplosions.delete(explosionId)
-            console.log("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEnded")
         }, this.gameEngine.mapData.explosion_time + 1000);
 
         this.checkWinCondition();

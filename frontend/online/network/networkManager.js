@@ -61,8 +61,6 @@ export class NetworkManager {
 
     #handleMessage(rawData) {
         // try {
-        console.log("X", rawData);
-
         if (rawData === 'ping') return;
         const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
 

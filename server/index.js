@@ -63,7 +63,7 @@ export function initServer(directoryPath) {
     });
 }
 
-const httpServer = initServer(frontendPath).listen(PORT, () => {
+const httpServer = initServer(frontendPath).listen(PORT, '0.0.0.0', () => {
     console.log('🔥 SERVER STARTED: Server running on port', PORT);
     Logger.info(`server running on: http://localhost:${PORT}`);
 })
