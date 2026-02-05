@@ -1,24 +1,37 @@
 /**
  * Validate nickname
  * @param {string} nickname
+ * @param {Map} existingPlayers - Map of existing players in lobby
  * @returns {{valid: boolean, error?: string}}
  */
-export function validateNickname(nickname) {
+export function validateNickname(nickname, existingPlayers = null) {
     if (!nickname || typeof nickname !== 'string') {
         return { valid: false, error: 'Nickname is required' };
     }
 
-    if (nickname.length < 2) {
-        return { valid: false, error: 'Nickname must be at least 2 characters' };
+    if (nickname.length < 3) {
+        return { valid: false, error: 'Nickname must be at least 3 characters' };
     }
 
-    if (nickname.length > 20) {
-        return { valid: false, error: 'Nickname must be at most 20 characters' };
+    if (nickname.length > 10) {
+        return { valid: false, error: 'Nickname must be at most 10 characters' };
     }
 
-    const validPattern = /^[a-zA-Z0-9_\- ]+$/;
+    if (/\s/.test(nickname)) {
+        return { valid: false, error: 'Nickname cannot contain spaces' };
+    }
+
+    const validPattern = /^[a-zA-Z0-9_-]+$/;
     if (!validPattern.test(nickname)) {
         return { valid: false, error: 'Nickname contains invalid characters' };
+    }
+
+    if (existingPlayers) {
+        for (const [playerId, playerData] of existingPlayers) {
+            if (playerData.nickname.toLowerCase() === nickname.toLowerCase()) {
+                return { valid: false, error: 'Nickname already taken' };
+            }
+        }
     }
 
     return { valid: true };

@@ -56,7 +56,8 @@ export class MessageHandler {
 
     handleJoinGame(connection, message) {
         const nickname = message.nickname
-        const validation = validateNickname(nickname)
+        const existingPlayers = this.roomManager.lobby ? this.roomManager.lobby.players : null;
+        const validation = validateNickname(nickname, existingPlayers)
 
         if (!validation.valid) {
             connection.sendError('INVALID_NICKNAME', validation.error)
