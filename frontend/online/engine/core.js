@@ -33,9 +33,21 @@ export class Game {
         }
         this.ui = UI.getInstance(this)
         this.IDRE = null
+        this.onGameOver = null;
     }
 
+    handleGameOver(data) {
+        if (!this.IDRE) return; // Game already stopped or stopping
 
+        setTimeout(() => {
+            if (!this.IDRE) return; // Check again in case of other stop calls
+            cancelAnimationFrame(this.IDRE);
+            this.IDRE = null;
+            if (this.onGameOver) {
+                this.onGameOver(data);
+            }
+        }, 3000);
+    }
 
     async intiElements() {
         setupMultiplayerSync(this, this.networkManager);
@@ -80,7 +92,7 @@ export class Game {
             this.map.destructor();
             this.map.bombs = [];
             this.map = null;
-            Map.resetInstance();
+            gameMap.resetInstance();
         }
         if (this.ui) {
             this.ui.destroyPingDisplay();

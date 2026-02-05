@@ -1,9 +1,9 @@
-import { Router, dom, usePathname } from "../../framework/framework/index.js";
-import { Game } from "../engine/core.js";
+import { Router, usePathname } from "../../framework/framework/index.js";
+import { Game  } from "../engine/core.js";
 import { UI } from "../components/ui.js";
 import { createEffect } from "../../framework/framework/state/signal.js";
 import { NetworkManager } from '../network/networkManager.js';
-import { getGameContainer, getLobbyContainer, getControlsContainer, showModal, getGameChatContainer } from "../utils/helpers.js";
+import { getGameContainer, getLobbyContainer, getControlsContainer, showModal, getGameChatContainer, getEntryPage, createPlayerLobbyElement, createChatMessageElement, getHeaderContainer, createGameChatMessageElement, showGameOverModal } from "../utils/helpers.js";
 // import { NetworkStateSynchronizer } from '../game/network/NetworkStateSynchronizer.js';
 
 export class OnlineApp {
@@ -51,53 +51,7 @@ export class OnlineApp {
     }
 
     createEntryPage() {
-        const container = dom({
-            tag: 'div',
-            attributes: { class: 'page-container' },
-            children: [
-                {
-                    tag: 'div',
-                    attributes: { class: 'menu-box' },
-                    children: [
-                        {
-                            tag: 'h1',
-                            attributes: {},
-                            children: ['MULTIPLAYER MODE']
-                        },
-                        {
-                            tag: 'p',
-                            attributes: { class: 'menu-subtitle' },
-                            children: ['Play with friends online']
-                        },
-                        {
-                            tag: 'input',
-                            attributes: {
-                                type: 'text',
-                                id: 'nickname-input',
-                                placeholder: 'Enter your nickname',
-                                maxlength: '20',
-                                autocomplete: 'off'
-                            },
-                            children: []
-                        },
-                        {
-                            tag: 'button',
-                            attributes: { id: 'join-btn', class: 'menu-btn' },
-                            children: ['JOIN GAME']
-                        },
-                        {
-                            tag: 'a',
-                            attributes: {
-                                href: '../index.html',
-                                class: 'menu-btn',
-                                style: 'margin-top: 1rem; text-decoration: none;'
-                            },
-                            children: ['BACK TO HOME']
-                        }
-                    ]
-                }
-            ]
-        });
+        const container = getEntryPage();
 
         setTimeout(() => {
             const input = document.getElementById('nickname-input');
@@ -262,14 +216,7 @@ export class OnlineApp {
 
             if (!playerEl) {
                 // Player is new, create element
-                playerEl = dom({
-                    tag: 'div',
-                    attributes: { class: 'player-item', 'data-player-id': player.playerId },
-                    children: [
-                        { tag: 'span', attributes: { class: 'player-number' } },
-                        { tag: 'span', attributes: { class: 'player-nickname' } },
-                    ]
-                });
+                playerEl = createPlayerLobbyElement(player);
             }
 
             // Update content
@@ -289,22 +236,7 @@ export class OnlineApp {
         const chatMessages = this.lobbyContainer.querySelector('#chat-messages');
         if (!chatMessages) return;
 
-        const messageEl = dom({
-            tag: 'div',
-            attributes: { class: 'chat-message' },
-            children: [
-                {
-                    tag: 'span',
-                    attributes: { class: 'chat-nickname' },
-                    children: [`${nickname}: `]
-                },
-                {
-                    tag: 'span',
-                    attributes: { class: 'chat-text' },
-                    children: [text]
-                }
-            ]
-        });
+        const messageEl = createChatMessageElement(nickname, text);
         chatMessages.appendChild(messageEl);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
@@ -312,25 +244,7 @@ export class OnlineApp {
     async startMultiplayerGame() {
         document.body.innerHTML = '';
 
-        const headerContainer = dom({
-            tag: 'div',
-            attributes: { id: 'header-container' },
-            children: [
-                {
-                    tag: 'div',
-                    attributes: { id: 'players-info', class: 'players-info' },
-                    children: [
-                        {
-                            tag: 'h3',
-                            attributes: {},
-                            children: ['Players']
-                        }
-                    ]
-                }
-            ]
-        });
-        headerContainer.appendChild(getControlsContainer());
-
+        const headerContainer = getHeaderContainer();
         const gameContainer = getGameContainer();
         const chatContainer = getGameChatContainer();
 
@@ -340,6 +254,7 @@ export class OnlineApp {
 
 
         this.game = Game.getInstance(this.gameData);
+        this.game.onGameOver = (data) => this.handleGameOver(data);
         await this.game.intiElements();
 
         // Initialize UI with players data
@@ -364,52 +279,13 @@ export class OnlineApp {
         this.setupPlayerUpdates();
     }
 
-    setupGameHandlers() {
-        this.networkManager.on('BOMB_EXPLODED', (data) => {
-            if (!this.game) return;
+    handleGameOver(data) {
+        const winner = data.winner;
+        const isWinner = winner.playerId === this.networkManager.getPlayerId();
 
-            const bombIndex = this.game.map.bombs.findIndex(b =>
-                b.player.state.id === data.playerId &&
-                b.xMap === data.explosions[0]?.gridX &&
-                b.yMap === data.explosions[0]?.gridY
-            );
-
-            if (bombIndex !== -1) {
-                const bomb = this.game.map.bombs[bombIndex];
-                bomb.cleanDOM();
-                this.game.map.bombs.splice(bombIndex, 1);
-            }
-
-            if (data.destroyedBlocks) {
-                data.destroyedBlocks.forEach(block => {
-                    this.game.map.blowingUpBlock(block.gridX, block.gridY);
-                });
-            }
-
-            if (data.spawnedPowerup) {
-                this.game.map.spawnPowerUp(
-                    data.spawnedPowerup.powerUpId,
-                    data.spawnedPowerup.type,
-                    data.spawnedPowerup.gridX,
-                    data.spawnedPowerup.gridY
-                );
-            }
-        });
-
-        this.networkManager.on('POWERUP_COLLECTED', (data) => {
-            if (!this.game) return;
-
-            const powerupElement = document.getElementById(data.powerupId);
-            if (powerupElement) {
-                powerupElement.remove();
-            }
-
-            const player = this.game.players.get(data.playerId);
-            if (player && data.newStats) {
-                player.state.speed = data.newStats.speed;
-                player.state.maxBombs = data.newStats.maxBombs;
-                player.state.bombRange = data.newStats.bombRange;
-            }
+        showGameOverModal(isWinner, winner.nickname, () => {
+            this.cleanup();
+            window.location.href = '/';
         });
     }
 
@@ -489,22 +365,7 @@ export class OnlineApp {
         const chatMessages = document.getElementById('chat-messages-game');
         if (!chatMessages) return;
 
-        const messageEl = dom({
-            tag: 'div',
-            attributes: { class: 'game-chat-message' },
-            children: [
-                {
-                    tag: 'span',
-                    attributes: { class: 'game-chat-nickname' },
-                    children: [`${nickname}: `]
-                },
-                {
-                    tag: 'span',
-                    attributes: { class: 'game-chat-text' },
-                    children: [text]
-                }
-            ]
-        });
+        const messageEl = createGameChatMessageElement(nickname, text);
 
         chatMessages.appendChild(messageEl);
         chatMessages.scrollTop = chatMessages.scrollHeight;

@@ -1,3 +1,4 @@
+import { Game } from '../engine/core.js';
 // import { ChatNotification } from '../utils/ChatNotification.js';
 // import { NetworkStateSynchronizer } from './NetworkStateSynchronizer.js';
 
@@ -67,14 +68,15 @@ export function setupMultiplayerSync(game, networkManager) {
 
     // Handle player death
     networkManager.on('PLAYER_DIED', (data) => {
-        const player = game.players.get(data.playerId);
-        if (player) {
-            player.kill();
-        }
+        game.players.get(data.playerId).gameOver()
+
     });
 
-    // Handle game over
+    // // Handle game over
     networkManager.on('GAME_OVER', (data) => {
-        console.log('Game Over! Winner:', data.winner);
+        const game = Game.getInstance();
+        if (game) {
+            game.handleGameOver(data);
+        }
     });
 }

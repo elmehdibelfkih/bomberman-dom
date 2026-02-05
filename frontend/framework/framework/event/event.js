@@ -116,6 +116,18 @@ export class GlobalEventManager {
         existingHandlers[eventName] = handler;
         eventHandlerRegistry.set(node, existingHandlers);
     }
+
+    unlinkNodeFromHandlers(node, eventName) {
+        let existingHandlers = eventHandlerRegistry.get(node);
+        if (existingHandlers && existingHandlers[eventName]) {
+            delete existingHandlers[eventName];
+            if (Object.keys(existingHandlers).length === 0) {
+                eventHandlerRegistry.delete(node);
+            } else {
+                eventHandlerRegistry.set(node, existingHandlers);
+            }
+        }
+    }
 }
 
 export const eventManager = GlobalEventManager.instance;

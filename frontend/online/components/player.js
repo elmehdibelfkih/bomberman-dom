@@ -21,6 +21,7 @@ export class Player {
             movement: false,
             dying: !playerData.alive,
             isDead: !playerData.alive,
+            lives: playerData.lives,
             bombCount: playerData.bombCount,
             maxBombs: playerData.bombCount, // Assuming bombCount from data is maxBombs
             bombRange: 2
@@ -344,7 +345,11 @@ export class Player {
     }
 
 
-    kill = () => this.dying = true
+    kill = () => {
+        this.dying = true;
+        this.state.lives--;
+        this.game.ui.updatePlayerState(this.state.id, { lives: this.state.lives, alive: true });
+    }
     getPlayerHeight = () => {
         return this.playerCoordinate[this.state.direction][this.frameIndex].height
     }
@@ -382,5 +387,19 @@ export class Player {
         if (key === 'ArrowRight') this.state.ARROW_RIGHT = false;
         if (key === 'ArrowLeft') this.state.ARROW_LEFT = false;
         if (key === ' ') this.canPutBomb = true;
+    }
+
+    gameOver = () => {
+        this.kill()
+        if (this.isLocal) {
+            eventManager.unlinkNodeFromHandlers(document.documentElement, 'keydown', this.setArrowStateKeyDown);
+            eventManager.unlinkNodeFromHandlers(document.documentElement, 'keyup', this.setArrowStateKeyUp);
+        }
+        if (this.player && this.player.parentNode) {
+            this.game.map.grid.removeChild(this.player);
+        }
+        this.isGameOver = true;
+        this.game.ui.updatePlayerState(this.state.id, { lives: 0, alive: false });
+
     }
 }

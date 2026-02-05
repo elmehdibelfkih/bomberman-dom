@@ -248,25 +248,13 @@ export function showModal(title, message, onConfirm, onCancel) {
                         children: [
                             {
                                 tag: 'button',
-                                attributes: { class: 'menu-btn' },
-                                children: ['Yes'],
-                                listeners: {
-                                    click: () => {
-                                        if (onConfirm) onConfirm();
-                                        document.body.removeChild(modalContainer);
-                                    }
-                                }
+                                attributes: { id: 'modal-confirm-btn', class: 'menu-btn' },
+                                children: ['Yes']
                             },
                             {
                                 tag: 'button',
-                                attributes: { class: 'menu-btn' },
-                                children: ['No'],
-                                listeners: {
-                                    click: () => {
-                                        if (onCancel) onCancel();
-                                        document.body.removeChild(modalContainer);
-                                    }
-                                }
+                                attributes: { id: 'modal-cancel-btn', class: 'menu-btn' },
+                                children: ['No']
                             }
                         ]
                     }
@@ -276,4 +264,187 @@ export function showModal(title, message, onConfirm, onCancel) {
     });
 
     document.body.appendChild(modalContainer);
+
+    const confirmBtn = document.getElementById('modal-confirm-btn');
+    const cancelBtn = document.getElementById('modal-cancel-btn');
+
+    confirmBtn.addEventListener('click', () => {
+        if (onConfirm) onConfirm();
+        document.body.removeChild(modalContainer);
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        if (onCancel) onCancel();
+        document.body.removeChild(modalContainer);
+    });
+}
+
+export function getEntryPage() {
+    return dom({
+        tag: 'div',
+        attributes: { class: 'page-container' },
+        children: [
+            {
+                tag: 'div',
+                attributes: { class: 'menu-box' },
+                children: [
+                    {
+                        tag: 'h1',
+                        attributes: {},
+                        children: ['MULTIPLAYER MODE']
+                    },
+                    {
+                        tag: 'p',
+                        attributes: { class: 'menu-subtitle' },
+                        children: ['Play with friends online']
+                    },
+                    {
+                        tag: 'input',
+                        attributes: {
+                            type: 'text',
+                            id: 'nickname-input',
+                            placeholder: 'Enter your nickname',
+                            maxlength: '20',
+                            autocomplete: 'off'
+                        },
+                        children: []
+                    },
+                    {
+                        tag: 'button',
+                        attributes: { id: 'join-btn', class: 'menu-btn' },
+                        children: ['JOIN GAME']
+                    },
+                    {
+                        tag: 'a',
+                        attributes: {
+                            href: '../index.html',
+                            class: 'menu-btn',
+                            style: 'margin-top: 1rem; text-decoration: none;'
+                        },
+                        children: ['BACK TO HOME']
+                    }
+                ]
+            }
+        ]
+    });
+}
+
+export function createPlayerLobbyElement(player) {
+    return dom({
+        tag: 'div',
+        attributes: { class: 'player-item', 'data-player-id': player.playerId },
+        children: [
+            { tag: 'span', attributes: { class: 'player-number' } },
+            { tag: 'span', attributes: { class: 'player-nickname' } },
+        ]
+    });
+}
+
+export function createChatMessageElement(nickname, text) {
+    return dom({
+        tag: 'div',
+        attributes: { class: 'chat-message' },
+        children: [
+            {
+                tag: 'span',
+                attributes: { class: 'chat-nickname' },
+                children: [`${nickname}: `]
+            },
+            {
+                tag: 'span',
+                attributes: { class: 'chat-text' },
+                children: [text]
+            }
+        ]
+    });
+}
+
+export function getHeaderContainer() {
+    const headerContainer = dom({
+        tag: 'div',
+        attributes: { id: 'header-container' },
+        children: [
+            {
+                tag: 'div',
+                attributes: { id: 'players-info', class: 'players-info' },
+                children: [
+                    {
+                        tag: 'h3',
+                        attributes: {},
+                        children: ['Players']
+                    }
+                ]
+            }
+        ]
+    });
+    headerContainer.appendChild(getControlsContainer());
+    return headerContainer;
+}
+
+export function createGameChatMessageElement(nickname, text) {
+    return dom({
+        tag: 'div',
+        attributes: { class: 'game-chat-message' },
+        children: [
+            {
+                tag: 'span',
+                attributes: { class: 'game-chat-nickname' },
+                children: [`${nickname}: `]
+            },
+            {
+                tag: 'span',
+                attributes: { class: 'game-chat-text' },
+                children: [text]
+            }
+        ]
+    });
+}
+
+export function showGameOverModal(isWinner, winnerNickname, onGoHome) {
+    const title = isWinner ? '🎉 YOU WIN! 🎉' : '💀 YOU LOSE 💀';
+    const message = isWinner ? `Congratulations, you are the last one standing!` : `The winner is ${winnerNickname}. Better luck next time!`;
+
+    const modalContainer = dom({
+        tag: 'div',
+        attributes: {
+            class: 'modal-container',
+        },
+        children: [
+            {
+                tag: 'div',
+                attributes: { class: 'game-over-modal' },
+                children: [
+                    {
+                        tag: 'h1',
+                        attributes: {
+                            class: isWinner ? 'win-title' : 'lose-title'
+                        },
+                        children: [title]
+                    },
+                    {
+                        tag: 'p',
+                        children: [message]
+                    },
+                    {
+                        tag: 'button',
+                        attributes: {
+                            id: 'game-over-home-btn',
+                            class: 'menu-btn',
+                        },
+                        children: ['BACK TO HOME'],
+                    }
+                ]
+            }
+        ]
+    });
+
+    document.body.appendChild(modalContainer);
+
+    const homeBtn = document.getElementById('game-over-home-btn');
+    homeBtn.addEventListener('click', () => {
+        document.body.removeChild(modalContainer);
+        if (onGoHome) {
+            onGoHome();
+        }
+    });
 }
