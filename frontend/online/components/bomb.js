@@ -204,7 +204,6 @@ export class Bomb {
         this.done = true;
         this.active = false;
         if (this.bomb && this.bomb.parentNode) this.bomb.parentNode.removeChild(this.bomb);
-        // this.player.decrementBombCount();
         this.bomb = null;
         this.img = null;
         this.exp = null;
