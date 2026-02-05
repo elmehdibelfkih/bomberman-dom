@@ -108,10 +108,25 @@ export class Bomb {
         // explosion time
         if (timestamp - this.startTime >= this.explosionTime) { // check for when to explode
             if (!this.blowingUpBlock) {
-                this.game.map.isBlock(this.xMap - 1, this.yMap) ? (this.game.map.blowingUpBlock(this.xMap - 1, this.yMap, false), this.blowingUpBlock = true) : 0
-                this.game.map.isBlock(this.xMap + 1, this.yMap) ? (this.game.map.blowingUpBlock(this.xMap + 1, this.yMap, false), this.blowingUpBlock = true) : 0
-                this.game.map.isBlock(this.xMap, this.yMap - 1) ? (this.game.map.blowingUpBlock(this.xMap, this.yMap - 1, false), this.blowingUpBlock = true) : 0
-                this.game.map.isBlock(this.xMap, this.yMap + 1) ? (this.game.map.blowingUpBlock(this.xMap, this.yMap + 1, false), this.blowingUpBlock = true) : 0
+                this.game.map.isBlock(this.xMap - 1, this.yMap) ? this.game.map.blowingUpBlock(this.xMap - 1, this.yMap, false) : 0
+                this.game.map.isBlock(this.xMap + 1, this.yMap) ? this.game.map.blowingUpBlock(this.xMap + 1, this.yMap, false) : 0
+                this.game.map.isBlock(this.xMap, this.yMap - 1) ? this.game.map.blowingUpBlock(this.xMap, this.yMap - 1, false) : 0
+                this.game.map.isBlock(this.xMap, this.yMap + 1) ? this.game.map.blowingUpBlock(this.xMap, this.yMap + 1, false) : 0
+
+                if (this.range == 2 && (this.LEFT || this.RIGHT || this.UP || this.DOWN)) {
+                    if (this.LEFT) {
+                        this.game.map.isBlock(this.xMap - 2, this.yMap) ? this.game.map.blowingUpBlock(this.xMap - 2, this.yMap, true) : 0
+                    }
+                    if (this.RIGHT) {
+                        this.game.map.isBlock(this.xMap + 2, this.yMap) ? this.game.map.blowingUpBlock(this.xMap + 2, this.yMap, true) : 0
+                    }
+                    if (this.UP) {
+                        this.game.map.isBlock(this.xMap, this.yMap - 2) ? this.game.map.blowingUpBlock(this.xMap, this.yMap - 2, true) : 0
+                    }
+                    if (this.DOWN) {
+                        this.game.map.isBlock(this.xMap, this.yMap + 2) ? this.game.map.blowingUpBlock(this.xMap, this.yMap + 2, true) : 0
+                    }
+                }
                 this.blowingUpBlock = true
             }
             this.image = this.image.replace(/\d+\.png$/, "2.png");

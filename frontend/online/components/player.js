@@ -24,7 +24,7 @@ export class Player {
             lives: playerData.lives,
             bombCount: playerData.bombCount,
             maxBombs: playerData.bombCount, // Assuming bombCount from data is maxBombs
-            bombRange: 2
+            bombRange: playerData.bombRange
             // bombRange: playerData.bombRange
         };
         this.x = playerData.x;
