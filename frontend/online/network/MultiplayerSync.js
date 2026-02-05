@@ -15,8 +15,8 @@ export function setupMultiplayerSync(game, networkManager) {
 
     networkManager.on('BOMB_PLACED', (data) => {
         game.map.addBomb(data.playerId, data.gridX, data.gridY);
-        const localPlayer = game.players.get(data.playerId);
-        localPlayer.decrementBombCount()
+        const player = game.players.get(data.playerId);
+        player.decrementBombCount()
     });
 
     networkManager.on('BOMB_EXPLODED', (data) => {
@@ -94,4 +94,11 @@ export function setupMultiplayerSync(game, networkManager) {
     networkManager.on('GAME_OVER', (data) => {
         console.log('Game Over! Winner:', data.winner);
     });
+
+    networkManager.on('SPEED_RESET', (data) => {
+        const player = game.players.get(data.playerId);
+        if (player) {
+            player.state.speed = data.speed
+        }
+    })
 }
