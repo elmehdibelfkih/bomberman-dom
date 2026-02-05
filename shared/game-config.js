@@ -19,7 +19,7 @@ export const GAME_CONFIG = {
         WIDTH_VERTICAL: 33,
         HEIGHT: 64
     },
-    POWERUP_DURATION: 10000,
+    POWERUP_DURATION: 5000,
     PLAYER_MAX_STATS: {
         SPEED: 6,
         MAX_BOMBS: 2,

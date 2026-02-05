@@ -291,6 +291,7 @@ export class AuthoritativeGameState {
         const destroyedBlocks = [];
         const damagedPlayers = [];
         let spawnedPowerUp = null;
+        console.log("EXPLOSIONS", explosions)
         // Process explosions
         explosions.forEach(explosion => {
             if (this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] === BLOCK) {
@@ -395,6 +396,7 @@ export class AuthoritativeGameState {
             player.powerUpTimers.delete(type)
             player.speed--
             this.gameRoom.broadcast(MessageBuilder.speedReset(player.playerId, player.speed))
+            console.log("SPEED REMOVED")
         }, GAME_CONFIG.POWERUP_DURATION);
 
         player.powerUpTimers.set(type, powerUpTimerId)
@@ -444,7 +446,6 @@ export class AuthoritativeGameState {
                     break;
                 } else if (cell === BLOCK) {
                     explosions.push({ gridX: x, gridY: y });
-                    break;
                 } else {
                     explosions.push({ gridX: x, gridY: y });
                 }
