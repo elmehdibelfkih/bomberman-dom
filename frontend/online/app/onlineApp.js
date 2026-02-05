@@ -198,6 +198,20 @@ export class OnlineApp {
             this.addChatMessage('System', `${data.nickname} left the lobby`);
         };
 
+        const waitTimerStartedHandler = (data) => {
+            countdownDisplay.textContent = `Waiting for players... ${data.remaining}s`;
+            countdownDisplay.style.color = 'var(--timer-color)';
+        };
+
+        const waitTimerTickHandler = (data) => {
+            countdownDisplay.textContent = `Waiting for players... ${data.remaining}s`;
+        };
+
+        const roomLockedHandler = (data) => {
+            countdownDisplay.textContent = 'Room is locked!';
+            countdownDisplay.style.color = 'var(--accent-color)';
+        };
+
         const countdownStartHandler = (data) => {
             countdownDisplay.textContent = `Game starting in ${data.seconds} seconds...`;
             countdownDisplay.style.color = 'var(--timer-color)';
@@ -224,15 +238,36 @@ export class OnlineApp {
         }
 
         const errorHandler = (response) => {
-            this.errorHandler(response);
+            if (response.code === 'INVALID_NICKNAME') {
+                this.router.navigate('/', true);
+                setTimeout(() => {
+                    const errorMsg = document.getElementById('error-message');
+                    const input = document.getElementById('nickname-input');
+                    if (errorMsg && input) {
+                        errorMsg.textContent = response.message;
+                        errorMsg.style.display = 'block';
+                        input.focus();
+                    }
+                }, 100);
+            } else {
+                this.errorHandler(response);
+            }
         }
+
+        const lobbyDisbandedHandler = (data) => {
+            window.location.href = '../index.html';
+        };
 
         // Register network event handlers
         this.networkManager.on('LOBBY_JOINED', lobbyJoinedHandler);
         this.networkManager.on('PLAYER_JOINED', playerJoinedHandler);
         this.networkManager.on('PLAYER_LEFT', playerLeftHandler);
+        this.networkManager.on('WAIT_TIMER_STARTED', waitTimerStartedHandler);
+        this.networkManager.on('WAIT_TIMER_TICK', waitTimerTickHandler);
+        this.networkManager.on('ROOM_LOCKED', roomLockedHandler);
         this.networkManager.on('COUNTDOWN_START', countdownStartHandler);
         this.networkManager.on('COUNTDOWN_TICK', countdownTickHandler);
+        this.networkManager.on('LOBBY_DISBANDED', lobbyDisbandedHandler);
         this.networkManager.on('GAME_STARTED', gameStartedHandler);
         this.networkManager.on('CHAT_MESSAGE', chatMessageHandler);
         this.networkManager.on('GAME_OVER', gameOverHandler)
@@ -394,7 +429,9 @@ export class OnlineApp {
 
 
     gameOverHandler(winnerName) {
-        console.log(winnerName)
+        const myNickname = sessionStorage.getItem('playerNickname');
+        const isWinner = winnerName === myNickname;
+        
         const gameOverScreen = dom({
             tag: 'div',
             attributes: { class: 'game-over-screen' },
@@ -405,13 +442,27 @@ export class OnlineApp {
                     children: [
                         {
                             tag: 'h2',
-                            attributes: { class: 'game-over-title' },
-                            children: ['Game Over']
+                            attributes: { 
+                                class: 'game-over-title',
+                                style: `color: ${isWinner ? 'var(--timer-color)' : 'var(--accent-color)'};`
+                            },
+                            children: [isWinner ? '🎉 CONGRATULATIONS! 🎉' : 'GAME OVER']
                         },
                         {
                             tag: 'p',
-                            attributes: { class: 'game-over-winner' },
-                            children: [`Winner: ${winnerName}`]
+                            attributes: { 
+                                class: 'game-over-message',
+                                style: 'font-size: 1.2rem; margin: 1rem 0; color: white;'
+                            },
+                            children: [isWinner ? `You are the champion!` : `Winner: ${winnerName}`]
+                        },
+                        {
+                            tag: 'p',
+                            attributes: { 
+                                class: 'game-over-subtitle',
+                                style: `font-size: 0.9rem; color: ${isWinner ? 'var(--timer-color)' : '#888'}; margin-bottom: 2rem;`
+                            },
+                            children: [isWinner ? 'Well played!' : 'Better luck next time!']
                         },
                         {
                             tag: 'button',
