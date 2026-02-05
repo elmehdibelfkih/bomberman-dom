@@ -214,6 +214,11 @@ export class OnlineApp {
             }
         };
 
+        const countdownCancelledHandler = (data) => {
+            countdownDisplay.textContent = '';
+            countdownDisplay.style.color = '';
+        };
+
         const gameStartedHandler = (data) => {
             this.gameData = data;
             this.router.navigate('/game', true);
@@ -237,6 +242,7 @@ export class OnlineApp {
         this.networkManager.on('PLAYER_LEFT', playerLeftHandler);
         this.networkManager.on('COUNTDOWN_START', countdownStartHandler);
         this.networkManager.on('COUNTDOWN_TICK', countdownTickHandler);
+        this.networkManager.on('COUNTDOWN_CANCELLED', countdownCancelledHandler);
         this.networkManager.on('GAME_STARTED', gameStartedHandler);
         this.networkManager.on('CHAT_MESSAGE', chatMessageHandler);
         this.networkManager.on('GAME_OVER', gameOverHandler)
@@ -261,12 +267,11 @@ export class OnlineApp {
                 'LEAVE LOBBY',
                 'Are you sure you want to leave the lobby?',
                 () => {
-                    this.cleanup();
-                    window.location.href = '../index.html';
+                    this.networkManager.quitGame();
+                    this.cleanupEventListeners();
+                    this.router.navigate('/', true);
                 },
-                () => {
-                    // Do nothing, modal closed
-                }
+                () => {}
             );
         };
 

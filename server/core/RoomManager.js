@@ -35,7 +35,7 @@ export class RoomManager {
             players: new Map(),
             status: 'WAITING',
             createdAt: Date.now(),
-            waitTimer: null, //20sec
+            waitTimer: 20, //20sec
             countdownTimer: null, // 10sec
         }
     }
@@ -327,10 +327,31 @@ export class RoomManager {
                 }
                 this.lobby = null;
             }
-            else if (this.lobby.players.size < 2 && this.lobby.status === 'WAITING' && this.lobby.waitTimer) {
-                clearTimeout(this.lobby.waitTimer);
-                this.lobby.waitTimer = null;
-                Logger.info('Wait timer cancelled, not enough players');
+            else if (this.lobby.players.size < 2) {
+                if (this.lobby.waitTimer) {
+                    clearTimeout(this.lobby.waitTimer);
+                    this.lobby.waitTimer = null;
+                }
+                if (this.lobby.countdownTimer) {
+                    clearInterval(this.lobby.countdownTimer);
+                    this.lobby.countdownTimer = null;
+                }
+                this.lobby.status = 'WAITING';
+                Logger.info('Countdown cancelled, not enough players');
+                this.broadcastToLobby(
+                    this.lobby,
+                    MessageBuilder.countdownCancelled()
+                );
+            }
+            else if (this.lobby.status === 'COUNTDOWN' && this.lobby.players.size < 4) {
+                clearInterval(this.lobby.countdownTimer);
+                this.lobby.countdownTimer = null;
+                this.lobby.status = 'WAITING';
+                Logger.info('Countdown cancelled, player left');
+                this.broadcastToLobby(
+                    this.lobby,
+                    MessageBuilder.countdownCancelled()
+                );
             }
 
             return;

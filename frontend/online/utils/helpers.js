@@ -248,25 +248,13 @@ export function showModal(title, message, onConfirm, onCancel) {
                         children: [
                             {
                                 tag: 'button',
-                                attributes: { class: 'menu-btn' },
-                                children: ['Yes'],
-                                listeners: {
-                                    click: () => {
-                                        if (onConfirm) onConfirm();
-                                        document.body.removeChild(modalContainer);
-                                    }
-                                }
+                                attributes: { class: 'menu-btn', id: 'modal-yes-btn' },
+                                children: ['Yes']
                             },
                             {
                                 tag: 'button',
-                                attributes: { class: 'menu-btn' },
-                                children: ['No'],
-                                listeners: {
-                                    click: () => {
-                                        if (onCancel) onCancel();
-                                        document.body.removeChild(modalContainer);
-                                    }
-                                }
+                                attributes: { class: 'menu-btn', id: 'modal-no-btn' },
+                                children: ['No']
                             }
                         ]
                     }
@@ -276,4 +264,19 @@ export function showModal(title, message, onConfirm, onCancel) {
     });
 
     document.body.appendChild(modalContainer);
+
+    setTimeout(() => {
+        const yesBtn = document.getElementById('modal-yes-btn');
+        const noBtn = document.getElementById('modal-no-btn');
+
+        yesBtn.addEventListener('click', () => {
+            if (onConfirm) onConfirm();
+            document.body.removeChild(modalContainer);
+        });
+
+        noBtn.addEventListener('click', () => {
+            if (onCancel) onCancel();
+            document.body.removeChild(modalContainer);
+        });
+    }, 0);
 }
