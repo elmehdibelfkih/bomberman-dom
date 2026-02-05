@@ -35,8 +35,9 @@ export class RoomManager {
             players: new Map(),
             status: 'WAITING',
             createdAt: Date.now(),
-            waitTimer: null, //20sec
-            countdownTimer: null, // 10sec
+            waitTimer: null,
+            waitInterval: null,
+            countdownTimer: null,
         }
     }
 
@@ -73,15 +74,34 @@ export class RoomManager {
     }
 
     startWaitTimer(lobby) {
+        let waitRemaining = GAME_CONFIG.WAIT_TIMER / 1000;
+        
         this.broadcastToLobby(lobby, {
             type: 'WAIT_TIMER_STARTED',
-            message: '20-second timer started. Game will begin when 4 players join or timer expires.'
+            remaining: waitRemaining
         });
 
+        lobby.waitInterval = setInterval(() => {
+            waitRemaining--;
+            if (waitRemaining > 0) {
+                this.broadcastToLobby(lobby, {
+                    type: 'WAIT_TIMER_TICK',
+                    remaining: waitRemaining
+                });
+            }
+        }, 1000);
+
         lobby.waitTimer = setTimeout(() => {
+            clearInterval(lobby.waitInterval);
             if (lobby.players.size >= 2 && lobby.status === 'WAITING') {
-                Logger.info(`Wait timer expired for lobby ${lobby.id}, starting countdown with ${lobby.players.size} players`);
-                this.startCountDown(lobby);
+                Logger.info(`Wait timer expired for lobby ${lobby.id}, locking room and starting countdown`);
+                this.broadcastToLobby(lobby, {
+                    type: 'ROOM_LOCKED',
+                    message: 'Room is locked'
+                });
+                setTimeout(() => {
+                    this.startCountDown(lobby);
+                }, 1000);
             } else {
                 Logger.info(`Wait timer expired for lobby ${lobby.id}, but only ${lobby.players.size} players - not starting game`);
             }
@@ -319,17 +339,24 @@ export class RoomManager {
             );
 
             if (this.lobby.players.size === 0) {
-                if (this.lobby.waitTimer) {
-                    clearTimeout(this.lobby.waitTimer);
-                }
-                if (this.lobby.countdownTimer) {
-                    clearInterval(this.lobby.countdownTimer);
-                }
+                if (this.lobby.waitTimer) clearTimeout(this.lobby.waitTimer);
+                if (this.lobby.waitInterval) clearInterval(this.lobby.waitInterval);
+                if (this.lobby.countdownTimer) clearInterval(this.lobby.countdownTimer);
+                this.lobby = null;
+            }
+            else if (this.lobby.players.size === 1) {
+                if (this.lobby.waitTimer) clearTimeout(this.lobby.waitTimer);
+                if (this.lobby.waitInterval) clearInterval(this.lobby.waitInterval);
+                if (this.lobby.countdownTimer) clearInterval(this.lobby.countdownTimer);
+                Logger.info('Only 1 player left, disbanding lobby');
+                this.broadcastToLobby(this.lobby, MessageBuilder.lobbyDisbanded('Not enough players'));
                 this.lobby = null;
             }
             else if (this.lobby.players.size < 2 && this.lobby.status === 'WAITING' && this.lobby.waitTimer) {
                 clearTimeout(this.lobby.waitTimer);
+                if (this.lobby.waitInterval) clearInterval(this.lobby.waitInterval);
                 this.lobby.waitTimer = null;
+                this.lobby.waitInterval = null;
                 Logger.info('Wait timer cancelled, not enough players');
             }
 
