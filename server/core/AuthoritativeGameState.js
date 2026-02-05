@@ -444,10 +444,7 @@ export class AuthoritativeGameState {
                 const x = bomb.gridX + (dir.dx * i);
                 const y = bomb.gridY + (dir.dy * i);
 
-                const gridWidth = this.gameEngine.mapData.initial_grid[0].length;
-                const gridHeight = this.gameEngine.mapData.initial_grid.length;
-
-                if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) {
+                if (x < 0 || x >= GAME_CONFIG.GRID_WIDTH || y < 0 || y >= GAME_CONFIG.GRID_HEIGHT) {
                     break;
                 }
 
