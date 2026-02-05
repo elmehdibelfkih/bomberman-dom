@@ -1,4 +1,3 @@
-import { ClientMessages, ServerMessages } from "../../shared/message-types.js"
 import { RoomManager } from "../core/RoomManager.js";
 import { sanitizeChatMessage, validateNickname } from "../utils/validation.js";
 import { MessageBuilder } from "./MessageBuilder.js"
@@ -12,33 +11,33 @@ export class MessageHandler {
             const message = JSON.parse(rawMessage)
 
             switch (message.type) {
-                case ClientMessages.JOIN_GAME:
+                case "JOIN_GAME":
                     this.handleJoinGame(connection, message);
                     break
 
-                case ClientMessages.MOVE:
+                case "MOVE":
                     this.handleMove(connection, message);
                     break
 
-                case ClientMessages.STOP_MOVE:
+                case "STOP_MOVE":
                     this.handleStopMove(connection, message);
                     break
 
-                case ClientMessages.PLACE_BOMB:
+                case "PLACE_BOMB":
                     this.handlePlaceBomb(connection, message);
                     break
 
-                case ClientMessages.CHAT_MESSAGE:
+                case "CHAT_MESSAGE":
                     this.handleChat(connection, message);
                     break;
-                case ClientMessages.QUIT_GAME:
+                case "QUIT_GAME":
                     this.handleQuitGame(connection, message)
                     break
 
-                case ClientMessages.PLAYER_CORRECTION:
+                case "PLAYER_CORRECTION":
                     this.handlePlayerCorrection(connection, message);
                     break;
-                case ClientMessages.PING:
+                case "PING":
                     this.handlePing(connection);
                     break;
 

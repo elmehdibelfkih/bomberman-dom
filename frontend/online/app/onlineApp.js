@@ -15,7 +15,7 @@ export class OnlineApp {
         this.ui = null;
         this.eventListeners = [];
         this.networkManager = NetworkManager.getInstance();
-        this.lobbyContainer = null; // Add this
+        this.lobbyContainer = null;
         this.init();
     }
 
@@ -524,39 +524,7 @@ export class OnlineApp {
         this.game.run();
 
         this.setupGameChat();
-        // this.setupPlayerUpdates();
     }
-
-    // setupPlayerUpdates() {
-    //     // Listen for player state updates
-    //     const playerUpdatedHandler = (data) => {
-    //         if (this.ui) {
-    //             // data should contain playerId and updated player stats
-    //             this.ui.updatePlayerState(data.playerId, {
-    //                 lives: data.lives,
-    //                 bombCount: data.bombCount,
-    //                 bombRange: data.bombRange,
-    //                 speed: data.speed,
-    //                 alive: data.alive
-    //             });
-    //         }
-    //     };
-
-    //     const playerStateHandler = (data) => {
-    //         // Handle full player state update (all players)
-    //         if (this.ui && data.players) {
-    //             this.ui.updateAllPlayers(data.players);
-    //         }
-    //     };
-
-    //     this.networkManager.on('PLAYER_UPDATED', playerUpdatedHandler);
-    //     this.networkManager.on('PLAYER_STATE', playerStateHandler);
-
-    //     this.eventListeners.push(
-    //         { network: 'PLAYER_UPDATED', handler: playerUpdatedHandler },
-    //         { network: 'PLAYER_STATE', handler: playerStateHandler }
-    //     );
-    // }
 
     setupGameChat() {
         const chatInput = document.getElementById('chat-input-game');
