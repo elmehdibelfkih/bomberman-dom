@@ -49,6 +49,13 @@ export const MessageBuilder = {
     };
   },
 
+  countdownCancelled() {
+    return {
+      type: 'COUNTDOWN_CANCELLED',
+      message: 'Countdown cancelled - not enough players',
+    };
+  },
+
   gameStarted(roomId, mapId, mapData, players, yourPlayerId) {
     return {
       type: 'GAME_STARTED',
