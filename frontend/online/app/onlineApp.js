@@ -3,7 +3,7 @@ import { Game } from "../engine/core.js";
 import { UI } from "../components/ui.js";
 import { createEffect } from "../../framework/framework/state/signal.js";
 import { NetworkManager } from '../network/networkManager.js';
-import { getGameContainer, getLobbyContainer, getControlsContainer, showModal, getGameChatContainer } from "../utils/helpers.js";
+import { getGameContainer, getLobbyContainer, getControlsContainer, showModal, getGameChatContainer, getEntryPageContainer } from "../utils/helpers.js";
 
 export class OnlineApp {
     constructor() {
@@ -50,58 +50,7 @@ export class OnlineApp {
     }
 
     createEntryPage() {
-        const container = dom({
-            tag: 'div',
-            attributes: { class: 'page-container' },
-            children: [
-                {
-                    tag: 'div',
-                    attributes: { class: 'menu-box' },
-                    children: [
-                        {
-                            tag: 'h1',
-                            attributes: {},
-                            children: ['MULTIPLAYER MODE']
-                        },
-                        {
-                            tag: 'p',
-                            attributes: { class: 'menu-subtitle' },
-                            children: ['Play with friends online']
-                        },
-                        {
-                            tag: 'input',
-                            attributes: {
-                                type: 'text',
-                                id: 'nickname-input',
-                                placeholder: 'Enter your nickname',
-                                maxlength: '10',
-                                autocomplete: 'off'
-                            },
-                            children: []
-                        },
-                        {
-                            tag: 'div',
-                            attributes: { id: 'error-message', class: 'error-message', style: 'display: none; color: var(--accent-color); margin: 0.5rem 0; font-size: 0.8rem;' },
-                            children: []
-                        },
-                        {
-                            tag: 'button',
-                            attributes: { id: 'join-btn', class: 'menu-btn' },
-                            children: ['JOIN GAME']
-                        },
-                        {
-                            tag: 'a',
-                            attributes: {
-                                href: '../index.html',
-                                class: 'menu-btn',
-                                style: 'margin-top: 1rem; text-decoration: none;'
-                            },
-                            children: ['BACK TO HOME']
-                        }
-                    ]
-                }
-            ]
-        });
+        const container = getEntryPageContainer();
 
         setTimeout(() => {
             const input = document.getElementById('nickname-input');

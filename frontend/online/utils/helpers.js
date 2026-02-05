@@ -162,6 +162,62 @@ export function getControlsContainer() {
     return controlsContainer;
 }
 
+export function getEntryPageContainer() {
+  const container = dom({
+    tag: 'div',
+    attributes: { class: 'page-container' },
+    children: [
+      {
+        tag: 'div',
+        attributes: { class: 'menu-box' },
+        children: [
+          {
+            tag: 'h1',
+            attributes: {},
+            children: ['MULTIPLAYER MODE']
+          },
+          {
+            tag: 'p',
+            attributes: { class: 'menu-subtitle' },
+            children: ['Play with friends online']
+          },
+          {
+            tag: 'input',
+            attributes: {
+              type: 'text',
+              id: 'nickname-input',
+              placeholder: 'Enter your nickname',
+              maxlength: '10',
+              autocomplete: 'off'
+            },
+            children: []
+          },
+          {
+            tag: 'div',
+            attributes: { id: 'error-message', class: 'error-message', style: 'display: none; color: var(--accent-color); margin: 0.5rem 0; font-size: 0.8rem;' },
+            children: []
+          },
+          {
+            tag: 'button',
+            attributes: { id: 'join-btn', class: 'menu-btn' },
+            children: ['JOIN GAME']
+          },
+          {
+            tag: 'a',
+            attributes: {
+              href: '../index.html',
+              class: 'menu-btn',
+              style: 'margin-top: 1rem; text-decoration: none;'
+            },
+            children: ['BACK TO HOME']
+          }
+        ]
+      }
+    ]
+  });
+  return container;
+}
+
 export function showModal(title, message, onConfirm, onCancel) {
     const yesBtn = document.createElement('button');
     yesBtn.className = 'menu-btn';
