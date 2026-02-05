@@ -4,6 +4,9 @@ import { Board } from '../components/Board.js';
 import { GameEngine } from '../../core/GameEngine.js';
 
 export const GamePage = ({ mapData, players, yourPlayerId, onSendChat = () => {}, onPlaceBomb = () => {} }) => {
+    // Store players reference for updates
+    let currentPlayers = players;
+    
     // Initialize game engine with performance monitoring
     const gameEngine = new GameEngine();
     gameEngine.initialize(mapData, players);
@@ -41,11 +44,12 @@ export const GamePage = ({ mapData, players, yourPlayerId, onSendChat = () => {}
     
     // Update lives display
     function updateLivesDisplay() {
-        // Get local player from the players passed to this component or from game state
-        const localPlayer = players.find(p => p.playerId === yourPlayerId);
+        // Get local player from current players array
+        const localPlayer = currentPlayers.find(p => p.playerId === yourPlayerId);
         const lives = localPlayer?.lives ?? 3;
-        const heartsDisplay = '❤️'.repeat(Math.max(0, lives)) + '💀'.repeat(Math.max(0, 3 - lives));
-        livesDisplay.innerHTML = `Lives: ${heartsDisplay}`;
+        const maxLives = 3;
+        const heartsDisplay = '❤️'.repeat(Math.max(0, lives)) + '🖤'.repeat(Math.max(0, maxLives - lives));
+        livesDisplay.innerHTML = `${heartsDisplay}`;
     }
     
     // Update performance every second
@@ -100,6 +104,7 @@ export const GamePage = ({ mapData, players, yourPlayerId, onSendChat = () => {}
     }
 
     function updatePlayers(newPlayers) {
+        currentPlayers = newPlayers; // Update the reference
         if (board && board.updatePlayers) board.updatePlayers(newPlayers);
         updateLivesDisplay(); // Update lives when players change
     }

@@ -150,12 +150,13 @@ export class InputManager {
         if (!localPlayerElement) return;
         
         const BLOCK_SIZE = (CLIENT_CONFIG && CLIENT_CONFIG.CELL_SIZE) || 32;
+        const step = BLOCK_SIZE * (this.playerSpeed > 3 ? 2 : 1);
         let dx = 0, dy = 0;
         switch (direction) {
-            case 'UP': dy = -BLOCK_SIZE; break;
-            case 'DOWN': dy = BLOCK_SIZE; break;
-            case 'LEFT': dx = -BLOCK_SIZE; break;
-            case 'RIGHT': dx = BLOCK_SIZE; break;
+            case 'UP': dy = -step; break;
+            case 'DOWN': dy = step; break;
+            case 'LEFT': dx = -step; break;
+            case 'RIGHT': dx = step; break;
         }
         
         // Get current position from DOM

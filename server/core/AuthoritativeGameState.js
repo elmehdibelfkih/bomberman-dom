@@ -28,25 +28,37 @@ export class AuthoritativeGameState {
         player.direction = direction;
         player.isMoving = true;
 
-        // Single-tile step movement: compute a one-block displacement and apply if free
-        const step = GAME_CONFIG.BLOCK_SIZE;
-        let dx = 0, dy = 0;
-        switch (direction) {
-            case 'UP': dy = -step; break;
-            case 'DOWN': dy = step; break;
-            case 'LEFT': dx = -step; break;
-            case 'RIGHT': dx = step; break;
-            default: break;
-        }
-
+        // Check collision for each step when moving multiple blocks
+        const steps = player.speed > 3 ? 2 : 1;
+        const stepSize = GAME_CONFIG.BLOCK_SIZE;
         const playerSize = Math.round(GAME_CONFIG.BLOCK_SIZE * 0.7);
-        const targetX = player.x + dx;
-        const targetY = player.y + dy;
-
+        let currentX = player.x;
+        let currentY = player.y;
+        
+        for (let step = 1; step <= steps; step++) {
+            let nextX = currentX;
+            let nextY = currentY;
+            
+            switch (direction) {
+                case 'UP': nextY -= stepSize; break;
+                case 'DOWN': nextY += stepSize; break;
+                case 'LEFT': nextX -= stepSize; break;
+                case 'RIGHT': nextX += stepSize; break;
+                default: break;
+            }
+            
+            if (!this.isPositionFree(nextX, nextY, player, playerSize)) {
+                break;
+            }
+            
+            currentX = nextX;
+            currentY = nextY;
+        }
+        
         let moved = false;
-        if (this.isPositionFree(targetX, targetY, player, playerSize)) {
-            player.x = targetX;
-            player.y = targetY;
+        if (currentX !== player.x || currentY !== player.y) {
+            player.x = currentX;
+            player.y = currentY;
 
             const newGridX = Math.floor((player.x + playerSize/2) / GAME_CONFIG.BLOCK_SIZE);
             const newGridY = Math.floor((player.y + playerSize/2) / GAME_CONFIG.BLOCK_SIZE);
@@ -130,6 +142,10 @@ export class AuthoritativeGameState {
             // Use proper player hitbox (slightly smaller than block for smooth passage)
             const playerSize = Math.round(GAME_CONFIG.BLOCK_SIZE * 0.7); // 70% of block size
 
+            // Store old grid position
+            const oldGridX = player.gridX;
+            const oldGridY = player.gridY;
+
             // Attempt movement with proper collision detection
             if (this.isPositionFree(tryX, tryY, player, playerSize)) {
                 player.x = tryX;
@@ -152,8 +168,24 @@ export class AuthoritativeGameState {
                     this.lastProcessedSequenceNumber.get(player.playerId) || 0
                 ));
                 
-                // Check for powerup collection
+                // Check for powerup collection on current position
                 this.checkPowerUpCollection(player.playerId, player.gridX, player.gridY);
+                
+                // Also check intermediate positions if player moved fast
+                if (oldGridX !== newGridX || oldGridY !== newGridY) {
+                    // Check all grid positions between old and new position
+                    const stepX = newGridX > oldGridX ? 1 : (newGridX < oldGridX ? -1 : 0);
+                    const stepY = newGridY > oldGridY ? 1 : (newGridY < oldGridY ? -1 : 0);
+                    
+                    let checkX = oldGridX;
+                    let checkY = oldGridY;
+                    
+                    while (checkX !== newGridX || checkY !== newGridY) {
+                        if (checkX !== newGridX) checkX += stepX;
+                        if (checkY !== newGridY) checkY += stepY;
+                        this.checkPowerUpCollection(player.playerId, checkX, checkY);
+                    }
+                }
             } else {
                 // Movement blocked - stop player
                 player.isMoving = false;
@@ -184,13 +216,28 @@ export class AuthoritativeGameState {
         const right = Math.floor((x + size - 1) / GAME_CONFIG.BLOCK_SIZE);
         const bottom = Math.floor((y + size - 1) / GAME_CONFIG.BLOCK_SIZE);
 
-        // Check bomb collisions first
+        // Check collision with other players
+        for (const otherPlayer of this.gameEngine.entities.players.values()) {
+            if (!otherPlayer || otherPlayer.playerId === player.playerId || !otherPlayer.alive) continue;
+            
+            const otherLeft = Math.floor(otherPlayer.x / GAME_CONFIG.BLOCK_SIZE);
+            const otherTop = Math.floor(otherPlayer.y / GAME_CONFIG.BLOCK_SIZE);
+            const otherRight = Math.floor((otherPlayer.x + size - 1) / GAME_CONFIG.BLOCK_SIZE);
+            const otherBottom = Math.floor((otherPlayer.y + size - 1) / GAME_CONFIG.BLOCK_SIZE);
+            
+            // Check if bounding boxes overlap
+            if (left <= otherRight && right >= otherLeft && top <= otherBottom && bottom >= otherTop) {
+                return false; // Players cannot pass through each other
+            }
+        }
+
+        // Check bomb collisions
         for (const bomb of this.gameEngine.entities.bombs.values()) {
             if (!bomb) continue;
             if (bomb.gridX >= left && bomb.gridX <= right && bomb.gridY >= top && bomb.gridY <= bottom) {
-                // Allow bomb owner to pass through their own bomb
-                if (bomb.playerId === player.playerId) continue;
-                if (!player.bombPass) return false;
+                // Only allow bomb owner to pass through their own bomb if they have bombPass
+                if (bomb.playerId === player.playerId && player.bombPass) continue;
+                return false; // Cannot pass through bombs
             }
         }
 
@@ -397,8 +444,9 @@ export class AuthoritativeGameState {
 
                 const newStats = this.applyPowerUp(player, powerUp.type);
 
+                // All powerups are temporary (4 seconds) except extra life
                 if (powerUp.type !== POWERUP_EXTRA_LIFE) {
-                    this.powerUpSchedule(player, powerUp.type)
+                    this.powerUpSchedule(player, powerUp.type);
                 }
 
                 this.gameEngine.entities.powerups.delete(powerUpId);
@@ -455,6 +503,7 @@ export class AuthoritativeGameState {
                 break;
             case POWERUP_FLAME:
                 player.bombRange = Math.min(player.bombRange + 1, 5);
+                break;
             case POWERUP_BOMB_PASS:
                 player.bombPass = Math.min(player.bombPass + 1, 5)
                 break;
@@ -495,14 +544,14 @@ export class AuthoritativeGameState {
                 }
 
                 const cell = this.gameEngine.mapData.initial_grid[y][x];
+                
+                // Stop at walls - no explosion
                 if (cell === WALL) {
-                    break
-                } else if (cell === BLOCK) {
-                    explosions.push({ gridX: x, gridY: y });
                     break;
-                } else {
-                    explosions.push({ gridX: x, gridY: y });
                 }
+                
+                // Add explosion at this position (works for both blocks and empty spaces)
+                explosions.push({ gridX: x, gridY: y });
             }
         });
 
