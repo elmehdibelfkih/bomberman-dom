@@ -144,8 +144,8 @@ export class AuthoritativeGameState {
         const bomb = {
             bombId,
             playerId,
-            gridX: Math.floor((player.x + 14) / 68),
-            gridY: Math.floor((player.y + 42) / 68),
+            gridX: Math.floor((player.x + 14) / GAME_CONFIG.BLOCK_SIZE),
+            gridY: Math.floor((player.y + 42) / GAME_CONFIG.BLOCK_SIZE),
             range: player.bombRange,
             timer: GAME_CONFIG.BOMB_TIMER,
             createdAt: Date.now()
@@ -290,6 +290,8 @@ export class AuthoritativeGameState {
     processBombExplosion(bombId) {
         const bomb = this.gameEngine.entities.bombs.get(bombId);
         if (!bomb) return;
+
+        console.log("XXXX", bomb)
 
         const explosions = this.calculateExplosions(bomb);
         const destroyedBlocks = [];
@@ -462,7 +464,6 @@ export class AuthoritativeGameState {
                     break
                 } else if (cell === BLOCK) {
                     explosions.push({ gridX: x, gridY: y });
-                    break;
                 } else {
                     explosions.push({ gridX: x, gridY: y });
                 }

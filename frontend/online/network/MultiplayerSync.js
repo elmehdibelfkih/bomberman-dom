@@ -15,6 +15,10 @@ export function setupMultiplayerSync(game, networkManager) {
 
     networkManager.on('BOMB_PLACED', (data) => {
         game.map.addBomb(data.playerId, data.gridX, data.gridY);
+        if (data.playerId === networkManager.getPlayerId()) {
+            const localPlayer = game.players.get(data.playerId);
+            if (localPlayer) localPlayer.canPutBomb = true;
+        }
     });
 
 
@@ -27,7 +31,7 @@ export function setupMultiplayerSync(game, networkManager) {
     networkManager.on('BOMB_EXPLODED', (data) => {
         if (!game) return;
 
-        console.log(data);
+        console.log(data)
         
         const bombIndex = game.map.bombs.findIndex(b =>
             b.player.state.id === data.playerId &&
