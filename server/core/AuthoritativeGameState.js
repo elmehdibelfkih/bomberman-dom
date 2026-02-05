@@ -155,6 +155,20 @@ export class AuthoritativeGameState {
                 const newGridX = Math.floor((player.x + playerSize/2) / GAME_CONFIG.BLOCK_SIZE);
                 const newGridY = Math.floor((player.y + playerSize/2) / GAME_CONFIG.BLOCK_SIZE);
                 
+                // Check for powerup collection on intermediate positions
+                const minGridX = Math.min(oldGridX, newGridX);
+                const maxGridX = Math.max(oldGridX, newGridX);
+                const minGridY = Math.min(oldGridY, newGridY);
+                const maxGridY = Math.max(oldGridY, newGridY);
+                
+                for (let gx = minGridX; gx <= maxGridX; gx++) {
+                    for (let gy = minGridY; gy <= maxGridY; gy++) {
+                        if (gx !== oldGridX || gy !== oldGridY) {
+                            this.checkPowerUpCollection(player.playerId, gx, gy);
+                        }
+                    }
+                }
+                
                 // Only broadcast if position actually changed significantly
                 if (player.gridX !== newGridX || player.gridY !== newGridY) {
                     player.gridX = newGridX;
@@ -170,9 +184,6 @@ export class AuthoritativeGameState {
                         player.direction,
                         this.lastProcessedSequenceNumber.get(player.playerId) || 0
                     ));
-                    
-                    // Check for powerup collection on new grid position
-                    this.checkPowerUpCollection(player.playerId, player.gridX, player.gridY);
                 }
             } else {
                 // Movement blocked - stop player

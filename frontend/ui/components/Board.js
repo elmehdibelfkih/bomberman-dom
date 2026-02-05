@@ -61,11 +61,20 @@ export const Board = ({ mapData = { initial_grid: [[]] }, players = [], yourPlay
                     attributes: { 
                         id, 
                         class: p.playerId === yourPlayerId ? 'player local-player' : 'player remote-player', 
-                        style: `position:absolute; width:${playerSize}px; height:${playerSize}px; border-radius:50%; background:${p.playerId === yourPlayerId ? '#0c6' : '#36f'}; z-index:10;` 
+                        style: `position:absolute; width:${playerSize}px; height:${playerSize}px; border-radius:50%; z-index:10;` 
                     } 
                 });
                 playersContainer.appendChild(el);
             }
+
+            // Set player color based on alive status
+            let playerColor;
+            if (!p.alive || p.lives <= 0) {
+                playerColor = '#888'; // Gray for dead players
+            } else {
+                playerColor = p.playerId === yourPlayerId ? '#0c6' : '#36f'; // Green for local, blue for remote
+            }
+            el.style.background = playerColor;
 
             // Use server's pixel coordinates directly for smooth movement
             const px = (typeof p.x === 'number' ? Math.round(p.x) : ((p.gridX || 0) * cellSize));
