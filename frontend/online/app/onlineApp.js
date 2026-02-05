@@ -139,6 +139,14 @@ export class OnlineApp {
             this.addChatMessage(data.nickname, data.text);
         };
 
+        const gameOverHandler = (data) => {
+            this.gameOverHandler(data.winner.nickname)
+        }
+
+        const errorHandler = (response) => {
+            this.errorHandler(response);
+        }
+
         // Register network event handlers
         this.networkManager.on('LOBBY_JOINED', lobbyJoinedHandler);
         this.networkManager.on('PLAYER_JOINED', playerJoinedHandler);
@@ -147,6 +155,8 @@ export class OnlineApp {
         this.networkManager.on('COUNTDOWN_TICK', countdownTickHandler);
         this.networkManager.on('GAME_STARTED', gameStartedHandler);
         this.networkManager.on('CHAT_MESSAGE', chatMessageHandler);
+        this.networkManager.on('GAME_OVER', gameOverHandler)
+        this.networkManager.on('ERROR', errorHandler)
 
         // Chat functionality
         const sendMessage = () => {
@@ -186,6 +196,8 @@ export class OnlineApp {
             { element: leaveBtn, event: 'click', handler: leaveClickHandler }
         );
     }
+
+
 
     updatePlayerList(players) {
         if (!this.lobbyContainer) return;
@@ -239,6 +251,83 @@ export class OnlineApp {
         const messageEl = createChatMessageElement(nickname, text);
         chatMessages.appendChild(messageEl);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    errorHandler(data) {
+        const errorScreen = dom({
+            tag: 'div',
+            attributes: { class: 'game-over-screen' },
+            children: [
+                {
+                    tag: 'div',
+                    attributes: { class: 'game-over-content error-content' },
+                    children: [
+                        {
+                            tag: 'h2',
+                            attributes: { class: 'game-over-title error-title' },
+                            children: ['Error']
+                        },
+                        {
+                            tag: 'p',
+                            attributes: { class: 'error-message' },
+                            children: [data.message || 'An unexpected error occurred']
+                        },
+                        {
+                            tag: 'button',
+                            attributes: {
+                                class: 'game-over-restart-btn',
+                                onclick: () => {
+                                    window.location.replace('/');
+                                }
+                            },
+                            children: ['Back to Home']
+                        }
+                    ]
+                }
+            ]
+        });
+
+        document.body.appendChild(errorScreen);
+    }
+
+
+    gameOverHandler(winnerName) {
+        console.log(winnerName)
+        const gameOverScreen = dom({
+            tag: 'div',
+            attributes: { class: 'game-over-screen' },
+            children: [
+                {
+                    tag: 'div',
+                    attributes: { class: 'game-over-content' },
+                    children: [
+                        {
+                            tag: 'h2',
+                            attributes: { class: 'game-over-title' },
+                            children: ['Game Over']
+                        },
+                        {
+                            tag: 'p',
+                            attributes: { class: 'game-over-winner' },
+                            children: [`Winner: ${winnerName}`]
+                        },
+                        {
+                            tag: 'button',
+                            attributes: {
+                                class: 'game-over-restart-btn',
+                                onclick: () => {
+                                    window.location.href = '/';
+                                    gameOverScreen.remove();
+                                }
+                            },
+                            children: ['New Game']
+                        }
+                    ]
+                }
+            ]
+        });
+
+        document.body.appendChild(gameOverScreen);
     }
 
     async startMultiplayerGame() {

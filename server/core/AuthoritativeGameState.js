@@ -133,6 +133,8 @@ export class AuthoritativeGameState {
         const player = this.gameEngine.entities.players.get(playerId);
         if (!player || !player.alive) return false;
 
+
+
         const activeBombs = Array.from(this.gameEngine.entities.bombs.values())
             .filter(bomb => bomb.playerId === playerId);
 
@@ -157,7 +159,7 @@ export class AuthoritativeGameState {
 
         setTimeout(() => {
             this.processBombExplosion(bombId);
-        }, GAME_CONFIG.BOMB_TIMER);
+        }, this.gameEngine.mapData.explosion_time);
 
         return true;
     }
@@ -342,7 +344,7 @@ export class AuthoritativeGameState {
 
         setTimeout(() => {
             this.activeExplosions.delete(explosionId)
-        }, GAME_CONFIG.EXPLOSION_DURATION);
+        }, this.gameEngine.mapData.explosion_time + 1000);
 
         this.checkWinCondition();
     }

@@ -61,21 +61,20 @@ export class NetworkManager {
 
     #handleMessage(rawData) {
         // try {
-            
-            if (rawData === 'ping') return;
-            const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
-            
-            if (data.type === 'LOBBY_JOINED' && data.playerId) this.playerId = data.playerId;
+        if (rawData === 'ping') return;
+        const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
 
-            if (data.type && this.messageHandlers.has(data.type)) {
-                const handlers = this.messageHandlers.get(data.type);
-                handlers.forEach(handler => handler(data));
-            }
+        if (data.type === 'LOBBY_JOINED' && data.playerId) this.playerId = data.playerId;
 
-            if (this.messageHandlers.has('*')) {
-                const handlers = this.messageHandlers.get('*');
-                handlers.forEach(handler => handler(data));
-            }
+        if (data.type && this.messageHandlers.has(data.type)) {
+            const handlers = this.messageHandlers.get(data.type);
+            handlers.forEach(handler => handler(data));
+        }
+
+        if (this.messageHandlers.has('*')) {
+            const handlers = this.messageHandlers.get('*');
+            handlers.forEach(handler => handler(data));
+        }
 
         // } 
         // catch (error) {
