@@ -15,14 +15,15 @@ export function setupMultiplayerSync(game, networkManager) {
 
     networkManager.on('BOMB_PLACED', (data) => {
         game.map.addBomb(data.playerId, data.gridX, data.gridY);
-        if (data.playerId === networkManager.getPlayerId()) {
+        // if (data.playerId === networkManager.getPlayerId()) {
             const localPlayer = game.players.get(data.playerId);
+            localPlayer.decrementBombCount()
+            console.log("hadi d sync");
             if (localPlayer) localPlayer.canPutBomb = true;
-        }
     });
 
     networkManager.on('BOMB_EXPLODED', (data) => {
-        if (!game) return;        
+        if (!game) return;
         const bombIndex = game.map.bombs.findIndex(b =>
             b.player.state.id === data.playerId &&
             b.xMap === data.explosions[0]?.gridX &&
@@ -55,8 +56,8 @@ export function setupMultiplayerSync(game, networkManager) {
     networkManager.on('POWERUP_COLLECTED', (data) => {
         if (!game) return;
 
-        console.log("pwer up data: ",data);
-        
+        console.log("pwer up data: ", data);
+
         const powerupElement = document.getElementById(data.powerupId);
         if (powerupElement) {
             powerupElement.remove();
@@ -67,7 +68,7 @@ export function setupMultiplayerSync(game, networkManager) {
             player.setBombRange(data.newStats.bombRange)
             player.setMaxBombs(data.newStats.maxBombs)
             player.setSpeed(data.newStats.speed)
-        }        
+        }
     });
 
     networkManager.on('PLAYER_DAMAGED', (data) => {
@@ -81,7 +82,7 @@ export function setupMultiplayerSync(game, networkManager) {
     networkManager.on('PLAYER_DIED', (data) => {
         const player = game.players.get(data.playerId);
         if (player) {
-            player.kill();   
+            player.kill();
             game.ui.updatePlayerState(data.playerId, { lives: 0, alive: false });
         }
     });

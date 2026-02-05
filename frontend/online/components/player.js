@@ -344,15 +344,23 @@ export class Player {
 
     kill = () => this.dying = true
 
-    
+
     getPlayerHeight = () => {
         return this.playerCoordinate[this.state.direction][this.frameIndex].height
     }
     getPlayerWidth = () => this.playerCoordinate[this.state.direction][this.frameIndex].width
     removeplayer = () => this.player.remove()
 
-    incrementBombCount = () => { this.state.bombCount++; }
-    decrementBombCount = () => { this.state.bombCount--; }
+    incrementBombCount = () => {
+        this.state.bombCount++;
+        this.game.ui.updatePlayerState(this.state.id, { bombCount: this.state.bombCount });
+    }
+    decrementBombCount = () => {
+        console.log("hadi d lplayer");
+        
+        this.state.bombCount--;
+        this.game.ui.updatePlayerState(this.state.id, { bombCount: this.state.bombCount });
+    }
     getBombCount = () => this.state.bombCount;
 
     getMaxBombs = () => this.state.maxBombs;

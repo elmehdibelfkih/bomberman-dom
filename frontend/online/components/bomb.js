@@ -196,7 +196,7 @@ export class Bomb {
         this.bomb.style.opacity = parseFloat(this.bomb.style.opacity) - 0.1;
         if (this.bomb.style.opacity <= 0) {
             this.game.map.grid.removeChild(this.bomb);
-            this.player.decrementBombCount();
+            this.player.incrementBombCount();
             this.done = true;
         }
     }
@@ -204,7 +204,7 @@ export class Bomb {
         this.done = true;
         this.active = false;
         if (this.bomb && this.bomb.parentNode) this.bomb.parentNode.removeChild(this.bomb);
-        this.player.decrementBombCount();
+        // this.player.decrementBombCount();
         this.bomb = null;
         this.img = null;
         this.exp = null;
