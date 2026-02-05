@@ -51,6 +51,10 @@ export function setupMultiplayerSync(game, networkManager) {
     // Handle bomb placement
     networkManager.on('BOMB_PLACED', (data) => {
         game.map.addBomb(data.playerId, data.gridX, data.gridY);
+        if (data.playerId === networkManager.getPlayerId()) {
+            const localPlayer = game.players.get(data.playerId);
+            if (localPlayer) localPlayer.canPutBomb = true;
+        }
     });
 
     // BOMB_EXPLODED is handled in onlineApp.js

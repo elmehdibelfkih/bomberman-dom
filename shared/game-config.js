@@ -4,7 +4,7 @@ export const GAME_CONFIG = {
     BLOCK_SIZE: 68,
     BOMB_TIMER: 3000,
     EXPLOSION_DURATION: 1000,
-    POWERUP_SPAWN_CHANCE: 0.5,
+    POWERUP_SPAWN_CHANCE: 0.9,
     STARTING_LIVES: 3,
     WAIT_TIMER: 2000,
     COUNTDOWN_TIMER: 1000,
@@ -22,10 +22,7 @@ export const GAME_CONFIG = {
     POWERUP_DURATION: 4000,
     PLAYER_MAX_STATS: {
         SPEED: 5,
-        MAX_BOMBS: 5,
-        BOMB_RANGE: 5,
-        BOMB_PASS: 5,
-        BLOCK_PASS: 5,
-        LIVES: 5
+        MAX_BOMBS: 2,
+        BOMB_RANGE: 2,
     }
 };

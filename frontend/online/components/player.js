@@ -380,6 +380,6 @@ export class Player {
         if (key === 'ArrowDown') this.state.ARROW_DOWN = false;
         if (key === 'ArrowRight') this.state.ARROW_RIGHT = false;
         if (key === 'ArrowLeft') this.state.ARROW_LEFT = false;
-        if (key === ' ') this.canPutBomb = true;
+        // if (key === ' ') this.canPutBomb = true;
     }
 }

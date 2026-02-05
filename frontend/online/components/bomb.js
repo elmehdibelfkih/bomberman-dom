@@ -123,6 +123,7 @@ export class Bomb {
                 this.lastTime = timestamp;
             }
             this.explosion = true
+            this.player.state.maxBombs = 1
             this.render()
             return
         }
