@@ -15,8 +15,8 @@ export function setupMultiplayerSync(game, networkManager) {
 
     networkManager.on('BOMB_PLACED', (data) => {
         game.map.addBomb(data.playerId, data.gridX, data.gridY);
-            const localPlayer = game.players.get(data.playerId);
-            localPlayer.decrementBombCount()
+        const localPlayer = game.players.get(data.playerId);
+        localPlayer.decrementBombCount()
     });
 
     networkManager.on('BOMB_EXPLODED', (data) => {
@@ -63,10 +63,8 @@ export function setupMultiplayerSync(game, networkManager) {
             player.setSpeed(data.newStats.speed)
 
             const bombCountDiff = data.newStats.maxBombs - oldMaxBombs;
-            if (bombCountDiff > 0) {
-                for (let i = 0; i < bombCountDiff; i++) {
-                    player.incrementBombCount();
-                }
+            if (oldMaxBombs != 2 && bombCountDiff > 0) {
+                player.incrementBombCount();
             }
 
             game.ui.updatePlayerState(data.playerId, {

@@ -195,10 +195,15 @@ export class Player {
 
         if (this.isLocal) console.log("putBomb", this.putBomb, "canPutBomb", this.canPutBomb, "bombCount", this.state.bombCount, "maxBombs", this.state.maxBombs);
 
-        if (this.putBomb && this.canPutBomb && this.state.bombCount <= this.state.maxBombs) {
-            this.putBomb = false;
-            this.canPutBomb = false;
-            this.networkManager.sendPlaceBomb()
+        if (this.putBomb && this.canPutBomb) {
+            if (this.state.bombCount <= 0) 
+            {
+                this.putBomb = false
+            } else {
+                this.putBomb = false;
+                this.canPutBomb = false;
+                this.networkManager.sendPlaceBomb()       
+            }
         }
 
         if (!this.state.movement && this.state.direction.includes("walking")) {
@@ -358,8 +363,6 @@ export class Player {
         this.game.ui.updatePlayerState(this.state.id, { bombCount: this.state.bombCount });
     }
     decrementBombCount = () => {
-        console.log("hadi d lplayer");
-
         this.state.bombCount--;
         this.game.ui.updatePlayerState(this.state.id, { bombCount: this.state.bombCount });
     }
