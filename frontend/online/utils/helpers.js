@@ -151,8 +151,9 @@ export function getControlsContainer() {
                 attributes: { id: 'sound' },
                 children: [
                     {
-                        tag: 'img',
-                        attributes: { id: 'volume-icon', src: './icon/volume-2.svg', alt: 'voice', width: '16', height: '16' }
+                        tag: 'span',
+                        attributes: { id: 'volume-icon', style: 'font-size: 20px;' },
+                        children: ['🔊']
                     }
                 ]
             }

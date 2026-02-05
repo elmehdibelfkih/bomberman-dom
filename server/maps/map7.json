@@ -18,28 +18,28 @@
   "explosion_time": 2000,
   "level_time": 60,
 
-  "player": "./assets/images/player.png",
+  "player": "../assets/images/player.png",
 
-  "wall": "./assets/images/wall/wall_15.png",
-  "floor": "./assets/images/wall/wall_26.png",
-  "block": "./assets/images/soft_block/block_3.png",
+  "wall": "../assets/images/wall/wall_15.png",
+  "floor": "../assets/images/wall/wall_26.png",
+  "block": "../assets/images/soft_block/block_3.png",
 
-  "bomb": "./assets/images/Bomb/bomb0.png",
-  "electric_shock_img": "./assets/images/shock/Explosion_0.png",
-  "electric_shock2_img": "./assets/images/shock2/Explosion_0.png",
-  "player_explosion_img": "./assets/images/explosion/explosion_2/Explosion_1.png",
+  "bomb": "../assets/images/Bomb/bomb0.png",
+  "electric_shock_img": "../assets/images/shock/Explosion_0.png",
+  "electric_shock2_img": "../assets/images/shock2/Explosion_0.png",
+  "player_explosion_img": "../assets/images/explosion/explosion_2/Explosion_1.png",
 
-  "back_ground_music": "./assets/audios/background/LavaLoop.mp3",
-  "shock_sound": "./assets/audios/buzz.ogg",
-  "dying_sound": "./assets/audios/die1.mp3",
+  "back_ground_music": "../assets/audios/background/LavaLoop.mp3",
+  "shock_sound": "../assets/audios/buzz.ogg",
+  "dying_sound": "../assets/audios/die1.mp3",
   
-  "time_img": "./assets/images/loot/time.png",
-  "speed_img": "./assets/images/loot/speed.png",
-  "heart_img": "./assets/images/loot/heart.png",
-  "bomb_img": "./assets/images/loot/bomb.png",
-  "flame_img": "./assets/images/loot/flame.png",
+  "time_img": "../assets/images/loot/time.png",
+  "speed_img": "../assets/images/loot/speed.png",
+  "heart_img": "../assets/images/loot/heart.png",
+  "bomb_img": "../assets/images/loot/bomb.png",
+  "flame_img": "../assets/images/loot/flame.png",
 
-  "time_sound": "./assets/audios/timesounde.mp3",
-  "speed_sound": "./assets/audios/CoinGet.mp3",
-  "heart_sound": "./assets/audios/heart.mp3"
+  "time_sound": "../assets/audios/timesounde.mp3",
+  "speed_sound": "../assets/audios/CoinGet.mp3",
+  "heart_sound": "../assets/audios/heart.mp3"
 }
