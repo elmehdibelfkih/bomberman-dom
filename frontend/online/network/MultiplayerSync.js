@@ -15,10 +15,8 @@ export function setupMultiplayerSync(game, networkManager) {
 
     networkManager.on('BOMB_PLACED', (data) => {
         game.map.addBomb(data.playerId, data.gridX, data.gridY);
-        // if (data.playerId === networkManager.getPlayerId()) {
             const localPlayer = game.players.get(data.playerId);
             localPlayer.decrementBombCount()
-            console.log("hadi d sync");
             if (localPlayer) localPlayer.canPutBomb = true;
     });
 
@@ -35,12 +33,6 @@ export function setupMultiplayerSync(game, networkManager) {
             bomb.cleanDOM();
             game.map.bombs.splice(bombIndex, 1);
         }
-
-        // if (data.destroyedBlocks) {
-        //     data.destroyedBlocks.forEach(block => {
-        //         game.map.blowingUpBlock(block.gridX, block.gridY);
-        //     });
-        // }
 
         if (data.spawnedPowerup) {
             game.map.spawnPowerUp(
@@ -65,9 +57,23 @@ export function setupMultiplayerSync(game, networkManager) {
 
         const player = game.players.get(data.playerId);
         if (player && data.newStats) {
+            const oldMaxBombs = player.getMaxBombs();
+
             player.setBombRange(data.newStats.bombRange)
             player.setMaxBombs(data.newStats.maxBombs)
             player.setSpeed(data.newStats.speed)
+
+            const bombCountDiff = data.newStats.maxBombs - oldMaxBombs;
+            if (bombCountDiff > 0) {
+                for (let i = 0; i < bombCountDiff; i++) {
+                    player.incrementBombCount();
+                }
+            }
+
+            game.ui.updatePlayerState(data.playerId, {
+                bombRange: data.newStats.bombRange,
+                speed: data.newStats.speed,
+            });
         }
     });
 

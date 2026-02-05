@@ -135,7 +135,6 @@ export class Player {
         if (error > 5) {
             // todo: fix that
             console.log("hani kayan ghalat");
-
             this.x = serverX;
             this.y = serverY;
         }
