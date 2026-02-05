@@ -105,10 +105,10 @@ export class AuthoritativeGameState {
         return true;
     }
 
-    // Start authoritative tick loop (60 FPS)
+    // Start authoritative tick loop (30 FPS for better performance)
     start() {
         if (this._tickInterval) return;
-        const tickMs = 1000 / 60;
+        const tickMs = 1000 / 30; // Reduced from 60 to 30 FPS
         this._tickInterval = setInterval(() => this._step(), tickMs);
     }
 
@@ -124,8 +124,8 @@ export class AuthoritativeGameState {
         for (const player of this.gameEngine.entities.players.values()) {
             if (!player || !player.alive || !player.isMoving || !player.direction) continue;
             
-            // Use smaller movement distance (3 pixels per frame for precise control)
-            const moveSpeed = 3;
+            // Use larger movement distance for 30 FPS (6 pixels per frame)
+            const moveSpeed = 6;
             
             let dx = 0;
             let dy = 0;
@@ -154,37 +154,25 @@ export class AuthoritativeGameState {
                 // Update grid coordinates
                 const newGridX = Math.floor((player.x + playerSize/2) / GAME_CONFIG.BLOCK_SIZE);
                 const newGridY = Math.floor((player.y + playerSize/2) / GAME_CONFIG.BLOCK_SIZE);
-                player.gridX = newGridX;
-                player.gridY = newGridY;
                 
-                // Broadcast position update
-                this.gameRoom.broadcast(MessageBuilder.playerMoved(
-                    player.playerId,
-                    Math.round(player.x),
-                    Math.round(player.y),
-                    player.gridX,
-                    player.gridY,
-                    player.direction,
-                    this.lastProcessedSequenceNumber.get(player.playerId) || 0
-                ));
-                
-                // Check for powerup collection on current position
-                this.checkPowerUpCollection(player.playerId, player.gridX, player.gridY);
-                
-                // Also check intermediate positions if player moved fast
-                if (oldGridX !== newGridX || oldGridY !== newGridY) {
-                    // Check all grid positions between old and new position
-                    const stepX = newGridX > oldGridX ? 1 : (newGridX < oldGridX ? -1 : 0);
-                    const stepY = newGridY > oldGridY ? 1 : (newGridY < oldGridY ? -1 : 0);
+                // Only broadcast if position actually changed significantly
+                if (player.gridX !== newGridX || player.gridY !== newGridY) {
+                    player.gridX = newGridX;
+                    player.gridY = newGridY;
                     
-                    let checkX = oldGridX;
-                    let checkY = oldGridY;
+                    // Broadcast position update
+                    this.gameRoom.broadcast(MessageBuilder.playerMoved(
+                        player.playerId,
+                        Math.round(player.x),
+                        Math.round(player.y),
+                        player.gridX,
+                        player.gridY,
+                        player.direction,
+                        this.lastProcessedSequenceNumber.get(player.playerId) || 0
+                    ));
                     
-                    while (checkX !== newGridX || checkY !== newGridY) {
-                        if (checkX !== newGridX) checkX += stepX;
-                        if (checkY !== newGridY) checkY += stepY;
-                        this.checkPowerUpCollection(player.playerId, checkX, checkY);
-                    }
+                    // Check for powerup collection on new grid position
+                    this.checkPowerUpCollection(player.playerId, player.gridX, player.gridY);
                 }
             } else {
                 // Movement blocked - stop player

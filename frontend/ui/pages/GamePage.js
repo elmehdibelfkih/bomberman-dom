@@ -52,12 +52,12 @@ export const GamePage = ({ mapData, players, yourPlayerId, onSendChat = () => {}
         livesDisplay.innerHTML = `${heartsDisplay}`;
     }
     
-    // Update performance every second
-    setInterval(updatePerformanceDisplay, 1000);
+    // Update performance every 2 seconds (less frequent)
+    setInterval(updatePerformanceDisplay, 2000);
     
-    // Update lives display initially and when players change
+    // Update lives display initially and less frequently
     updateLivesDisplay();
-    setInterval(updateLivesDisplay, 500);
+    setInterval(updateLivesDisplay, 1000);
 
     // Chat UI
     const chatContainer = dom({ tag: 'div', attributes: { class: 'game-chat', style: 'position: absolute; right: 8px; bottom: 8px; width: 300px; background: rgba(0,0,0,0.6); padding:8px; color:#fff; z-index:50;' } });
