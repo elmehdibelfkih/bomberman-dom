@@ -158,7 +158,7 @@ export class AuthoritativeGameState {
         );
 
         setTimeout(() => {
-            this.processBombExplosion(bombId);
+            this.processBombExplosion(playerId, bombId);
         }, this.gameEngine.mapData.explosion_time);
 
         return true;
@@ -287,25 +287,20 @@ export class AuthoritativeGameState {
         return { x: newX, y: newY };
     }
 
-    processBombExplosion(bombId) {
+    processBombExplosion(playerId, bombId) {
         const bomb = this.gameEngine.entities.bombs.get(bombId);
         if (!bomb) return;
 
-        console.log("XXXX", bomb)
-
-        const explosions = this.calculateExplosions(bomb);
+        const explosions = this.calculateExplosions(playerId, bomb);
         const destroyedBlocks = [];
         const damagedPlayers = [];
         let spawnedPowerUp = null;
 
         // Process explosions
         explosions.forEach(explosion => {
-            if (this.gameEngine.mapData.initial_grid[explosion.gridY] &&
-                this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] === BLOCK) {
-
+            if (this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] === BLOCK) {
                 this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] = FLOOR;
                 destroyedBlocks.push({ gridX: explosion.gridX, gridY: explosion.gridY });
-
                 if (Math.random() < GAME_CONFIG.POWERUP_SPAWN_CHANCE) {
                     spawnedPowerUp = this.spawnPowerUp(explosion.gridX, explosion.gridY);
                 }
@@ -381,9 +376,11 @@ export class AuthoritativeGameState {
 
                 const newStats = this.applyPowerUp(player, powerUp.type);
 
-                this.powerUpSchedule(player, powerUp.type)
-
+                if (powerUp.type == POWERUP_SPEED) {
+                    this.powerUpSchedule(player, powerUp.type)
+                }
                 this.gameEngine.entities.powerups.delete(powerUpId);
+
 
                 this.gameRoom.broadcast(
                     MessageBuilder.powerupCollected(playerId, powerUpId, powerUp.type, newStats)
@@ -400,25 +397,12 @@ export class AuthoritativeGameState {
         }
 
         const powerUpTimerId = setTimeout(() => {
-            player.powerUpTimers.delete(powerUpTimerId)
-            this.removePowerUp(player, type)
+            player.powerUpTimers.delete(type)
+            player.speed--
+            this.gameRoom.broadcast(MessageBuilder.speedReset(player.playerId, player.speed))
         }, GAME_CONFIG.POWERUP_DURATION);
 
         player.powerUpTimers.set(type, powerUpTimerId)
-    }
-
-    removePowerUp(player, type) {
-        switch (type) {
-            case POWERUP_SPEED:
-                player.speed--
-                break;
-            case POWERUP_BOMB:
-                player.maxBombs--
-                break;
-            case POWERUP_FLAME:
-                player.bombRange--
-                break;
-        }
     }
 
     applyPowerUp(player, type) {
@@ -441,7 +425,8 @@ export class AuthoritativeGameState {
         };
     }
 
-    calculateExplosions(bomb) {
+    calculateExplosions(playerId, bomb) {
+        const player = this.gameEngine.entities.players.get(playerId);
         const explosions = [{ gridX: bomb.gridX, gridY: bomb.gridY }];
         const directions = [
             { dx: 0, dy: -1 }, // up
@@ -450,8 +435,10 @@ export class AuthoritativeGameState {
             { dx: 1, dy: 0 } // right
         ];
 
+        console.log("ABDNOUR", player)
+
         directions.forEach(dir => {
-            for (let i = 1; i <= bomb.range; i++) {
+            for (let i = 1; i <= player.bombRange; i++) {
                 const x = bomb.gridX + (dir.dx * i);
                 const y = bomb.gridY + (dir.dy * i);
 

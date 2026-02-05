@@ -13,6 +13,7 @@ export const ServerMessages = {
   // Game State
   FULL_STATE: 'FULL_STATE',
   // Game Events
+  SPEED_RESET: 'SPEED_RESET',
   PLAYER_MOVED: 'PLAYER_MOVED',
   BOMB_PLACED: 'BOMB_PLACED',
   BOMB_EXPLODED: 'BOMB_EXPLODED',
