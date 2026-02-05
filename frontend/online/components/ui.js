@@ -83,7 +83,7 @@ export class UI {
                                 {
                                     tag: 'span',
                                     attributes: { class: 'stat-icon' },
-                                    children: ['📻']
+                                    children: ['🔥']
                                 },
                                 {
                                     tag: 'span',
@@ -99,7 +99,7 @@ export class UI {
                                 {
                                     tag: 'span',
                                     attributes: { class: 'stat-icon' },
-                                    children: ['⚡']
+                                    children: ['🚀']
                                 },
                                 {
                                     tag: 'span',

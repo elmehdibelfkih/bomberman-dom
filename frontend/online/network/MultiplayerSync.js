@@ -74,13 +74,15 @@ export function setupMultiplayerSync(game, networkManager) {
         const player = game.players.get(data.playerId);
         if (player) {
             player.kill();
+            game.ui.updatePlayerState(data.playerId, { lives: data.livesRemaining });
         }
     });
 
     networkManager.on('PLAYER_DIED', (data) => {
         const player = game.players.get(data.playerId);
         if (player) {
-            player.kill();
+            player.kill();   
+            game.ui.updatePlayerState(data.playerId, { lives: 0, alive: false });
         }
     });
 

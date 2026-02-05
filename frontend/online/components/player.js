@@ -343,6 +343,8 @@ export class Player {
 
 
     kill = () => this.dying = true
+
+    
     getPlayerHeight = () => {
         return this.playerCoordinate[this.state.direction][this.frameIndex].height
     }
