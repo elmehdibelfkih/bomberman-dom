@@ -495,9 +495,9 @@ export class OnlineApp {
 
             const player = this.game.players.get(data.playerId);
             if (player && data.newStats) {
-                player.state.speed = data.newStats.speed;
-                player.state.maxBombs = data.newStats.maxBombs;
-                player.state.bombRange = data.newStats.bombRange;
+                player.setBombCount(data.newStats.maxBombs);
+                player.setSpeed(data.newStats.speed);
+                player.setBombRange(data.newStats.bombRange);
             }
         });
     }

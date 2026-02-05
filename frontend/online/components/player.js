@@ -23,7 +23,6 @@ export class Player {
             isDead: !playerData.alive,
             bombCount: playerData.bombCount,
             maxBombs: playerData.bombCount, // Assuming bombCount from data is maxBombs
-            bombRange: 2
             // bombRange: playerData.bombRange
         };
         this.x = playerData.x;
