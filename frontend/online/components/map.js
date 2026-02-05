@@ -3,7 +3,6 @@ import { dom, eventManager } from '../../framework/framework/index.js';
 import { Bomb } from "./bomb.js";
 
 export class Map {
-
     constructor(game, mapData) {
         this.mapData = mapData;
         this.game = game;

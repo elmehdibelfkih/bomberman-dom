@@ -23,10 +23,6 @@ export class Bomb {
         this.initBomb()
     }
 
-
-    getId = () => this.id
-    isDone = () => this.done
-
     initBomb() {
         const size = this.game.map.mapData.block_size;
         this.img = dom({

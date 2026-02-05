@@ -4,7 +4,6 @@ import { UI } from "../components/ui.js";
 import { createEffect } from "../../framework/framework/state/signal.js";
 import { NetworkManager } from '../network/networkManager.js';
 import { getGameContainer, getLobbyContainer, getControlsContainer, showModal, getGameChatContainer } from "../utils/helpers.js";
-// import { NetworkStateSynchronizer } from '../game/network/NetworkStateSynchronizer.js';
 
 export class OnlineApp {
     constructor() {
@@ -179,9 +178,6 @@ export class OnlineApp {
     }
 
     setupLobby() {
-        const playerList = this.lobbyContainer.querySelector('#player-list');
-        const playerCount = this.lobbyContainer.querySelector('#player-count');
-        const chatMessages = this.lobbyContainer.querySelector('#chat-messages');
         const chatInput = this.lobbyContainer.querySelector('#chat-input');
         const sendBtn = this.lobbyContainer.querySelector('#send-chat-btn');
         const leaveBtn = this.lobbyContainer.querySelector('#leave-lobby-btn');
@@ -469,57 +465,47 @@ export class OnlineApp {
         this.game = Game.getInstance(this.gameData);
         await this.game.intiElements();
 
-        // Initialize UI with players data
         this.ui = UI.getInstance(this.game);
         this.ui.renderPlayers(this.gameData.players);
         this.ui.initPingDisplay();
-
-        // the multi player game engine
-        // handle the game loop
-        // this.game = OnlineGameEnginegetInstance();
-        // this.game.setNetworkManager(this.networkManager);
-        // this.game.setRouter(this.router);
-        // await this.game.initGame(this.gameData);
-
-        // // UI place holders
 
         await new Promise(r => setTimeout(r, 50));
         this.game.run();
 
         this.setupGameChat();
-        this.setupPlayerUpdates();
+        // this.setupPlayerUpdates();
     }
 
-    setupPlayerUpdates() {
-        // Listen for player state updates
-        const playerUpdatedHandler = (data) => {
-            if (this.ui) {
-                // data should contain playerId and updated player stats
-                this.ui.updatePlayerState(data.playerId, {
-                    lives: data.lives,
-                    bombCount: data.bombCount,
-                    bombRange: data.bombRange,
-                    speed: data.speed,
-                    alive: data.alive
-                });
-            }
-        };
+    // setupPlayerUpdates() {
+    //     // Listen for player state updates
+    //     const playerUpdatedHandler = (data) => {
+    //         if (this.ui) {
+    //             // data should contain playerId and updated player stats
+    //             this.ui.updatePlayerState(data.playerId, {
+    //                 lives: data.lives,
+    //                 bombCount: data.bombCount,
+    //                 bombRange: data.bombRange,
+    //                 speed: data.speed,
+    //                 alive: data.alive
+    //             });
+    //         }
+    //     };
 
-        const playerStateHandler = (data) => {
-            // Handle full player state update (all players)
-            if (this.ui && data.players) {
-                this.ui.updateAllPlayers(data.players);
-            }
-        };
+    //     const playerStateHandler = (data) => {
+    //         // Handle full player state update (all players)
+    //         if (this.ui && data.players) {
+    //             this.ui.updateAllPlayers(data.players);
+    //         }
+    //     };
 
-        this.networkManager.on('PLAYER_UPDATED', playerUpdatedHandler);
-        this.networkManager.on('PLAYER_STATE', playerStateHandler);
+    //     this.networkManager.on('PLAYER_UPDATED', playerUpdatedHandler);
+    //     this.networkManager.on('PLAYER_STATE', playerStateHandler);
 
-        this.eventListeners.push(
-            { network: 'PLAYER_UPDATED', handler: playerUpdatedHandler },
-            { network: 'PLAYER_STATE', handler: playerStateHandler }
-        );
-    }
+    //     this.eventListeners.push(
+    //         { network: 'PLAYER_UPDATED', handler: playerUpdatedHandler },
+    //         { network: 'PLAYER_STATE', handler: playerStateHandler }
+    //     );
+    // }
 
     setupGameChat() {
         const chatInput = document.getElementById('chat-input-game');

@@ -155,29 +155,29 @@ export class UI {
         }
     }
 
-    updateAllPlayers(players) {
-        players.forEach(player => {
-            const existingCard = this.playerElements.get(player.playerId);
-            if (existingCard) {
-                // Update individual stats
-                this.updatePlayerState(player.playerId, {
-                    alive: player.alive,
-                    lives: player.lives,
-                    bombCount: player.bombCount,
-                    bombRange: player.bombRange,
-                    speed: player.speed
-                });
-            } else {
-                // Create new card if player doesn't exist yet
-                const playerCard = this.createPlayerCard(player);
-                const playersInfo = document.getElementById('players-info');
-                if (playersInfo) {
-                    playersInfo.appendChild(playerCard);
-                    this.playerElements.set(player.playerId, playerCard);
-                }
-            }
-        });
-    }
+    // updateAllPlayers(players) {
+    //     players.forEach(player => {
+    //         const existingCard = this.playerElements.get(player.playerId);
+    //         if (existingCard) {
+    //             // Update individual stats
+    //             this.updatePlayerState(player.playerId, {
+    //                 alive: player.alive,
+    //                 lives: player.lives,
+    //                 bombCount: player.bombCount,
+    //                 bombRange: player.bombRange,
+    //                 speed: player.speed
+    //             });
+    //         } else {
+    //             // Create new card if player doesn't exist yet
+    //             const playerCard = this.createPlayerCard(player);
+    //             const playersInfo = document.getElementById('players-info');
+    //             if (playersInfo) {
+    //                 playersInfo.appendChild(playerCard);
+    //                 this.playerElements.set(player.playerId, playerCard);
+    //             }
+    //         }
+    //     });
+    // }
 
     initPingDisplay() {
         const playersInfo = document.getElementById('players-info');
