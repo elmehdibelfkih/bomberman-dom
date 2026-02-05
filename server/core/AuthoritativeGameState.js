@@ -50,7 +50,6 @@ export class AuthoritativeGameState {
 
 
         if (this.isValidPosition(intendedX, intendedY, direction, playerId)) {
-            console.log("ValidatePlayerMove", intendedX, intendedY, direction, playerId)
             newX = intendedX;
             newY = intendedY;
         } else {
@@ -210,9 +209,6 @@ export class AuthoritativeGameState {
         const gridY = Math.floor(corner.y / GAME_CONFIG.BLOCK_SIZE);
 
         if (!this.isWithinGridBounds(gridX, gridY)) {
-            console.log("isWithinGridBounds:");
-            console.log(gridX, gridY);
-            console.log(corner);
             return false;
         }
 
@@ -297,8 +293,6 @@ export class AuthoritativeGameState {
         let spawnedPowerUp = null;
         // Process explosions
         explosions.forEach(explosion => {
-            console.log("EXPLOSION", explosions)
-            console.log(this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] === BLOCK)
             if (this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] === BLOCK) {
                 this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] = FLOOR;
                 destroyedBlocks.push({ gridX: explosion.gridX, gridY: explosion.gridY });
@@ -413,7 +407,6 @@ export class AuthoritativeGameState {
                 break;
             case POWERUP_BOMB:
                 player.maxBombs = Math.min(player.maxBombs + 1, GAME_CONFIG.PLAYER_MAX_STATS.MAX_BOMBS);
-                console.log("player.maxBombs", player.maxBombs)
                 break;
             case POWERUP_FLAME:
                 player.bombRange = Math.min(player.bombRange + 1, GAME_CONFIG.PLAYER_MAX_STATS.BOMB_RANGE);
@@ -436,8 +429,6 @@ export class AuthoritativeGameState {
             { dx: -1, dy: 0 }, // left
             { dx: 1, dy: 0 } // right
         ];
-
-        console.log("ABDNOUR", bomb)
 
         directions.forEach(dir => {
             for (let i = 1; i <= player.bombRange; i++) {
