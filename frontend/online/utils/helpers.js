@@ -219,48 +219,63 @@ export function getEntryPageContainer() {
 }
 
 export function showModal(title, message, onConfirm, onCancel) {
-    const yesBtn = document.createElement('button');
-    yesBtn.className = 'menu-btn';
-    yesBtn.textContent = 'Yes';
+    const modalContainer = dom({
+        tag: 'div',
+        attributes: {
+            class: 'modal-container',
+            style: 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;'
+        },
+        children: [
+            {
+                tag: 'div',
+                attributes: {
+                    class: 'modal-content',
+                    style: 'background-color: #333; color: white; padding: 2rem; border-radius: 8px; text-align: center; width: 350px; border: 1px solid #444; box-shadow: 0 5px 15px rgba(0,0,0,0.5);'
+                },
+                children: [
+                    {
+                        tag: 'h2',
+                        attributes: { style: 'margin-top: 0; color: #ff4757;' },
+                        children: [title]
+                    },
+                    {
+                        tag: 'p',
+                        attributes: { style: 'margin-bottom: 2rem;' },
+                        children: [message]
+                    },
+                    {
+                        tag: 'div',
+                        attributes: {
+                            class: 'modal-buttons',
+                            style: 'display: flex; justify-content: center; gap: 1rem;'
+                        },
+                        children: [
+                            {
+                                tag: 'button',
+                                attributes: { class: 'menu-btn' },
+                                children: ['Yes']
+                            },
+                            {
+                                tag: 'button',
+                                attributes: { class: 'menu-btn' },
+                                children: ['No']
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    });
+
+    const [yesBtn, noBtn] = modalContainer.querySelectorAll('button');
     yesBtn.onclick = () => {
         if (onConfirm) onConfirm();
         document.body.removeChild(modalContainer);
     };
-
-    const noBtn = document.createElement('button');
-    noBtn.className = 'menu-btn';
-    noBtn.textContent = 'No';
     noBtn.onclick = () => {
         if (onCancel) onCancel();
         document.body.removeChild(modalContainer);
     };
-
-    const buttonsDiv = document.createElement('div');
-    buttonsDiv.className = 'modal-buttons';
-    buttonsDiv.style.cssText = 'display: flex; justify-content: center; gap: 1rem;';
-    buttonsDiv.appendChild(yesBtn);
-    buttonsDiv.appendChild(noBtn);
-
-    const modalContent = document.createElement('div');
-    modalContent.className = 'modal-content';
-    modalContent.style.cssText = 'background-color: #333; color: white; padding: 2rem; border-radius: 8px; text-align: center; width: 350px; border: 1px solid #444; box-shadow: 0 5px 15px rgba(0,0,0,0.5);';
-    
-    const titleEl = document.createElement('h2');
-    titleEl.style.cssText = 'margin-top: 0; color: #ff4757;';
-    titleEl.textContent = title;
-    
-    const messageEl = document.createElement('p');
-    messageEl.style.cssText = 'margin-bottom: 2rem;';
-    messageEl.textContent = message;
-    
-    modalContent.appendChild(titleEl);
-    modalContent.appendChild(messageEl);
-    modalContent.appendChild(buttonsDiv);
-
-    const modalContainer = document.createElement('div');
-    modalContainer.className = 'modal-container';
-    modalContainer.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;';
-    modalContainer.appendChild(modalContent);
 
     document.body.appendChild(modalContainer);
 }

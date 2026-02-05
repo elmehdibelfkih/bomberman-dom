@@ -184,13 +184,16 @@ export class UI {
         if (playersInfo) {
             let pingDisplay = document.getElementById('ping-display');
             if (!pingDisplay) {
-                pingDisplay = document.createElement('div');
-                pingDisplay.id = 'ping-display';
-                pingDisplay.className = 'ping-display';
+                pingDisplay = dom({
+                    tag: 'div',
+                    attributes: {
+                        id: 'ping-display',
+                        class: 'ping-display'
+                    },
+                    children: ['Ping: ...']
+                });
                 playersInfo.appendChild(pingDisplay);
             }
-
-            pingDisplay.textContent = 'Ping: ...';
 
             this.pingInterval = setInterval(() => {
                 pingDisplay.textContent = `Ping: ${this.networkManager.getPing()}ms`;
