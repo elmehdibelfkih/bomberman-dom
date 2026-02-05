@@ -1,4 +1,5 @@
 import { INITIAL_SPEED } from "../../shared/constants.js";
+import { GAME_CONFIG } from "../../shared/game-config.js";
 import { Entity } from "./Entity.js";
 
 export class Player extends Entity {
@@ -10,6 +11,8 @@ export class Player extends Entity {
         this.y = y;
         this.gridX = gridX;
         this.gridY = gridY;
+        this.spawnX = x;
+        this.spawnY = y;
         this.lives = 3;
         this.maxBombs = 1;
         this.activeBombs = 0;
@@ -24,6 +27,13 @@ export class Player extends Entity {
         this.lives--;
         if (this.lives <= 0) this.kill();
         return this.lives;
+    }
+
+    sendToSpawnPosition() {
+        this.x = this.spawnX
+        this.y = this.spawnY
+        this.gridX = this.spawnX / GAME_CONFIG.BLOCK_SIZE;
+        this.gridY = this.spawnY / GAME_CONFIG.BLOCK_SIZE;
     }
 
     stopMove() {

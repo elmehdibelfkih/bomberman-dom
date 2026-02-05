@@ -22,24 +22,22 @@ export class Bonus {
                 this.addSpeed()
                 this.showSpeedEffect()
                 break;
-            case 'time':
-                this.addTime()
-                this.showTimeEffect()
+            case 'flame':
+                this.addBombRange()
                 break;
-            case 'heart':
-                this.addLive()
-                this.showLiveEffect()
-                break;
+            case 'bomb':
+                this.addMaxBombs()
             default:
                 break;
         }
     }
 
-    addTime = () => this.game.state.addtime(10);
+    addBombRange() {
 
-    addLive() {
-        this.game.state.setLives(1);
-        this.game.scoreboard.updateLives()
+    }
+
+    addMaxBombs() {
+
     }
 
     addSpeed() {
@@ -64,33 +62,4 @@ export class Bonus {
         this.activeTiming.push(id);
         this.audio.play().catch(err => console.error(err));
     }
-
-    showTimeEffect() {
-        const effect = dom({
-            tag: 'div',
-            attributes: {
-                class: 'time-effect',
-                style: `left: ${this.x}px; top: ${this.y}px;`
-            }
-        });
-        this.game.map.grid.appendChild(effect);
-        const id = setTimeout(() => effect.remove(), 500);
-        this.activeTiming.push(id);
-        this.audio.play().catch(err => console.error(err));
-    }
-
-    showLiveEffect() {
-        const effect = dom({
-            tag: 'div',
-            attributes: {
-                class: 'heart-effect',
-                style: `left: ${this.x}px; top: ${this.y}px;`
-            }
-        });
-        this.game.map.grid.appendChild(effect);
-        const id = setTimeout(() => effect.remove(), 500);
-        this.activeTiming.push(id);
-        this.audio.play().catch(err => console.error(err));
-    }
-
 }

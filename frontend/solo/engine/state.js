@@ -53,7 +53,7 @@ export class State {
     getLives = () => this.#LIVES
     setLevel = (val) => this.#CURRENT_LEVEL = val
     getLevel = () => this.#CURRENT_LEVEL
-    setPlayerspped = (val) => this.#PLAYER_SPEED = val
+    setPlayerSpeed = (val) => this.#PLAYER_SPEED = val
     getScore = () => this.#SCORE
     setScore = (val) => this.#SCORE = val
     getBombCount = () => this.#BOMB_COUNT

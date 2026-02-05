@@ -142,6 +142,7 @@ export class Map {
     }
 
     blowingUpBlock(x, y) {
+        if (!this.gridArray[y]) return;
         this.gridArray[y][x] = consts.FLOOR;
         let img = document.getElementById(x.toString() + y.toString());
         let tile = document.querySelector(`[data-row-index="${x}"][data-col-index="${y}"]`);
@@ -205,12 +206,13 @@ export class Map {
     }
 
     Canmove = (row, col) => this.gridArray[row] && this.gridArray[row][col] === 0;
-    isBlock = (x, y) => this.gridArray[y][x] === consts.BLOCK;
+    isBlock = (x, y) => this.gridArray[y] && this.gridArray[y][x] === consts.BLOCK;
 
-    isFreeSpaceInGrid = (x, y) => this.gridArray[y][x] !== consts.BLOCK && this.gridArray[y][x] !== consts.WALL;
+    isFreeSpaceInGrid = (x, y) => this.gridArray[y] && this.gridArray[y][x] !== consts.BLOCK && this.gridArray[y][x] !== consts.WALL;
 
     addBomb(playerId, xMap, yMap) {
         let player = this.game.players.get(playerId)
+        if (!player) return;
         this.bombs.push(new Bomb(this.game, player, xMap, yMap));
     }
 
@@ -240,4 +242,3 @@ export class Map {
         }
     }
 }
-

@@ -48,7 +48,9 @@ export class AuthoritativeGameState {
             case 'RIGHT': intendedX += moveSpeed; break;
         }
 
+
         if (this.isValidPosition(intendedX, intendedY, direction, playerId)) {
+            console.log("ValidatePlayerMove", intendedX, intendedY, direction, playerId)
             newX = intendedX;
             newY = intendedY;
         } else {
@@ -93,18 +95,20 @@ export class AuthoritativeGameState {
         );
 
         this.checkPowerUpCollection(playerId, player.gridX, player.gridY);
-        this.checkExplosionDamage(playerId, player.gridX, player.gridY);
+        if (this.activeExplosions) {
+            this.checkExplosionDamage(playerId, player.gridX, player.gridY);
+        }
         return true;
     }
 
     checkExplosionDamage(playerId, playerX, playerY) {
         const player = this.gameEngine.entities.players.get(playerId)
 
-        for (cosnt[explosionId, explosion] of this.activeExplosions.entries()) {
+        for (const [explosionId, explosion] of this.activeExplosions.entries()) {
             // check if player is in the range of bomb explosion
-            const inRange = explosion.cells.some(cell => {
-                cell.gridX === playerX && cell.gridY === playerY;
-            })
+            const inRange = explosion.cells.some(cell =>
+                cell.gridX === playerX && cell.gridY === playerY
+            )
 
             if (inRange && !explosion.damagedPlayers.has(playerId)) {
                 explosion.damagedPlayers.add(playerId)
@@ -114,6 +118,8 @@ export class AuthoritativeGameState {
                     player.alive = false
                     this.gameRoom.broadcast(MessageBuilder.playerDied(player.playerId))
                 } else {
+                    player.sendToSpawnPosition()
+                    this.gameRoom.broadcast(MessageBuilder.playerMoved(player.playerId, player.spawnX, player.spawnY, player.spawnX / GAME_CONFIG.BLOCK_SIZE, player.spawnY / GAME_CONFIG.BLOCK_SIZE, null, 0));
                     this.gameRoom.broadcast(MessageBuilder.playerDamaged(player.playerId, player.lives))
                 }
 
@@ -202,6 +208,9 @@ export class AuthoritativeGameState {
         const gridY = Math.floor(corner.y / GAME_CONFIG.BLOCK_SIZE);
 
         if (!this.isWithinGridBounds(gridX, gridY)) {
+            console.log("isWithinGridBounds:");
+            console.log(gridX, gridY);
+            console.log(corner);
             return false;
         }
 
@@ -300,7 +309,7 @@ export class AuthoritativeGameState {
 
             this.gameEngine.entities.players.forEach(player => {
                 if (player.gridX === explosion.gridX && player.gridY === explosion.gridY && player.alive) {
-                    player.lives--;
+                    player.lives--
                     damagedPlayers.push({
                         playerId: player.playerId,
                         livesRemaining: player.lives
@@ -310,7 +319,9 @@ export class AuthoritativeGameState {
                         player.alive = false;
                         this.gameRoom.broadcast(MessageBuilder.playerDied(player.playerId));
                     } else {
+                        player.sendToSpawnPosition()
                         this.gameRoom.broadcast(MessageBuilder.playerDamaged(player.playerId, player.lives));
+                        this.gameRoom.broadcast(MessageBuilder.playerMoved(player.playerId, player.spawnX, player.spawnY, player.spawnX / GAME_CONFIG.BLOCK_SIZE, player.spawnY / GAME_CONFIG.BLOCK_SIZE, null, 0));
                     }
                 }
             });
@@ -422,10 +433,7 @@ export class AuthoritativeGameState {
         return {
             speed: player.speed,
             maxBombs: player.maxBombs,
-            bombRange: player.bombRange,
-            bombPass: player.bombPass,
-            blockPass: player.blockPass,
-            lives: player.lives
+            bombRange: player.bombRange
         };
     }
 

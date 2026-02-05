@@ -23,7 +23,8 @@ export class Player {
             isDead: !playerData.alive,
             bombCount: playerData.bombCount,
             maxBombs: playerData.bombCount, // Assuming bombCount from data is maxBombs
-            bombRange: playerData.bombRange
+            bombRange: 2
+            // bombRange: playerData.bombRange
         };
         this.x = playerData.x;
         this.y = playerData.y;
@@ -352,6 +353,18 @@ export class Player {
 
     incrementBombCount = () => { this.state.bombCount++; }
     decrementBombCount = () => { this.state.bombCount--; }
+
+    getBombCount = () => this.state.bombCount;
+    setBombCount = (count) => this.state.bombCount = count;
+
+    getMaxBombs = () => this.state.maxBombs;
+    setMaxBombs = (count) => this.state.maxBombs = count;
+
+    getBombRange = () => this.state.bombRange;
+    setBombRange = (range) => this.state.bombRange = range;
+
+    getSpeed = () => this.state.speed;
+    setSpeed = (speed) => this.state.speed = speed;
 
     setArrowStateKeyDown = (event) => {
         const key = event.nativeEvent.key;
