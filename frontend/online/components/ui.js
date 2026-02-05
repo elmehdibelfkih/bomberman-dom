@@ -10,10 +10,6 @@ export class UI {
         this.playerElements = new Map();
     }
 
-    /**
-     * Render players information on the UI using the framework
-     * @param {Array} players - Array of player objects containing player data
-     */
     renderPlayers(players) {
         const playersInfo = document.getElementById('players-info');
         if (!playersInfo) return;
@@ -30,11 +26,6 @@ export class UI {
         });
     }
 
-    /**
-     * Create a player card element using the framework
-     * @param {Object} player - Player object with stats
-     * @returns {HTMLElement} Player card element
-     */
     createPlayerCard(player) {
         const playerCard = dom({
             tag: 'div',
@@ -125,11 +116,6 @@ export class UI {
         return playerCard;
     }
 
-    /**
-     * Update the state of a specific player
-     * @param {string} playerId - ID of the player to update
-     * @param {Object} updates - Object containing the stats to update
-     */
     updatePlayerState(playerId, updates) {
         const playerCard = this.playerElements.get(playerId);
         if (!playerCard) return;
@@ -169,10 +155,6 @@ export class UI {
         }
     }
 
-    /**
-     * Update all players at once
-     * @param {Array} players - Array of player objects with updated data
-     */
     updateAllPlayers(players) {
         players.forEach(player => {
             const existingCard = this.playerElements.get(player.playerId);
@@ -200,7 +182,6 @@ export class UI {
     initPingDisplay() {
         const playersInfo = document.getElementById('players-info');
         if (playersInfo) {
-            // Check if ping display already exists
             let pingDisplay = document.getElementById('ping-display');
             if (!pingDisplay) {
                 pingDisplay = document.createElement('div');

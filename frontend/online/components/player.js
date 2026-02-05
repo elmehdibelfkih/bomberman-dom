@@ -1,5 +1,6 @@
 import { dom, eventManager } from '../../framework/framework/index.js';
 import { NetworkManager } from "../network/networkManager.js";
+// import { ui } from "./ui.js";
 
 
 export class Player {

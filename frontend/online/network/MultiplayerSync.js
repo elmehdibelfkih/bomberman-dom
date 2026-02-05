@@ -55,6 +55,8 @@ export function setupMultiplayerSync(game, networkManager) {
     networkManager.on('POWERUP_COLLECTED', (data) => {
         if (!game) return;
 
+        console.log("pwer up data: ",data);
+        
         const powerupElement = document.getElementById(data.powerupId);
         if (powerupElement) {
             powerupElement.remove();
