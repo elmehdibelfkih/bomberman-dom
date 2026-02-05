@@ -2,7 +2,7 @@ import * as consts from '../utils/consts.js';
 import { dom } from '../../framework/framework/index.js';
 
 export class Bomb {
-    constructor(game, player, xMap, yMap, range = player.getBombRange()) {        
+    constructor(game, player, xMap, yMap, range = player.getBombRange()) {
         this.game = game
         this.range = range
         this.player = player
@@ -104,21 +104,21 @@ export class Bomb {
         // explosion time
         if (timestamp - this.startTime >= this.explosionTime) { // check for when to explode
             if (!this.blowingUpBlock) {
-                this.game.map.isBlock(this.xMap - 1, this.yMap) ? (this.game.map.blowingUpBlock(this.xMap - 1, this.yMap, false), this.blowingUpBlock = true) : 0
-                this.game.map.isBlock(this.xMap + 1, this.yMap) ? (this.game.map.blowingUpBlock(this.xMap + 1, this.yMap, false), this.blowingUpBlock = true) : 0
-                this.game.map.isBlock(this.xMap, this.yMap - 1) ? (this.game.map.blowingUpBlock(this.xMap, this.yMap - 1, false), this.blowingUpBlock = true) : 0
-                this.game.map.isBlock(this.xMap, this.yMap + 1) ? (this.game.map.blowingUpBlock(this.xMap, this.yMap + 1, false), this.blowingUpBlock = true) : 0
+                this.game.map.isBlock(this.xMap - 1, this.yMap) ? this.game.map.blowingUpBlock(this.xMap - 1, this.yMap, false) : 0
+                this.game.map.isBlock(this.xMap + 1, this.yMap) ? this.game.map.blowingUpBlock(this.xMap + 1, this.yMap, false) : 0
+                this.game.map.isBlock(this.xMap, this.yMap - 1) ? this.game.map.blowingUpBlock(this.xMap, this.yMap - 1, false) : 0
+                this.game.map.isBlock(this.xMap, this.yMap + 1) ? this.game.map.blowingUpBlock(this.xMap, this.yMap + 1, false) : 0
                 if (this.range == 2 && (this.LEFT || this.RIGHT || this.UP || this.DOWN)) {
-                    if (this.LEFT) {
+                    if (this.LEFT && !this.game.map.isWall(this.xMap - 1, this.yMap)) {
                         this.game.map.isBlock(this.xMap - 2, this.yMap) ? this.game.map.blowingUpBlock(this.xMap - 2, this.yMap, true) : 0
                     }
-                    if (this.RIGHT) {
+                    if (this.RIGHT && !this.game.map.isWall(this.xMap + 1, this.yMap)) {
                         this.game.map.isBlock(this.xMap + 2, this.yMap) ? this.game.map.blowingUpBlock(this.xMap + 2, this.yMap, true) : 0
                     }
-                    if (this.UP) {
+                    if (this.UP && !this.game.map.isWall(this.xMap, this.yMap - 1)) {
                         this.game.map.isBlock(this.xMap, this.yMap - 2) ? this.game.map.blowingUpBlock(this.xMap, this.yMap - 2, true) : 0
                     }
-                    if (this.DOWN) {
+                    if (this.DOWN && !this.game.map.isWall(this.xMap, this.yMap + 1)) {
                         this.game.map.isBlock(this.xMap, this.yMap + 2) ? this.game.map.blowingUpBlock(this.xMap, this.yMap + 2, true) : 0
                     }
                 }

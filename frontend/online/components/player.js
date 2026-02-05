@@ -193,16 +193,13 @@ export class Player {
         this.right()
         this.left()
 
-        if (this.isLocal) console.log("putBomb", this.putBomb, "canPutBomb", this.canPutBomb, "bombCount", this.state.bombCount, "maxBombs", this.state.maxBombs);
-
         if (this.putBomb && this.canPutBomb) {
-            if (this.state.bombCount <= 0) 
-            {
+            if (this.state.bombCount <= 0) {
                 this.putBomb = false
             } else {
                 this.putBomb = false;
                 this.canPutBomb = false;
-                this.networkManager.sendPlaceBomb()       
+                this.networkManager.sendPlaceBomb()
             }
         }
 

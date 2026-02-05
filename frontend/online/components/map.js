@@ -206,6 +206,7 @@ export class Map {
 
     Canmove = (row, col) => this.gridArray[row] && this.gridArray[row][col] === 0;
     isBlock = (x, y) => this.gridArray[y] && this.gridArray[y][x] === consts.BLOCK;
+    isWall = (x, y) => this.gridArray[y] && this.gridArray[y][x] === consts.WALL;
 
     isFreeSpaceInGrid = (x, y) => this.gridArray[y] && this.gridArray[y][x] !== consts.BLOCK && this.gridArray[y][x] !== consts.WALL;
 
