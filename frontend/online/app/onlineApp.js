@@ -417,9 +417,18 @@ export class OnlineApp {
                             tag: 'button',
                             attributes: {
                                 class: 'game-over-restart-btn',
+                                style: 'background: var(--accent-color); border: none; padding: 0.8rem 2rem; font-size: 1rem; font-family: "Press Start 2P", cursive; color: white; cursor: pointer; border-radius: 8px; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3);',
                                 onclick: () => {
                                     window.location.href = '/';
                                     gameOverScreen.remove();
+                                },
+                                onmouseover: (e) => {
+                                    e.target.style.transform = 'translateY(-2px)';
+                                    e.target.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
+                                },
+                                onmouseout: (e) => {
+                                    e.target.style.transform = 'translateY(0)';
+                                    e.target.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
                                 }
                             },
                             children: ['New Game']
