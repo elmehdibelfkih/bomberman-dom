@@ -24,7 +24,8 @@ export class Player {
             lives: playerData.lives,
             bombCount: playerData.bombCount,
             maxBombs: playerData.bombCount, // Assuming bombCount from data is maxBombs
-            bombRange: playerData.bombRange
+            // bombRange: playerData.bombRange
+            bombRange: 2
             // bombRange: playerData.bombRange
         };
         this.x = playerData.x;
@@ -96,8 +97,6 @@ export class Player {
 
         this.x = serverData.x;
         this.y = serverData.y;
-        this.x = serverData.x;
-        this.y = serverData.y;
         this.state.speed = serverData.speed;
         this.state.bombCount = serverData.bombCount;
         this.state.bombRange = serverData.bombRange;
@@ -107,7 +106,9 @@ export class Player {
         const dx = this.x - oldX;
         const dy = this.y - oldY;
 
-        this.state.direction = "walking" + serverData.direction.charAt(0) + serverData.direction.slice(1).toLowerCase();
+        if (serverData.direction) {
+            this.state.direction = "walking" + serverData.direction.charAt(0) + serverData.direction.slice(1).toLowerCase();
+        }
 
         if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
             this.state.movement = true;
@@ -133,7 +134,7 @@ export class Player {
         // If error is significant, correct position
         if (error > 5) {
             // todo: fix that
-            console.log("hani kayan ghalat");
+            console.log("hani kayan ghalat: ", serverData);
 
             this.x = serverX;
             this.y = serverY;
