@@ -170,6 +170,14 @@ export const MessageBuilder = {
     };
   },
 
+  speedReset(playerId, speed) {
+    return {
+      type: 'SPEED_RESET',
+      playerId,
+      speed,
+    }
+  },
+
   gameOver(winner) {
     return {
       type: 'GAME_OVER',
