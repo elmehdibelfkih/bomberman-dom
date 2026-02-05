@@ -66,7 +66,7 @@ export class Player extends Entity {
             gridY: this.gridY,
             lives: this.lives,
             speed: this.speed,
-            bombCount: this.maxBombs,
+            maxBombs: this.maxBombs,
             bombRange: this.bombRange,
             alive: this.alive
         };

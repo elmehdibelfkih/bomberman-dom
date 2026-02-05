@@ -92,15 +92,15 @@ export class Player {
         const oldX = this.x;
         const oldY = this.y;
 
-        this.x = serverData.x;
-        this.y = serverData.y;
-        this.x = serverData.x;
-        this.y = serverData.y;
-        this.state.speed = serverData.speed;
-        this.state.bombCount = serverData.bombCount;
-        this.state.bombRange = serverData.bombRange;
-        this.state.isDead = !serverData.alive;
-        this.state.dying = !serverData.alive;
+        if (serverData.x !== undefined) this.x = serverData.x;
+        if (serverData.y !== undefined) this.y = serverData.y;
+        if (serverData.speed !== undefined) this.state.speed = serverData.speed;
+        if (serverData.maxBombs !== undefined) this.state.maxBombs = serverData.maxBombs;
+        if (serverData.bombRange !== undefined) this.state.bombRange = serverData.bombRange;
+        if (serverData.alive !== undefined) {
+            this.state.isDead = !serverData.alive;
+            this.state.dying = !serverData.alive;
+        }
 
         const dx = this.x - oldX;
         const dy = this.y - oldY;
