@@ -378,6 +378,14 @@ export class OnlineApp {
 
 
     gameOverHandler(winnerName) {
+        const header = document.getElementById('header-container');
+        const game = document.getElementById('grid-container');
+        const chat = document.getElementById('game-chat-container');
+
+        if (header) header.classList.add('blur-background');
+        if (game) game.classList.add('blur-background');
+        if (chat) chat.classList.add('blur-background');
+
         setTimeout(() => {
             const myNickname = sessionStorage.getItem('playerNickname');
             const isWinner = winnerName === myNickname;

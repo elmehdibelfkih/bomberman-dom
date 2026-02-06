@@ -1360,3 +1360,10 @@ div[class*="soft-block"] img {
   color: var(--text-secondary);
   font-weight: bold;
 }
+/* Animation for game over */
+.blur-background {
+    filter: blur(5px) brightness(0.7);
+    transition: filter 0.5s ease-out, transform 0.5s ease-out;
+    transform: scale(1.02);
+}
+
