@@ -378,67 +378,69 @@ export class OnlineApp {
 
 
     gameOverHandler(winnerName) {
-        const myNickname = sessionStorage.getItem('playerNickname');
-        const isWinner = winnerName === myNickname;
-        
-        const gameOverScreen = dom({
-            tag: 'div',
-            attributes: { class: 'game-over-screen' },
-            children: [
-                {
-                    tag: 'div',
-                    attributes: { class: 'game-over-content' },
-                    children: [
-                        {
-                            tag: 'h2',
-                            attributes: { 
-                                class: 'game-over-title',
-                                style: `color: ${isWinner ? 'var(--timer-color)' : 'var(--accent-color)'};`
-                            },
-                            children: [isWinner ? '🎉 CONGRATULATIONS! 🎉' : 'GAME OVER']
-                        },
-                        {
-                            tag: 'p',
-                            attributes: { 
-                                class: 'game-over-message',
-                                style: 'font-size: 1.2rem; margin: 1rem 0; color: white;'
-                            },
-                            children: [isWinner ? `You are the champion!` : `Winner: ${winnerName}`]
-                        },
-                        {
-                            tag: 'p',
-                            attributes: { 
-                                class: 'game-over-subtitle',
-                                style: `font-size: 0.9rem; color: ${isWinner ? 'var(--timer-color)' : '#888'}; margin-bottom: 2rem;`
-                            },
-                            children: [isWinner ? 'Well played!' : 'Better luck next time!']
-                        },
-                        {
-                            tag: 'button',
-                            attributes: {
-                                class: 'game-over-restart-btn',
-                                style: 'background: var(--accent-color); border: none; padding: 0.8rem 2rem; font-size: 1rem; font-family: "Press Start 2P", cursive; color: white; cursor: pointer; border-radius: 8px; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3);',
-                                onclick: () => {
-                                    window.location.href = '/';
-                                    gameOverScreen.remove();
+        setTimeout(() => {
+            const myNickname = sessionStorage.getItem('playerNickname');
+            const isWinner = winnerName === myNickname;
+            
+            const gameOverScreen = dom({
+                tag: 'div',
+                attributes: { class: 'game-over-screen' },
+                children: [
+                    {
+                        tag: 'div',
+                        attributes: { class: 'game-over-content' },
+                        children: [
+                            {
+                                tag: 'h2',
+                                attributes: { 
+                                    class: 'game-over-title',
+                                    style: `color: ${isWinner ? 'var(--timer-color)' : 'var(--accent-color)'};`
                                 },
-                                onmouseover: (e) => {
-                                    e.target.style.transform = 'translateY(-2px)';
-                                    e.target.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
-                                },
-                                onmouseout: (e) => {
-                                    e.target.style.transform = 'translateY(0)';
-                                    e.target.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
-                                }
+                                children: [isWinner ? '🎉 CONGRATULATIONS! 🎉' : 'GAME OVER']
                             },
-                            children: ['New Game']
-                        }
-                    ]
-                }
-            ]
-        });
+                            {
+                                tag: 'p',
+                                attributes: { 
+                                    class: 'game-over-message',
+                                    style: 'font-size: 1.2rem; margin: 1rem 0; color: white;'
+                                },
+                                children: [isWinner ? `You are the champion!` : `Winner: ${winnerName}`]
+                            },
+                            {
+                                tag: 'p',
+                                attributes: { 
+                                    class: 'game-over-subtitle',
+                                    style: `font-size: 0.9rem; color: ${isWinner ? 'var(--timer-color)' : '#888'}; margin-bottom: 2rem;`
+                                },
+                                children: [isWinner ? 'Well played!' : 'Better luck next time!']
+                            },
+                            {
+                                tag: 'button',
+                                attributes: {
+                                    class: 'game-over-restart-btn',
+                                    style: 'background: var(--accent-color); border: none; padding: 0.8rem 2rem; font-size: 1rem; font-family: "Press Start 2P", cursive; color: white; cursor: pointer; border-radius: 8px; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3);',
+                                    onclick: () => {
+                                        window.location.href = '/';
+                                        gameOverScreen.remove();
+                                    },
+                                    onmouseover: (e) => {
+                                        e.target.style.transform = 'translateY(-2px)';
+                                        e.target.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
+                                    },
+                                    onmouseout: (e) => {
+                                        e.target.style.transform = 'translateY(0)';
+                                        e.target.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
+                                    }
+                                },
+                                children: ['New Game']
+                            }
+                        ]
+                    }
+                ]
+            });
 
-        document.body.appendChild(gameOverScreen);
+            document.body.appendChild(gameOverScreen);
+        }, 2000);
     }
 
     async startMultiplayerGame() {
