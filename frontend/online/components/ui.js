@@ -19,18 +19,20 @@ export class UI {
         existingCards.forEach(card => card.remove());
 
         // Create and append player cards
-        players.forEach(player => {
-            const playerCard = this.createPlayerCard(player);
+        players.forEach(playerData => {
+            const playerObject = this.game.players.get(playerData.playerId);
+            const playerIndex = playerObject ? playerObject.playerIndex : -1;
+            const playerCard = this.createPlayerCard(playerData, playerIndex);
             playersInfo.appendChild(playerCard);
-            this.playerElements.set(player.playerId, playerCard);
+            this.playerElements.set(playerData.playerId, playerCard);
         });
     }
 
-    createPlayerCard(player) {
+    createPlayerCard(player, playerIndex) {
         const playerCard = dom({
             tag: 'div',
             attributes: {
-                class: `player-card ${!player.alive ? 'dead' : ''}`,
+                class: `player-card ${!player.alive ? 'dead' : ''} player-card-filter-${playerIndex}`,
                 'data-player-id': player.playerId,
                 'data-alive': player.alive
             },

@@ -1382,3 +1382,32 @@ div[class*="soft-block"] img {
 .player-filter-3 {
     filter: grayscale(100%); /* Black and White */
 }
+
+/* Player card filters */
+.player-card-filter-0 {
+    border-color: var(--accent-color);
+}
+
+.player-card-filter-1 {
+    border-color: #2ecc71; /* green */
+}
+
+.player-card-filter-1 .player-nickname {
+    color: #2ecc71;
+}
+
+.player-card-filter-2 {
+    border-color: #e74c3c; /* red */
+}
+
+.player-card-filter-2 .player-nickname {
+    color: #e74c3c;
+}
+
+.player-card-filter-3 {
+    border-color: #bdc3c7; /* gray */
+}
+
+.player-card-filter-3 .player-nickname {
+    color: #bdc3c7;
+}
