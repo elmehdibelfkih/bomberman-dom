@@ -1,5 +1,5 @@
 import * as consts from '../utils/consts.js';
-import { dom } from '../../framework/framework/index.js';
+import { createBombElement, createExplosionElement } from '../utils/helpers.js';
 
 export class Bomb {
     constructor(game, player, xMap, yMap, range = player.getBombRange()) {
@@ -25,26 +25,9 @@ export class Bomb {
 
     initBomb() {
         const size = this.game.map.mapData.block_size;
-        this.img = dom({
-            tag: 'img',
-            attributes: {
-                src: this.image
-            }
-        });
-        this.bomb = dom({
-            tag: 'div',
-            attributes: {
-                id: `bomb${this.id}`,
-                style: `
-                    opacity: 1;
-                    position: absolute;
-                    width: ${size}px;
-                    height: ${size}px;
-                    transform: translate(${this.xMap * size}px, ${this.yMap * size}px);
-                `
-            }
-        });
-        this.bomb.appendChild(this.img);
+        const { bomb, img } = createBombElement(this.id, this.xMap, this.yMap, size, this.image);
+        this.bomb = bomb;
+        this.img = img;
 
         this.game.map.grid.appendChild(this.bomb);
         this.game.map.gridArray[this.yMap][this.xMap] = consts.BOMB;
@@ -158,23 +141,9 @@ export class Bomb {
     async makeExplosion() {
         if (!this.exp) {
             this.exp = new Map();
-            const directionStyles = {
-                'DOWN': this.DOWN ? 'translate(-68px, 43px)' : 'translate(-68px, 34px)',
-                'LEFT': this.LEFT ? 'rotate(90deg) translate(-51px, 160px)' : 'rotate(90deg) translate(-17px, 119px)',
-                'UP': this.UP ? 'rotate(180deg) translate(68px, 144px)' : 'rotate(180deg) translate(68px, 68px)',
-                'RIGHT': this.RIGHT ? 'rotate(270deg) translate(51px, 17px)' : 'rotate(270deg) translate(17px, -17px)'
-            };
-
             for (const direction of this.freeBlocks) {
-                const expImg = dom({
-                    tag: 'img',
-                    attributes: {
-                        style: `
-                            position: absolute;
-                            transform: ${directionStyles[direction]};
-                        `
-                    }
-                });
+                const isExtended = (direction === 'DOWN' && this.DOWN) || (direction === 'UP' && this.UP) || (direction === 'LEFT' && this.LEFT) || (direction === 'RIGHT' && this.RIGHT);
+                const expImg = createExplosionElement(direction, isExtended);
                 this.exp.set(direction, expImg);
                 this.bomb.appendChild(expImg);
             }
@@ -199,12 +168,8 @@ export class Bomb {
         this.done = true;
         this.active = false;
         if (this.bomb && this.bomb.parentNode) this.bomb.parentNode.removeChild(this.bomb);
-        // this.player.decrementBombCount();
         this.bomb = null;
         this.img = null;
         this.exp = null;
     }
 }
-
-
-

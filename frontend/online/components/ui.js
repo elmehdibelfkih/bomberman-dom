@@ -1,5 +1,5 @@
 import { NetworkManager } from '../network/networkManager.js';
-import { dom } from '../../framework/framework/index.js';
+import { createPlayerCard, createPingDisplay } from '../utils/helpers.js';
 
 export class UI {
     constructor(game) {
@@ -22,100 +22,10 @@ export class UI {
         players.forEach(playerData => {
             const playerObject = this.game.players.get(playerData.playerId);
             const playerIndex = playerObject ? playerObject.playerIndex : -1;
-            const playerCard = this.createPlayerCard(playerData, playerIndex);
+            const playerCard = createPlayerCard(playerData, playerIndex);
             playersInfo.appendChild(playerCard);
             this.playerElements.set(playerData.playerId, playerCard);
         });
-    }
-
-    createPlayerCard(player, playerIndex) {
-        const playerCard = dom({
-            tag: 'div',
-            attributes: {
-                class: `player-card ${!player.alive ? 'dead' : ''} player-card-filter-${playerIndex}`,
-                'data-player-id': player.playerId,
-                'data-alive': player.alive
-            },
-            children: [
-                {
-                    tag: 'div',
-                    attributes: { class: 'player-nickname' },
-                    children: [player.nickname]
-                },
-                {
-                    tag: 'div',
-                    attributes: { class: 'player-stats' },
-                    children: [
-                        {
-                            tag: 'div',
-                            attributes: { class: 'player-stat lives-stat' },
-                            children: [
-                                {
-                                    tag: 'span',
-                                    attributes: { class: 'stat-icon' },
-                                    children: ['❤️']
-                                },
-                                {
-                                    tag: 'span',
-                                    attributes: { class: 'stat-value lives-value' },
-                                    children: [player.lives.toString()]
-                                }
-                            ]
-                        },
-                        {
-                            tag: 'div',
-                            attributes: { class: 'player-stat bomb-stat' },
-                            children: [
-                                {
-                                    tag: 'span',
-                                    attributes: { class: 'stat-icon' },
-                                    children: ['💣']
-                                },
-                                {
-                                    tag: 'span',
-                                    attributes: { class: 'stat-value bomb-value' },
-                                    children: [player.bombCount.toString()]
-                                }
-                            ]
-                        },
-                        {
-                            tag: 'div',
-                            attributes: { class: 'player-stat range-stat' },
-                            children: [
-                                {
-                                    tag: 'span',
-                                    attributes: { class: 'stat-icon' },
-                                    children: ['🔥']
-                                },
-                                {
-                                    tag: 'span',
-                                    attributes: { class: 'stat-value range-value' },
-                                    children: [player.bombRange.toString()]
-                                }
-                            ]
-                        },
-                        {
-                            tag: 'div',
-                            attributes: { class: 'player-stat speed-stat' },
-                            children: [
-                                {
-                                    tag: 'span',
-                                    attributes: { class: 'stat-icon' },
-                                    children: ['🚀']
-                                },
-                                {
-                                    tag: 'span',
-                                    attributes: { class: 'stat-value speed-value' },
-                                    children: [player.speed.toString()]
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        });
-
-        return playerCard;
     }
 
     updatePlayerState(playerId, updates) {
@@ -162,14 +72,7 @@ export class UI {
         if (playersInfo) {
             let pingDisplay = document.getElementById('ping-display');
             if (!pingDisplay) {
-                pingDisplay = dom({
-                    tag: 'div',
-                    attributes: {
-                        id: 'ping-display',
-                        class: 'ping-display'
-                    },
-                    children: ['Ping: ...']
-                });
+                pingDisplay = createPingDisplay();
                 playersInfo.appendChild(pingDisplay);
             }
 

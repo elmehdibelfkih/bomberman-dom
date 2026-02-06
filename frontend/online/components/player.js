@@ -1,7 +1,6 @@
-import { dom, eventManager } from '../../framework/framework/index.js';
+import { eventManager } from '../../framework/framework/index.js';
 import { NetworkManager } from "../network/networkManager.js";
-// import { ui } from "./ui.js";
-
+import { createPlayerElement, createPlayerExplosionElement } from '../utils/helpers.js';
 
 export class Player {
     constructor(game, playerData, isLocal = false, playerIndex) {
@@ -40,13 +39,7 @@ export class Player {
         this.playerCoordinate = await fetch(`../assets/playerCoordinate.json`).then(res => res.json())
         if (this.player) this.game.grid.removeChild(this.player)
         this.dyingSound = new Audio(this.game.map.mapData.dying_sound);
-        this.player = dom({
-            tag: 'div',
-            attributes: {
-                class: `player player-filter-${this.playerIndex}`
-            }
-        });
-        this.player.appendChild(this.dyingSound);
+        this.player = createPlayerElement(this.playerIndex, this.dyingSound);
         this.game.map.grid.appendChild(this.player)
         await this.initClassData()
 
@@ -152,18 +145,7 @@ export class Player {
                 console.error("Playback failed:", err);
             });
             this.lastTimeDying = timestamp
-            const expSize = 64;
-            this.exp = dom({
-                tag: 'img',
-                attributes: {
-                    style: `
-                        position: absolute;
-                        transform: translate(${(this.x - 20)}px, ${this.y}px);
-                        width: ${expSize}px;
-                        height: ${expSize}px;
-                    `
-                }
-            })
+            this.exp = createPlayerExplosionElement(this.x, this.y);
             this.game.map.grid.appendChild(this.exp)
             this.explosionFrameIndex = 0
             this.explosionImg = this.game.map.mapData.player_explosion_img

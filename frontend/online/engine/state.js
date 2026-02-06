@@ -26,7 +26,6 @@ export class State {
     updateSoundIcon = () => {
         const ic = document.getElementById('volume-icon');
         if (!ic) return;
-        ic.src = this.#SOUND ? './icon/volume-2.svg' : './icon/volume-x.svg';
     };
 
     initArrowState() {
@@ -37,11 +36,9 @@ export class State {
         const ic = document.getElementById('volume-icon')
         if (!this.game.map.backGroundMusic) return;
         if (this.#SOUND) {
-            ic.src = './icon/volume-x.svg'
             this.game.map.backGroundMusic.volume = 0.0;
             this.#SOUND = false
         } else {
-            ic.src = './icon/volume-2.svg'
             this.game.map.backGroundMusic.volume = 0.3;
             this.#SOUND = true
         }

@@ -1,6 +1,7 @@
 import * as consts from '../utils/consts.js';
-import { dom, eventManager } from '../../framework/framework/index.js';
+import { eventManager } from '../../framework/framework/index.js';
 import { Bomb } from "./bomb.js";
+import { createGridElement, createGridContainerElement, createGridTileElement, createTileContentElement, createPowerUpElement } from '../utils/helpers.js';
 
 export class Map {
     constructor(game, mapData) {
@@ -42,42 +43,11 @@ export class Map {
         this.gridArray = this.mapData.initial_grid.map(row => [...row]);
 
         // Create grid container using framework DOM
-        this.grid = dom({
-            tag: 'div',
-            attributes: {
-                id: 'grid',
-                style: `
-          position: relative;
-          width: ${this.mapData.initial_grid[0].length * this.mapData.block_size}px;
-          height: ${this.mapData.initial_grid.length * this.mapData.block_size}px;
-          border: 3px solid var(--accent-color);
-          border-radius: var(--border-radius-sm);
-          box-shadow: 0 0 20px rgba(255, 71, 87, 0.3), inset 0 0 10px var(--shadow-dark);
-          background: var(--primary-bg);
-        `
-            },
-            children: () => this.createGridTiles()
-        });
+        this.grid = createGridElement(this.mapData, () => this.createGridTiles());
 
         // Create container if not exists
         if (!this.container) {
-            this.container = dom({
-                tag: 'div',
-                attributes: {
-                    id: 'grid-container',
-                    style: `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1;
-          `
-                }
-            });
+            this.container = createGridContainerElement();
             this.container.appendChild(this.grid);
             document.body.insertBefore(this.container, document.body.firstChild);
         } else {
@@ -94,22 +64,7 @@ export class Map {
 
         this.mapData.initial_grid.forEach((row, colIndex) => {
             row.forEach((cell, rowIndex) => {
-                const tileConfig = {
-                    tag: 'div',
-                    attributes: {
-                        'data-row-index': rowIndex,
-                        'data-col-index': colIndex,
-                        style: `
-                            position: absolute;
-                            width: ${tileSize}px;
-                            height: ${tileSize}px;
-                            background-size: cover;
-                            background-image: url('${cell === consts.WALL ? this.mapData.wall : this.mapData.floor}');
-                            transform: translate(${tileSize * rowIndex}px, ${tileSize * colIndex}px);
-                        `
-                    },
-                    children: this.createTileContent(cell, rowIndex, colIndex)
-                };
+                const tileConfig = createGridTileElement(rowIndex, colIndex, tileSize, cell, this.mapData, (cell, rowIndex, colIndex) => this.createTileContent(cell, rowIndex, colIndex));
                 gridTileConfigs.push(tileConfig);
             });
         });
@@ -122,18 +77,7 @@ export class Map {
 
         // Add blocks
         if (cell === consts.BLOCK) {
-            const blockImgConfig = {
-                tag: 'img',
-                attributes: {
-                    src: this.mapData.block,
-                    id: rowIndex.toString() + colIndex.toString(),
-                    style: `
-                        width: 100%;
-                        height: 100%;
-                        image-rendering: pixelated;
-                    `
-                }
-            };
+            const blockImgConfig = createTileContentElement(this.mapData, rowIndex, colIndex);
             childrenConfigs.push(blockImgConfig);
         }
 
@@ -161,26 +105,7 @@ export class Map {
         );
         if (!tile) return;
 
-        const powerupImages = {
-            8: this.mapData.bomb_img,
-            9: this.mapData.flame_img,
-            10: this.mapData.speed_img,
-        };
-
-        const powerup = dom({
-            tag: 'img',
-            attributes: {
-                src: powerupImages[powerupType],
-                id: powerupId,
-                class: 'powerup',
-                style: `
-                    width: 30px;
-                    height: 40px;
-                    position: absolute;
-                    transform: translate(20px, 10px);
-                `
-            }
-        });
+        const powerup = createPowerUpElement(powerupId, powerupType, this.mapData);
 
         tile.appendChild(powerup);
     }
