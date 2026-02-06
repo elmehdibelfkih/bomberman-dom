@@ -2,8 +2,8 @@ import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { Logger } from '../utils/Logger.js';
 import { fileURLToPath } from 'url';
-import { GAME_CONFIG } from '../../shared/game-config.js';
-import { BLOCK } from '../../shared/constants.js';
+import { GAME_CONFIG } from '../../config/game-config.js';
+import { BLOCK } from '../../config/constants.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

@@ -10,8 +10,6 @@ import { Connection } from './network/Connection.js'
 import { WebSocketServer } from 'ws'
 import { fileURLToPath } from 'url'
 
-console.log('🔥 SERVER: Starting server initialization...');
-
 const PORT = 9090
 const STATIC_PATH = '../frontend'
 
@@ -64,7 +62,6 @@ export function initServer(directoryPath) {
 }
 
 const httpServer = initServer(frontendPath).listen(PORT, '0.0.0.0', () => {
-    console.log('🔥 SERVER STARTED: Server running on port', PORT);
     Logger.info(`server running on: http://localhost:${PORT}`);
 })
 
@@ -80,7 +77,6 @@ wss.on('connection', (ws, req) => {
     connections.add(conn)
 
     ws.on('message', (data) => {
-        console.log('🔥 SERVER: Raw message received:', data.toString());
         messageHandler.handle(conn, data)
     })
 

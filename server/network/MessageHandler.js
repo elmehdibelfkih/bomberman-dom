@@ -42,7 +42,6 @@ export class MessageHandler {
                     break;
 
                 default:
-                    console.log('Unknown message type:', message.type);
                     this.sendError(connection, 'Unknown message type');
             }
         } catch (error) {

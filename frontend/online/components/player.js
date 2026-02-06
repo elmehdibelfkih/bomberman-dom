@@ -134,8 +134,6 @@ export class Player {
 
         // If error is significant, correct position
         if (error > 5) {
-            // todo: fix that
-            console.log("hani kayan ghalat");
             this.x = serverX;
             this.y = serverY;
         }

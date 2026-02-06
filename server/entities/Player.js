@@ -1,5 +1,5 @@
-import { INITIAL_SPEED } from "../../shared/constants.js";
-import { GAME_CONFIG } from "../../shared/game-config.js";
+import { INITIAL_SPEED } from "../../config/constants.js";
+import { GAME_CONFIG } from "../../config/game-config.js";
 import { Entity } from "./Entity.js";
 
 export class Player extends Entity {

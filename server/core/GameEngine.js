@@ -1,8 +1,7 @@
 import { Logger } from '../utils/Logger.js';
 import { MessageBuilder } from '../network/MessageBuilder.js';
-import { GAME_CONFIG } from '../../shared/game-config.js';
+import { GAME_CONFIG } from '../../config/game-config.js';
 import { AuthoritativeGameState } from './AuthoritativeGameState.js';
-import { INITIAL_SPEED } from '../../shared/constants.js';
 import { Player } from '../entities/Player.js';
 
 export class GameEngine {

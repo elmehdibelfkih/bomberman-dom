@@ -1,6 +1,6 @@
 import { MessageBuilder } from '../network/MessageBuilder.js';
-import { GAME_CONFIG } from '../../shared/game-config.js';
-import { BLOCK, FLOOR, POWERUP_BOMB, POWERUP_FLAME, POWERUP_SPEED, WALL } from '../../shared/constants.js';
+import { GAME_CONFIG } from '../../config/game-config.js';
+import { BLOCK, FLOOR, POWERUP_BOMB, POWERUP_FLAME, POWERUP_SPEED, WALL } from '../../config/constants.js';
 
 export class AuthoritativeGameState {
     constructor(gameRoom, gameEngine) {
@@ -291,7 +291,6 @@ export class AuthoritativeGameState {
         const destroyedBlocks = [];
         const damagedPlayers = [];
         let spawnedPowerUp = null;
-        console.log("EXPLOSIONS", explosions)
         // Process explosions
         explosions.forEach(explosion => {
             if (this.gameEngine.mapData.initial_grid[explosion.gridY][explosion.gridX] === BLOCK) {
@@ -396,7 +395,6 @@ export class AuthoritativeGameState {
             player.powerUpTimers.delete(type)
             player.speed--
             this.gameRoom.broadcast(MessageBuilder.speedReset(player.playerId, player.speed))
-            console.log("SPEED REMOVED")
         }, GAME_CONFIG.POWERUP_DURATION);
 
         player.powerUpTimers.set(type, powerUpTimerId)

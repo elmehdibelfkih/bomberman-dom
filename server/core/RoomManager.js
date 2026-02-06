@@ -1,5 +1,5 @@
 import { IdGenerator } from "../utils/IdGenerator.js"
-import { GAME_CONFIG } from "../../shared/game-config.js"
+import { GAME_CONFIG } from "../../config/game-config.js"
 import { MessageBuilder } from "../network/MessageBuilder.js"
 import { Logger } from '../utils/Logger.js'
 import { broadcastWs, broadcastExcludeWs } from '../helpers.js'
@@ -223,7 +223,6 @@ export class RoomManager {
     }
 
     handlePlayerMove(playerId, direction, sequenceNumber) {
-        console.log('🎮 SERVER: Processing player move for:', playerId, 'direction:', direction);
         const roomId = this.playerToRoom.get(playerId);
         if (!roomId) {
             Logger.warn(`Player ${playerId} not in any room`);

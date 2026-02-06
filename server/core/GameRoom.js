@@ -1,7 +1,7 @@
 import { Logger } from '../utils/Logger.js';
 import { MessageBuilder } from '../network/MessageBuilder.js';
-import { GAME_CONFIG } from '../../shared/game-config.js';
-import { INITIAL_LIVES, INITIAL_SPEED } from '../../shared/constants.js';
+import { GAME_CONFIG } from '../../config/game-config.js';
+import { INITIAL_LIVES, INITIAL_SPEED } from '../../config/constants.js';
 
 export class GameRoom {
     constructor(roomId, players, mapId, mapData) {
@@ -90,8 +90,6 @@ export class GameRoom {
     broadcast(message, excludePlayerId = null) {
         let sentCount = 0;
 
-        console.log('📡 SERVER: Broadcasting message type:', message.type, 'to room:', this.roomId);
-
         for (const [playerId, connection] of this.playerConnections.entries()) {
             if (playerId === excludePlayerId) {
                 continue;
@@ -104,7 +102,6 @@ export class GameRoom {
             sentCount++;
         }
 
-        console.log('📡 SERVER: Broadcast sent to', sentCount, 'players');
         Logger.debug(`Broadcast ${message.type} to ${sentCount} players in room ${this.roomId}`);
     }
 
