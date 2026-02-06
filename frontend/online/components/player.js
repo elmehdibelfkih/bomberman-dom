@@ -4,11 +4,11 @@ import { NetworkManager } from "../network/networkManager.js";
 
 
 export class Player {
-
-    constructor(game, playerData, isLocal = false) {
+    constructor(game, playerData, isLocal = false, playerIndex) {
         this.networkManager = NetworkManager.getInstance()
         this.game = game;
         this.isLocal = isLocal;
+        this.playerIndex = playerIndex;
         this.state = {
             ARROW_UP: false,
             ARROW_DOWN: false,
@@ -43,7 +43,7 @@ export class Player {
         this.player = dom({
             tag: 'div',
             attributes: {
-                class: 'player'
+                class: `player player-filter-${this.playerIndex}`
             }
         });
         this.player.appendChild(this.dyingSound);

@@ -1367,3 +1367,18 @@ div[class*="soft-block"] img {
     transform: scale(1.02);
 }
 
+.player-filter-0 {
+    filter: none;
+}
+
+.player-filter-1 {
+    filter: hue-rotate(90deg) saturate(10); /* Green */
+}
+
+.player-filter-2 {
+    filter: hue-rotate(330deg) saturate(5); /* Red */
+}
+
+.player-filter-3 {
+    filter: grayscale(100%); /* Black and White */
+}

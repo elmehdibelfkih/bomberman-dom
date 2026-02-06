@@ -28,8 +28,10 @@ export class Game {
 
         this.players = new Map();
 
+        let playerIndex = 0;
         for (const playerData of Object.values(gameData.players)) {
-            this.players.set(playerData.playerId, new Player(this, playerData, playerData.playerId === this.networkManager.getPlayerId()));
+            this.players.set(playerData.playerId, new Player(this, playerData, playerData.playerId === this.networkManager.getPlayerId(), playerIndex));
+            playerIndex++;
         }
         this.ui = UI.getInstance(this)
         this.IDRE = null

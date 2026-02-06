@@ -490,8 +490,6 @@ export class OnlineApp {
 
         await new Promise(r => setTimeout(r, 50));
         this.game.run();
-
-        this.setupGameChat();
     }
 
     setupGameChat() {
