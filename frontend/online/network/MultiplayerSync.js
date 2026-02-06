@@ -98,11 +98,6 @@ export function setupMultiplayerSync(game, networkManager) {
         }
     });
 
-    // Handle game over
-    networkManager.on('GAME_OVER', (data) => {
-        console.log('Game Over! Winner:', data.winner);
-    });
-
     networkManager.on('SPEED_RESET', (data) => {
         const player = game.players.get(data.playerId);
         if (player) {
