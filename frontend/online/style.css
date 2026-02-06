@@ -1411,3 +1411,18 @@ div[class*="soft-block"] img {
 .player-card-filter-3 .player-nickname {
     color: #bdc3c7;
 }
+
+@keyframes powerUpCollectedEffect {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2);
+  }
+}
+
+.powerup-collected {
+  animation: powerUpCollectedEffect 0.6s ease-out forwards;
+}

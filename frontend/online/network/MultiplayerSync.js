@@ -49,15 +49,18 @@ export function setupMultiplayerSync(game, networkManager) {
 
         const powerupElement = document.getElementById(data.powerupId);
         if (powerupElement) {
-            powerupElement.remove();
+            const audio = new Audio('/assets/audios/CoinGet.mp3');
+            audio.play().catch(err => console.error(err));
+            powerupElement.classList.add('powerup-collected');
+            setTimeout(() => {
+                powerupElement.remove();
+            }, 600);
         }
 
         const player = game.players.get(data.playerId);
         if (player && data.newStats) {
             const oldMaxBombs = player.getMaxBombs();
 
-            // The user specified that the maximum number of bombs is 2.
-            // We'll cap the value from the server to enforce this rule on the client.
             const newMaxBombs = Math.min(data.newStats.maxBombs, 2);
 
             player.setBombRange(data.newStats.bombRange);
@@ -68,7 +71,6 @@ export function setupMultiplayerSync(game, networkManager) {
 
             if (bombCountDiff > 0) {
                 for (let i = 0; i < bombCountDiff; i++) {
-                    // Ensure bombCount does not exceed the new maxBombs limit.
                     if (player.getBombCount() < newMaxBombs) {
                         player.incrementBombCount();
                     }
