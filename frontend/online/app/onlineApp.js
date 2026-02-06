@@ -1,9 +1,21 @@
-import { Router, dom, usePathname } from "../../framework/framework/index.js";
+import { Router, usePathname } from "../../framework/framework/index.js";
 import { Game } from "../engine/core.js";
 import { UI } from "../components/ui.js";
 import { createEffect } from "../../framework/framework/state/signal.js";
 import { NetworkManager } from '../network/networkManager.js';
-import { getGameContainer, getLobbyContainer, getControlsContainer, showModal, getGameChatContainer, getEntryPageContainer } from "../utils/helpers.js";
+import { 
+    getGameContainer, 
+    getLobbyContainer, 
+    getControlsContainer, 
+    showModal, 
+    getEntryPageContainer,
+    createPlayerItem,
+    createChatMessage,
+    createErrorScreen,
+    createGameOverScreen,
+    createHeaderContainer,
+    createGameChatMessage
+} from "../utils/helpers.js";
 
 export class OnlineApp {
     constructor() {
@@ -292,14 +304,7 @@ export class OnlineApp {
 
             if (!playerEl) {
                 // Player is new, create element
-                playerEl = dom({
-                    tag: 'div',
-                    attributes: { class: 'player-item', 'data-player-id': player.playerId },
-                    children: [
-                        { tag: 'span', attributes: { class: 'player-number' } },
-                        { tag: 'span', attributes: { class: 'player-nickname' } },
-                    ]
-                });
+                playerEl = createPlayerItem(player);
             }
 
             // Update content
@@ -319,60 +324,13 @@ export class OnlineApp {
         const chatMessages = this.lobbyContainer.querySelector('#chat-messages');
         if (!chatMessages) return;
 
-        const messageEl = dom({
-            tag: 'div',
-            attributes: { class: 'chat-message' },
-            children: [
-                {
-                    tag: 'span',
-                    attributes: { class: 'chat-nickname' },
-                    children: [`${nickname}: `]
-                },
-                {
-                    tag: 'span',
-                    attributes: { class: 'chat-text' },
-                    children: [text]
-                }
-            ]
-        });
+        const messageEl = createChatMessage(nickname, text);
         chatMessages.appendChild(messageEl);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
     errorHandler(data) {
-        const errorScreen = dom({
-            tag: 'div',
-            attributes: { class: 'game-over-screen' },
-            children: [
-                {
-                    tag: 'div',
-                    attributes: { class: 'game-over-content error-content' },
-                    children: [
-                        {
-                            tag: 'h2',
-                            attributes: { class: 'game-over-title error-title' },
-                            children: ['Error']
-                        },
-                        {
-                            tag: 'p',
-                            attributes: { class: 'error-message' },
-                            children: [data.message || 'An unexpected error occurred']
-                        },
-                        {
-                            tag: 'button',
-                            attributes: {
-                                class: 'game-over-restart-btn',
-                                onclick: () => {
-                                    window.location.replace('/');
-                                }
-                            },
-                            children: ['Back to Home']
-                        }
-                    ]
-                }
-            ]
-        });
-
+        const errorScreen = createErrorScreen(data);
         document.body.appendChild(errorScreen);
     }
 
@@ -390,62 +348,7 @@ export class OnlineApp {
             const myNickname = sessionStorage.getItem('playerNickname');
             const isWinner = winnerName === myNickname;
             
-            const gameOverScreen = dom({
-                tag: 'div',
-                attributes: { class: 'game-over-screen' },
-                children: [
-                    {
-                        tag: 'div',
-                        attributes: { class: 'game-over-content' },
-                        children: [
-                            {
-                                tag: 'h2',
-                                attributes: { 
-                                    class: 'game-over-title',
-                                    style: `color: ${isWinner ? 'var(--timer-color)' : 'var(--accent-color)'};`
-                                },
-                                children: [isWinner ? '🎉 CONGRATULATIONS! 🎉' : 'GAME OVER']
-                            },
-                            {
-                                tag: 'p',
-                                attributes: { 
-                                    class: 'game-over-message',
-                                    style: 'font-size: 1.2rem; margin: 1rem 0; color: white;'
-                                },
-                                children: [isWinner ? `You are the champion!` : `Winner: ${winnerName}`]
-                            },
-                            {
-                                tag: 'p',
-                                attributes: { 
-                                    class: 'game-over-subtitle',
-                                    style: `font-size: 0.9rem; color: ${isWinner ? 'var(--timer-color)' : '#888'}; margin-bottom: 2rem;`
-                                },
-                                children: [isWinner ? 'Well played!' : 'Better luck next time!']
-                            },
-                            {
-                                tag: 'button',
-                                attributes: {
-                                    class: 'game-over-restart-btn',
-                                    style: 'background: var(--accent-color); border: none; padding: 0.8rem 2rem; font-size: 1rem; font-family: "Press Start 2P", cursive; color: white; cursor: pointer; border-radius: 8px; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3);',
-                                    onclick: () => {
-                                        window.location.href = '/';
-                                        gameOverScreen.remove();
-                                    },
-                                    onmouseover: (e) => {
-                                        e.target.style.transform = 'translateY(-2px)';
-                                        e.target.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
-                                    },
-                                    onmouseout: (e) => {
-                                        e.target.style.transform = 'translateY(0)';
-                                        e.target.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
-                                    }
-                                },
-                                children: ['New Game']
-                            }
-                        ]
-                    }
-                ]
-            });
+            const gameOverScreen = createGameOverScreen(isWinner, winnerName);
 
             document.body.appendChild(gameOverScreen);
         }, 2000);
@@ -454,31 +357,13 @@ export class OnlineApp {
     async startMultiplayerGame() {
         document.body.innerHTML = '';
 
-        const headerContainer = dom({
-            tag: 'div',
-            attributes: { id: 'header-container' },
-            children: [
-                {
-                    tag: 'div',
-                    attributes: { id: 'players-info', class: 'players-info' },
-                    children: [
-                        {
-                            tag: 'h3',
-                            attributes: {},
-                            children: ['Players']
-                        }
-                    ]
-                }
-            ]
-        });
+        const headerContainer = createHeaderContainer();
         headerContainer.appendChild(getControlsContainer());
 
         const gameContainer = getGameContainer();
-        const chatContainer = getGameChatContainer();
 
         document.body.appendChild(headerContainer);
         document.body.appendChild(gameContainer);
-        document.body.appendChild(chatContainer);
 
 
         this.game = Game.getInstance(this.gameData);
@@ -537,22 +422,7 @@ export class OnlineApp {
         const chatMessages = document.getElementById('chat-messages-game');
         if (!chatMessages) return;
 
-        const messageEl = dom({
-            tag: 'div',
-            attributes: { class: 'game-chat-message' },
-            children: [
-                {
-                    tag: 'span',
-                    attributes: { class: 'game-chat-nickname' },
-                    children: [`${nickname}: `]
-                },
-                {
-                    tag: 'span',
-                    attributes: { class: 'game-chat-text' },
-                    children: [text]
-                }
-            ]
-        });
+        const messageEl = createGameChatMessage(nickname, text);
 
         chatMessages.appendChild(messageEl);
         chatMessages.scrollTop = chatMessages.scrollHeight;
